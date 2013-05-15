@@ -10,6 +10,7 @@ path = require('path')
 glob = require 'glob'
 fs = require 'fs'
 mangler = require './lib/mangler'
+sequence = require('when/sequence')
 
 
 
@@ -21,8 +22,9 @@ mangler = require './lib/mangler'
 # Labels are chapters that lack a filename and generate no spine, ncx, or manifest entries.
 
 chapterTemplates = {
-  manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}
-    {{ subChapters.epubManifest }}{{/if}}'
+  manifest: '{{#if this.nomanifest }}
+    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}
+    {{ subChapters.epubManifest }}{{/if}}{{/if}}'
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
     {{ subChapters.epubSpine }}{{/if}}'
   nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
@@ -40,10 +42,10 @@ chapterTemplates = {
 }
 
 bookTemplates = {
-  manifest: '{{#each chapters }}{{ this.epubManifest }}{{/each}}'
-  spine: '{{#each chapters }}{{ this.epubSpine }}{{/each}}'
-  nav: '{{#each chapters }}{{ this.navList }}{{/each}}'
-  ncx: '{{#each chapters }}{{ this.epubNCX }}{{/each}}'
+  manifest: '{{#each chapters }}{{{ this.epubManifest }}}{{/each}}'
+  spine: '{{#each chapters }}{{{ this.epubSpine }}}{{/each}}'
+  nav: '{{#each chapters }}{{{ this.navList }}}{{/each}}'
+  ncx: '{{#each chapters }}{{{ this.epubNCX }}}{{/each}}'
 }
 
 for own tempname, template of chapterTemplates
@@ -98,11 +100,11 @@ extendChapter = (Chapter) ->
   return Chapter
 
 extendBook = (Book) ->
-  Object.defineProperty Book.prototype, 'chapterList', {
-    get: ->
-      findSubs(@chapters)
-    enumerable: true
-  }
+  # Object.defineProperty Book.prototype, 'chapterList', {
+  #   get: ->
+  #     findSubs(@chapters)
+  #   enumerable: true
+  # }
 
   Object.defineProperty Book.prototype, 'epubManifest', {
     get: ->
@@ -140,10 +142,14 @@ extendBook = (Book) ->
     enumerable: true
   }
 
-  Book.prototype.addChaptersToZip = (zip) ->
-    chapterFn = (chapter) ->
+  chapterTask = (chapter, zip) ->
+    return () ->
       chapter.addToZip(zip)
-    whenjs.map(@chapters, chapterFn)
+  Book.prototype.addChaptersToZip = (zip) ->
+    tasks = []
+    for chapter in @chapters
+      tasks.push(chapterTask(chapter, zip))
+    sequence tasks
 
   Book.prototype.toEpub = toEpub
 
@@ -198,36 +204,58 @@ renderEpub = (book, out, resolver) ->
  #    });
 
 extendAssets = (Assets) ->
+  zipTask = (item, root, zip) ->
+    return () ->
+      deferred = whenjs.defer()
+      promise = deferred.promise
+      process.nextTick(() ->
+        file = fs.readFile(root + item, (err, data) ->
+          if err
+            deferred.reject
+          else
+            zip.addFile(data, { name: item }, deferred.resolve)))
+      return promise
+  mangleTask = (item, root, zip, id) ->
+    return () ->
+      deferred = whenjs.defer()
+      promise = deferred.promise
+      process.nextTick(() ->
+        fs.readFile(root + item, (err, data) ->
+          if err
+            deferred.reject
+          else
+            file = mangler.mangle(data, id)
+            zip.addFile(file, { name: item }, deferred.resolve)))
+      return promise
+
   Assets.prototype.addToZip = (zip) ->
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
-    promises = []
+    tasks = []
     for type in types
-      promises.push(@addTypeToZip(type, zip))
-    whenjs.all(promises)
+      tasks.push(@addTypeToZip.bind(this, type, zip))
+    sequence tasks
   Assets.prototype.addTypeToZip = (type, zip) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    mapFn = (item) ->
-      file = fs.readFileSync @root + item
-      zip.add(file, { name: item })
-    getAssets(type, mapFn, deferred.resolver)
-    return promise
-  Assets.prototype.addMangledFontsToZip = (type, zip, id) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    mapFn = (item) ->
-      file = mangler.mangle(fs.readFileSync @root + item, id)
-      zip.add(file, { name: item })
-    getAssets(type, mapFn, deferred.resolver)
-    return promise
+    tasks = []
+    for item in this[type]
+      tasks.push(zipTask(item, @root, zip))
+    sequence tasks
+  Assets.prototype.addMangledFontsToZip = (zip, id) ->
+    tasks = []
+    for item in this['otf']
+      tasks.push(mangleTask(item, @root, zip, id))
+    for item in this['ttf']
+      tasks.push(mangleTask(item, @root, zip, id))
+    for item in this['woff']
+      tasks.push(mangleTask(item, @root, zip, id))
+    sequence tasks
   Assets.prototype.mangleFonts = (zip, id) ->
-    alltypes = [@addMangledFontsToZip('woff', zip, id),
-    @addMangledFontsToZip('ttf', zip, id),
-    @addMangledFontsToZip('otf', zip, id)]
     fonts = @ttf.concat(@otf, @woff)
-    whenjs.all(alltypes).then(()-> zip.add(@templates.encryption(fonts), { name: 'META-INF/encryption.xml' } ))
-  Assets.prototype.getAssets = (type, fn, resolver) ->
-    whenjs.map(this[type], fn).then(resolver.resolve, resolver.reject)
+    @addMangledFontsToZip(zip, id).then(()->
+      deferred = whenjs.defer()
+      promise = deferred.promise
+      process.nextTick(() ->
+        zip.addFile(templates.encryption(fonts), { name: 'META-INF/encryption.xml' }, deferred.resolve))
+      return promise)
   return Assets
 
 module.exports = {

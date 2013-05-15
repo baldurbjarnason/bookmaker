@@ -1,5 +1,5 @@
 'use strict';
-var bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, mangler, name, newtemplates, path, renderEpub, template, templates, tempname, temppath, toEpub, whenjs, zipStream, _i, _len,
+var bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, mangler, name, newtemplates, path, renderEpub, sequence, template, templates, tempname, temppath, toEpub, whenjs, zipStream, _i, _len,
   __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
@@ -20,9 +20,12 @@ fs = require('fs');
 
 mangler = require('./lib/mangler');
 
+sequence = require('when/sequence');
+
 chapterTemplates = {
-  manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}\
-    {{ subChapters.epubManifest }}{{/if}}',
+  manifest: '{{#if this.nomanifest }}\
+    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}\
+    {{ subChapters.epubManifest }}{{/if}}{{/if}}',
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\
     {{ subChapters.epubSpine }}{{/if}}',
   nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\
@@ -32,10 +35,10 @@ chapterTemplates = {
 };
 
 bookTemplates = {
-  manifest: '{{#each chapters }}{{ this.epubManifest }}{{/each}}',
-  spine: '{{#each chapters }}{{ this.epubSpine }}{{/each}}',
-  nav: '{{#each chapters }}{{ this.navList }}{{/each}}',
-  ncx: '{{#each chapters }}{{ this.epubNCX }}{{/each}}'
+  manifest: '{{#each chapters }}{{{ this.epubManifest }}}{{/each}}',
+  spine: '{{#each chapters }}{{{ this.epubSpine }}}{{/each}}',
+  nav: '{{#each chapters }}{{{ this.navList }}}{{/each}}',
+  ncx: '{{#each chapters }}{{{ this.epubNCX }}}{{/each}}'
 };
 
 for (tempname in chapterTemplates) {
@@ -108,12 +111,8 @@ extendChapter = function(Chapter) {
 };
 
 extendBook = function(Book) {
-  Object.defineProperty(Book.prototype, 'chapterList', {
-    get: function() {
-      return findSubs(this.chapters);
-    },
-    enumerable: true
-  });
+  var chapterTask;
+
   Object.defineProperty(Book.prototype, 'epubManifest', {
     get: function() {
       return bookTemplates.manifest(this);
@@ -152,13 +151,21 @@ extendBook = function(Book) {
     },
     enumerable: true
   });
-  Book.prototype.addChaptersToZip = function(zip) {
-    var chapterFn;
-
-    chapterFn = function(chapter) {
+  chapterTask = function(chapter, zip) {
+    return function() {
       return chapter.addToZip(zip);
     };
-    return whenjs.map(this.chapters, chapterFn);
+  };
+  Book.prototype.addChaptersToZip = function(zip) {
+    var chapter, tasks, _j, _len1, _ref;
+
+    tasks = [];
+    _ref = this.chapters;
+    for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+      chapter = _ref[_j];
+      tasks.push(chapterTask(chapter, zip));
+    }
+    return sequence(tasks);
   };
   Book.prototype.toEpub = toEpub;
   return Book;
@@ -209,62 +216,112 @@ renderEpub = function(book, out, resolver) {
 };
 
 extendAssets = function(Assets) {
+  var mangleTask, zipTask;
+
+  zipTask = function(item, root, zip) {
+    return function() {
+      var deferred, promise;
+
+      deferred = whenjs.defer();
+      promise = deferred.promise;
+      process.nextTick(function() {
+        var file;
+
+        return file = fs.readFile(root + item, function(err, data) {
+          if (err) {
+            return deferred.reject;
+          } else {
+            return zip.addFile(data, {
+              name: item
+            }, deferred.resolve);
+          }
+        });
+      });
+      return promise;
+    };
+  };
+  mangleTask = function(item, root, zip, id) {
+    return function() {
+      var deferred, promise;
+
+      deferred = whenjs.defer();
+      promise = deferred.promise;
+      process.nextTick(function() {
+        return fs.readFile(root + item, function(err, data) {
+          var file;
+
+          if (err) {
+            return deferred.reject;
+          } else {
+            file = mangler.mangle(data, id);
+            return zip.addFile(file, {
+              name: item
+            }, deferred.resolve);
+          }
+        });
+      });
+      return promise;
+    };
+  };
   Assets.prototype.addToZip = function(zip) {
-    var promises, type, types, _j, _len1;
+    var tasks, type, types, _j, _len1;
 
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
-    promises = [];
+    tasks = [];
     for (_j = 0, _len1 = types.length; _j < _len1; _j++) {
       type = types[_j];
-      promises.push(this.addTypeToZip(type, zip));
+      tasks.push(this.addTypeToZip.bind(this, type, zip));
     }
-    return whenjs.all(promises);
+    return sequence(tasks);
   };
   Assets.prototype.addTypeToZip = function(type, zip) {
-    var deferred, mapFn, promise;
+    var item, tasks, _j, _len1, _ref;
 
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    mapFn = function(item) {
-      var file;
-
-      file = fs.readFileSync(this.root + item);
-      return zip.add(file, {
-        name: item
-      });
-    };
-    getAssets(type, mapFn, deferred.resolver);
-    return promise;
+    tasks = [];
+    _ref = this[type];
+    for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+      item = _ref[_j];
+      tasks.push(zipTask(item, this.root, zip));
+    }
+    return sequence(tasks);
   };
-  Assets.prototype.addMangledFontsToZip = function(type, zip, id) {
-    var deferred, mapFn, promise;
+  Assets.prototype.addMangledFontsToZip = function(zip, id) {
+    var item, tasks, _j, _k, _l, _len1, _len2, _len3, _ref, _ref1, _ref2;
 
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    mapFn = function(item) {
-      var file;
-
-      file = mangler.mangle(fs.readFileSync(this.root + item, id));
-      return zip.add(file, {
-        name: item
-      });
-    };
-    getAssets(type, mapFn, deferred.resolver);
-    return promise;
+    tasks = [];
+    _ref = this['otf'];
+    for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+      item = _ref[_j];
+      tasks.push(mangleTask(item, this.root, zip, id));
+    }
+    _ref1 = this['ttf'];
+    for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+      item = _ref1[_k];
+      tasks.push(mangleTask(item, this.root, zip, id));
+    }
+    _ref2 = this['woff'];
+    for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
+      item = _ref2[_l];
+      tasks.push(mangleTask(item, this.root, zip, id));
+    }
+    return sequence(tasks);
   };
   Assets.prototype.mangleFonts = function(zip, id) {
-    var alltypes, fonts;
+    var fonts;
 
-    alltypes = [this.addMangledFontsToZip('woff', zip, id), this.addMangledFontsToZip('ttf', zip, id), this.addMangledFontsToZip('otf', zip, id)];
     fonts = this.ttf.concat(this.otf, this.woff);
-    return whenjs.all(alltypes).then(function() {
-      return zip.add(this.templates.encryption(fonts), {
-        name: 'META-INF/encryption.xml'
+    return this.addMangledFontsToZip(zip, id).then(function() {
+      var deferred, promise;
+
+      deferred = whenjs.defer();
+      promise = deferred.promise;
+      process.nextTick(function() {
+        return zip.addFile(templates.encryption(fonts), {
+          name: 'META-INF/encryption.xml'
+        }, deferred.resolve);
       });
+      return promise;
     });
-  };
-  Assets.prototype.getAssets = function(type, fn, resolver) {
-    return whenjs.map(this[type], fn).then(resolver.resolve, resolver.reject);
   };
   return Assets;
 };

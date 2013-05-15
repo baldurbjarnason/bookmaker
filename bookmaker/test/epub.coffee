@@ -121,16 +121,92 @@ describe 'EpubChapter',
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/test.zip')
             zip.pipe(out)
-            zip.add = callbacks.promisify(zip.addFile, {
-              callback: -1
-              })
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].addToZip(zip).then(() ->
               zip.finalize((written) ->
                 written.should.equal(417)
                 done()))
+testassets = {}
+describe 'EpubAssets',
+  () ->
+    beforeEach () ->
+      testassets = new index.Assets('test/files/', 'assets/')
+
+    describe '#addTypeToZip',
+      () ->
+        it 'Adds all assets of a type to zip',
+          (done) ->
+            zip = zipStream.createZip({ level: 1 })
+            out = fs.createWriteStream('test/files/js.zip')
+            zip.pipe(out)
+            testassets.addTypeToZip('js', zip).then(() ->
+              zip.finalize((written) ->
+                written.should.equal(62918)
+                done()))
+    describe '#addToZip',
+      () ->
+        it 'Adds all assets to zip',
+          (done) ->
+            zip = zipStream.createZip({ level: 1 })
+            out = fs.createWriteStream('test/files/assets.zip')
+            zip.pipe(out)
+            testassets.addToZip(zip).then(() ->
+              zip.finalize((written) ->
+                written.should.equal(335230)
+                done()))
+    describe '#mangleFonts',
+      () ->
+        it 'Adds all assets to zip',
+          (done) ->
+            zip = zipStream.createZip({ level: 1 })
+            out = fs.createWriteStream('test/files/mangledfonts.zip')
+            zip.pipe(out)
+            testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D").then(() ->
+              zip.finalize((written) ->
+                written.should.equal(124664)
+                done()))
 
 
-
+describe 'EpubBook',
+  () ->
+    before () ->
+      testbook = new Book({
+        title: 'The Wonderful Wizard of Oz',
+        author: 'L. Frank Baum',
+        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsRoot: '../' })
+      for chap in testchapters
+        testbook.addChapter(new Chapter(chap))
+    describe '#epubManifest',
+      () ->
+        it 'Renders the manifest xml for epub',
+          () ->
+            testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\"/>\n")
+    describe '#epubSpine',
+      () ->
+        it 'Renders the spine xml for epub',
+          () ->
+            testbook.epubSpine.should.equal("<itemref idref=\"doc1\" linear=\"yes\"></itemref>\n<itemref idref=\"htmlexample\" linear=\"yes\"></itemref>\n<itemref idref=\"doc2\" linear=\"yes\"></itemref>\n<itemref idref=\"doc3\" linear=\"yes\"></itemref>\n")
+    describe '#navList',
+      () ->
+        it 'Renders the nav li html for epub',
+          () ->
+            testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\">Markdown</a>\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\">HTML</a>\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\">XHTML</a>\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\">Template</a>\n</li>\n")
+    describe '#epubNCX',
+      () ->
+        it 'Renders the ncx xml for epub',
+          () ->
+            testbook.epubNCX.should.equal("<navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-5\" playOrder=\"5\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
+    describe '#addChaptersToZip',
+      () ->
+        it 'Adds all chapters to zip',
+          (done) ->
+            zip = zipStream.createZip({ level: 1 })
+            out = fs.createWriteStream('test/files/chapters.zip')
+            zip.pipe(out)
+            testbook.addChaptersToZip(zip).then(() ->
+              zip.finalize((written) ->
+                written.should.equal(1533)
+                done()))
 
 

@@ -54,14 +54,7 @@
     {{#each assets.js}}
     <item id="{{ globalCounter }}" href="{{ this }}" media-type="application/javascript"/>
     {{/each}}
-
-    {{#each outline}}
-    {{#if this.nomanifest }}
-    {{else}}<item id="{{ this.id }}" href="{{ this.filename }}" media-type="application/xhtml+xml"
-    {{#if this.svg }}properties="svg"{{/if}}/>
-    {{/if}}
-    {{/each}}
-
+    {{{ epubManifest }}}
 	<item id="cover" href="cover.html" media-type="application/xhtml+xml" />  
 	<item id="nav" href="index.html" media-type="application/xhtml+xml" properties="nav"/>
   </manifest>
