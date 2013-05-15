@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
+<head>
+<title>{{ meta.title }}</title>
+{{#each assets.css}}
+<link href="{{ this }}" type="text/css" rel="stylesheet" />
+{{/each}}
+<style type="text/css">img{ max-width: 100%; }</style>
+</head>
+<body class="cover">
+<div id="cover-image">
+<img src="cover.jpg" alt="Cover image for {{ meta.title }}" />
+</div>
+</body>
+</html>

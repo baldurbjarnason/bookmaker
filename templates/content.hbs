@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="en" unique-identifier="uid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title id="title">{{ meta.title }}</dc:title>
+    <dc:creator>{{ meta.author }}</dc:creator>
+    {{#if meta.author2 }}
+    <dc:creator>{{ meta.author2 }}</dc:creator>
+    {{/if}}
+    <dc:identifier id="uid" >{{ meta.bookId }}</dc:identifier>
+    <dc:language>{{ meta.lang }}</dc:language>    
+    <meta property="dcterms:modified">{{ meta.modified.isoDate }}</meta>
+    <dc:date>{{ meta.date.isoDate }}</dc:date>
+    <dc:rights>Copyright {{ meta.copyrightYear }} {{ meta.author }}{{#if meta.author2 }} and {{ meta.author2 }}{{/if}}</dc:rights>
+    <dc:description>{{ meta.description }}</dc:description>
+    <dc:publisher>{{ meta.publisher }}</dc:publisher>
+    <dc:subject>{{ meta.subject1 }}</dc:subject>
+    {{#if meta.subject2 }}
+    <dc:subject>{{ meta.subject2 }}</dc:subject>
+    {{/if}}
+    {{#if meta.subject3 }}
+    <dc:subject>{{ meta.subject3 }}</dc:subject>
+    {{/if}}
+    <meta name="cover" content="bookcover" />
+    <meta property="ibooks:specified-fonts">true</meta>
+    <meta property="ibooks:version">{{ meta.version }}</meta>
+</metadata>
+  <manifest>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+    <item id="bookcover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>
+    {{#each assets.css}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="text/css"/>
+    {{/each}}
+    {{#each assets.jpg}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="image/jpeg"/>
+    {{/each}}
+    {{#each assets.png}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="image/png"/>
+    {{/each}}
+    {{#each assets.gif}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="image/gif"/>
+    {{/each}}
+    {{#each assets.svg}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="image/svg+xml"/>
+    {{/each}}
+    {{#each assets.ttf}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="application/x-font-ttf"/>
+    {{/each}}
+    {{#each assets.otf}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="application/x-font-otf"/>
+    {{/each}}
+    {{#each assets.woff}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="application/x-font-woff"/>
+    {{/each}}
+    {{#each assets.js}}
+    <item id="{{ globalCounter }}" href="{{ this }}" media-type="application/javascript"/>
+    {{/each}}
+
+    {{#each outline}}
+    {{#if this.nomanifest }}
+    {{else}}<item id="{{ this.id }}" href="{{ this.filename }}" media-type="application/xhtml+xml"
+    {{#if this.svg }}properties="svg"{{/if}}/>
+    {{/if}}
+    {{/each}}
+
+	<item id="cover" href="cover.html" media-type="application/xhtml+xml" />  
+	<item id="nav" href="index.html" media-type="application/xhtml+xml" properties="nav"/>
+  </manifest>
+  <spine toc="ncx">
+  <itemref idref="cover" linear="no"></itemref>
+  {{#each outline}}
+  <itemref idref="{{ this.id }}" linear="yes"></itemref>
+  {{/each}}
+  </spine>
+      <guide>
+        <reference type="cover" title="Cover" href="cover.html"></reference>
+        {{! <reference type="toc" title="Contents" href="index.html"></reference> }}
+        {{opftoc outline}}
+    </guide>
+</package>

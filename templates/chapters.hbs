@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
+<head>
+<title>{{ title }} – {{ meta.title }}</title>
+{{#each assets.css}}
+<link href="../{{ this }}" type="text/css" rel="stylesheet" />
+{{/each}}
+{{#each assets.js}}
+<script src="../{{ this }}" type="application/javascript"></script>
+{{/each}}
+</head>
+<body class="chapterBody {{ id }}" id="{{ id }}">
+<h1>{{ title }}</h1>
+
+{{process body }}
+</body>
+</html>

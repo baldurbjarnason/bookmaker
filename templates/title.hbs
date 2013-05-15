@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
+<head>
+<title>{{ meta.title }}</title>
+{{#each assets.css}}
+<link href="{{ this }}" type="text/css" rel="stylesheet" />
+{{/each}}
+</head>
+<body class="title">
+<h1>{{ meta.title }}</h1>
+<h2>{{ meta.author }}</h2>
+{{#if meta.author2 }}<h2>{{ meta.author2 }}</h2>{{/if}}
+</body>
+</html>
