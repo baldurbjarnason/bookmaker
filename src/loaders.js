@@ -7,11 +7,11 @@ path = require('path');
 
 yaml = require('js-yaml');
 
-Assets = require('./assets.coffee');
+Assets = require('./assets');
 
-Chapter = require('./chapter.coffee');
+Chapter = require('./chapter');
 
-SubOutline = require('./book.coffee').SubOutline;
+SubOutline = require('./book').SubOutline;
 
 loadFile = function(filename) {
   var basepath, doc, docs, file;
@@ -44,6 +44,7 @@ loadTxt = function(booktxt) {
       title: 'Table of Contents',
       nomanifest: true,
       majornavitem: true,
+      template: 'nav.hbs',
       toc: true
     },
     'title': {

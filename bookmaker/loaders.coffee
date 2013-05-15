@@ -3,9 +3,9 @@
 fs = require('fs')
 path = require('path')
 yaml = require('js-yaml')
-Assets = require './assets.coffee'
-Chapter = require './chapter.coffee'
-SubOutline = require('./book.coffee').SubOutline
+Assets = require './assets'
+Chapter = require './chapter'
+SubOutline = require('./book').SubOutline
 
 
 loadFile= (filename) ->
@@ -31,6 +31,7 @@ loadTxt = (booktxt) ->
       title: 'Table of Contents',
       nomanifest: true,
       majornavitem: true,
+      template: 'nav.hbs',
       toc: true
     },
     'title': {

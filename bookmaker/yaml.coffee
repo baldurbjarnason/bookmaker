@@ -2,9 +2,9 @@
 
 fs = require('fs')
 yaml = require('js-yaml')
-Assets = require './assets.coffee'
-Chapter = require './chapter.coffee'
-book = require './book.coffee'
+Assets = require './assets'
+Chapter = require './chapter'
+book = require './book'
 
 titlecounter = 0
 titlegen = (chapter) ->

@@ -1,9 +1,9 @@
 'use strict'
 
 handlebars = require('handlebars')
-helpers = require('./hbs.js')
-Assets = require './assets.coffee'
-Chapter = require './chapter.coffee'
+helpers = require('./lib/hbs')
+Assets = require './assets'
+Chapter = require './chapter'
 
 
 class Book
@@ -18,47 +18,44 @@ class Book
     if @meta.sharedAssetsFolder and !(@sharedAssets?)
       @sharedAssets = new Assets(@meta.sharedAssetsRoot, @meta.sharedAssetsFolder)
     @docIdCount = 0
-  docID: () ->
-    docIdCount++
-    return "doc" + docIdCount
-  addChapter: (chapter) ->
-    chapter.book = this
+  docId: () ->
+    @docIdCount++
+    return "doc" + @docIdCount
+  addChapter: (chapter, bookoverride) ->
+    chapter.book = this or bookoverride
     chapter.id = @docId() unless chapter.id
-    chapter.filename = 'chapters/doc' + chapter.id + '.html' unless chapter.filename
+    chapter.filename = 'chapters/' + chapter.id + '.html' unless chapter.filename
     if chapter.subChapters
       chapter.subChapters = new SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
-  everyChapter: (callback) ->
-    for chapter in @chapters
-      callback(chapter)
-      if chapter.subChapters
-        chapter.subChapters.everyChapter(callback)
-  context = () ->
+  context: () ->
     context = {
       meta: @meta,
       assets: @assets,
-      outline: @chapters
+      chapters: @chapters
     }
     return context
 
+
+  # everyChapter: (callback) ->
+  #   for chapter in @chapters
+  #     callback(chapter)
+  #     if chapter.subChapters
+  #       chapter.subChapters.everyChapter(callback)
 
 class SubOutline extends Book
   constructor: (sub, @book) ->
     @chapters = []
     for entry in sub
-      if typeof entry is 'string'
-        @loadFile(entry)
-      else
-        chapter = new Chapter(entry)
-        chapter.book = @book
-        if entry.subChapters
-          chapter.subChapters = new SubOutline(entry.subChapters, this)
-        @addChapter(chapter)
-    docID: ->
-      @book.docID()
+      chapter = new Chapter(entry)
+      if entry.subChapters
+        chapter.subChapters = new SubOutline(entry.subChapters, @book)
+      @addChapter(chapter, @book)
+    docId: ->
+      @book.docId()
 
-require('./epub.coffee').extend(Chapter, Book, Assets)
-require('./loaders.coffee').extend(Book)
+require('./epub').extend(Chapter, Book, Assets)
+require('./loaders').extend(Book)
 
 module.exports = {
   Book: Book

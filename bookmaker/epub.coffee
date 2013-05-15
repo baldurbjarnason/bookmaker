@@ -5,11 +5,11 @@ handlebars = require('handlebars')
 helpers = require('./lib/hbs.js')
 whenjs = require('when')
 callbacks = require 'when/callbacks'
-templates = require '../lib/templates.js'
+templates = require '../lib/templates'
 path = require('path')
 glob = require 'glob'
 fs = require 'fs'
-mangler = require './mangler.js'
+mangler = require './lib/mangler'
 
 
 
@@ -131,10 +131,11 @@ extendBook = (Book) ->
 
   Book.prototype.toEpub = toEpub
 
-  newtemplates = glob.sync('templates/**/*.hbs')
-  newtemplates.concat(glob.sync(path.join(@root, 'templates/**/*.hbs')))
+  newtemplates = glob.sync(path.resolve module.filename, '../../', 'templates/**/*.hbs')
+  newtemplates.concat(glob.sync('templates/**/*.hbs'))
+  # newtemplates.concat(glob.sync(path.join(@root, 'templates/**/*.hbs')))
   for temppath in newtemplates
-    name = temppath.basename template, temppath.extname template
+    name = path.basename temppath, path.extname temppath
     template = fs.readFileSync temppath, 'utf8'
     templates[name] = handlebars.compile template
 

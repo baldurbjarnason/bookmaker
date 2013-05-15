@@ -11,7 +11,7 @@ whenjs = require('when');
 
 callbacks = require('when/callbacks');
 
-templates = require('../lib/templates.js');
+templates = require('../lib/templates');
 
 path = require('path');
 
@@ -19,7 +19,7 @@ glob = require('glob');
 
 fs = require('fs');
 
-mangler = require('./mangler.js');
+mangler = require('./lib/mangler');
 
 chapterTemplates = {
   manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"\
@@ -147,11 +147,11 @@ extendBook = function(Book) {
     return whenjs.map(this.chapters, chapterFn);
   };
   Book.prototype.toEpub = toEpub;
-  newtemplates = glob.sync('templates/**/*.hbs');
-  newtemplates.concat(glob.sync(path.join(this.root, 'templates/**/*.hbs')));
+  newtemplates = glob.sync(path.resolve(module.filename, '../../', 'templates/**/*.hbs'));
+  newtemplates.concat(glob.sync('templates/**/*.hbs'));
   for (_i = 0, _len = newtemplates.length; _i < _len; _i++) {
     temppath = newtemplates[_i];
-    name = temppath.basename(template, temppath.extname(template));
+    name = path.basename(temppath, path.extname(temppath));
     template = fs.readFileSync(temppath, 'utf8');
     templates[name] = handlebars.compile(template);
   }

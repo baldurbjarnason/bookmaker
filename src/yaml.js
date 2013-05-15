@@ -5,11 +5,11 @@ fs = require('fs');
 
 yaml = require('js-yaml');
 
-Assets = require('./assets.coffee');
+Assets = require('./assets');
 
-Chapter = require('./chapter.coffee');
+Chapter = require('./chapter');
 
-book = require('./book.coffee');
+book = require('./book');
 
 titlecounter = 0;
 

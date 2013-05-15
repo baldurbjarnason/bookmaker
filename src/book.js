@@ -5,15 +5,13 @@ var Assets, Book, Chapter, SubOutline, handlebars, helpers,
 
 handlebars = require('handlebars');
 
-helpers = require('./hbs.js');
+helpers = require('./lib/hbs');
 
-Assets = require('./assets.coffee');
+Assets = require('./assets');
 
-Chapter = require('./chapter.coffee');
+Chapter = require('./chapter');
 
 Book = (function() {
-  var context;
-
   function Book(meta, assets, sharedAssets) {
     this.assets = assets;
     this.sharedAssets = sharedAssets;
@@ -31,18 +29,18 @@ Book = (function() {
     this.docIdCount = 0;
   }
 
-  Book.prototype.docID = function() {
-    docIdCount++;
-    return "doc" + docIdCount;
+  Book.prototype.docId = function() {
+    this.docIdCount++;
+    return "doc" + this.docIdCount;
   };
 
-  Book.prototype.addChapter = function(chapter) {
-    chapter.book = this;
+  Book.prototype.addChapter = function(chapter, bookoverride) {
+    chapter.book = this || bookoverride;
     if (!chapter.id) {
       chapter.id = this.docId();
     }
     if (!chapter.filename) {
-      chapter.filename = 'chapters/doc' + chapter.id + '.html';
+      chapter.filename = 'chapters/' + chapter.id + '.html';
     }
     if (chapter.subChapters) {
       chapter.subChapters = new SubOutline(chapter.subChapters, this);
@@ -50,28 +48,13 @@ Book = (function() {
     return this.chapters.push(chapter);
   };
 
-  Book.prototype.everyChapter = function(callback) {
-    var chapter, _i, _len, _ref, _results;
+  Book.prototype.context = function() {
+    var context;
 
-    _ref = this.chapters;
-    _results = [];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      chapter = _ref[_i];
-      callback(chapter);
-      if (chapter.subChapters) {
-        _results.push(chapter.subChapters.everyChapter(callback));
-      } else {
-        _results.push(void 0);
-      }
-    }
-    return _results;
-  };
-
-  context = function() {
     context = {
       meta: this.meta,
       assets: this.assets,
-      outline: this.chapters
+      chapters: this.chapters
     };
     return context;
   };
@@ -90,20 +73,15 @@ SubOutline = (function(_super) {
     this.chapters = [];
     for (_i = 0, _len = sub.length; _i < _len; _i++) {
       entry = sub[_i];
-      if (typeof entry === 'string') {
-        this.loadFile(entry);
-      } else {
-        chapter = new Chapter(entry);
-        chapter.book = this.book;
-        if (entry.subChapters) {
-          chapter.subChapters = new SubOutline(entry.subChapters, this);
-        }
-        this.addChapter(chapter);
+      chapter = new Chapter(entry);
+      if (entry.subChapters) {
+        chapter.subChapters = new SubOutline(entry.subChapters, this.book);
       }
+      this.addChapter(chapter, this.book);
     }
     ({
-      docID: function() {
-        return this.book.docID();
+      docId: function() {
+        return this.book.docId();
       }
     });
   }
@@ -112,9 +90,9 @@ SubOutline = (function(_super) {
 
 })(Book);
 
-require('./epub.coffee').extend(Chapter, Book, Assets);
+require('./epub').extend(Chapter, Book, Assets);
 
-require('./loaders.coffee').extend(Book);
+require('./loaders').extend(Book);
 
 module.exports = {
   Book: Book,
