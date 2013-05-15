@@ -1,11 +1,9 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, handlebars, helpers,
+var Assets, Book, Chapter, SubOutline, handlebars,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 handlebars = require('handlebars');
-
-helpers = require('./lib/hbs');
 
 Assets = require('./assets');
 
@@ -15,10 +13,11 @@ Book = (function() {
   function Book(meta, assets, sharedAssets) {
     this.assets = assets;
     this.sharedAssets = sharedAssets;
-    helpers.register(handlebars);
     this.chapters = [];
     this.root = meta.bookFolder || process.cwd();
     this.meta = meta;
+    this._chapterIndex = 1;
+    this._navPoint = 1;
     if (!this.assets) {
       this.assetsFolder = this.meta.assetsFolder || 'assets/';
       this.assets = new Assets(this.root, this.assetsFolder);
@@ -81,7 +80,10 @@ SubOutline = (function(_super) {
     }
     ({
       docId: function() {
-        return this.book.docId();
+        var id;
+
+        id = this.book.docId();
+        return id;
       }
     });
   }
@@ -89,10 +91,6 @@ SubOutline = (function(_super) {
   return SubOutline;
 
 })(Book);
-
-require('./epub').extend(Chapter, Book, Assets);
-
-require('./loaders').extend(Book);
 
 module.exports = {
   Book: Book,

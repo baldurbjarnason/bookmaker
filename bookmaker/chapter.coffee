@@ -6,35 +6,34 @@ mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES])
 $ = require 'jquery'
 Assets = require './assets'
 _ = require 'underscore'
+handlebars = require('handlebars')
+whenjs = require('when')
 
 class Chapter
   constructor: (doc) ->
     _.extend this, doc
-  context = () ->
-    context = {
-      meta: @book.meta,
-      assets: @book.assets,
-      outline: @book.chapters
-    }
-    _.extend context, this
-    return context
+  context: () =>
+    @meta = @book.meta unless @meta
+    @assets = @book.assets unless @assets
+    @chapters = @book.chapters unless @chapters
+    return this
+
+toHtml = ->
+  switch @type
+    when 'md'
+      processHTML mdparser.render @body
+    when 'html'
+      processHTML @body
+    when 'hbs'
+      bodytemplate = handlebars.compile @body
+      processHTML bodytemplate(@context())
+    when 'xhtml'
+      @body
 
 Object.defineProperty Chapter.prototype, 'html', {
   get: toHtml
   enumerable: true
 }
-toHtml = ->
-  switch @type
-    when 'md'
-      processHTML mdparser.render chapter.body
-    when 'html'
-      processHTML chapter.body
-    when 'hbs'
-      bodytemplate = handlebars.compile chapter.body
-      processHTML bodytemplate(chapter.context())
-    when 'xhtml'
-      chapter.body
-
 processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
@@ -61,7 +60,7 @@ Chapter.prototype.htmlPromise = () ->
   return promise
 
 Chapter.prototype.renderHtml = (resolver) ->
-  resolver.resolve(@toHtml)
+  resolver.resolve(@html)
 
 
 module.exports = Chapter

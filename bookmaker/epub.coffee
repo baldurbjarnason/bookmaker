@@ -5,7 +5,7 @@ handlebars = require('handlebars')
 helpers = require('./lib/hbs.js')
 whenjs = require('when')
 callbacks = require 'when/callbacks'
-templates = require '../lib/templates'
+# templates = require '../lib/templates'
 path = require('path')
 glob = require 'glob'
 fs = require 'fs'
@@ -21,23 +21,22 @@ mangler = require './lib/mangler'
 # Labels are chapters that lack a filename and generate no spine, ncx, or manifest entries.
 
 chapterTemplates = {
-  manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"
-    {{#if svg }}properties="svg"{{/if}}/>{{/if}}
-    {{ subChapters.epubManifest }}'
-  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>{{/if}}
-    {{ subChapters.epubSpine }}'
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>{{/if}}
-    {{ subChapters.navList }}
-    </li>'
-  ncx: '{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">
-            <navLabel>
-                <text>{{ title }}</text>
-            </navLabel>
-            <content src="{{ filename }}"></content>
-            {{ subChapters.epubNCX }}
-        </navPoint>{{else}}
-         {{ subChapters.epubNCX }}
-        {{/if}}'
+  manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}
+    {{ subChapters.epubManifest }}{{/if}}'
+  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
+    {{ subChapters.epubSpine }}{{/if}}'
+  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
+{{ subChapters.navList }}
+</li>\n'
+  ncx: '''
+{{#if filename }}<navPoint id="navPoint-{{ book.navPoint }}" playOrder="{{ book.chapterIndex }}">
+  <navLabel>
+      <text>{{ title }}</text>
+  </navLabel>
+  <content src="{{ filename }}"></content>
+{{ subChapters.epubNCX }}</navPoint>{{else}}
+ {{ subChapters.epubNCX }}
+{{/if}}'''
 }
 
 bookTemplates = {
@@ -47,51 +46,55 @@ bookTemplates = {
   ncx: '{{#each chapters }}{{ this.epubNCX }}{{/each}}'
 }
 
-for template of chapterTemplates
-  chapterTemplates[template] = handlebars.compile template
+for own tempname, template of chapterTemplates
+  chapterTemplates[tempname] = handlebars.compile template
 
+for tempname, template of bookTemplates
+  bookTemplates[tempname] = handlebars.compile template
 
-for template of bookTemplates
-  bookTemplates[template] = handlebars.compile template
+templates = {}
+newtemplates = glob.sync(path.resolve module.filename, '../../', 'templates/**/*.hbs')
+newtemplates.concat(glob.sync('templates/**/*.hbs'))
+# newtemplates.concat(glob.sync(path.join(@root, 'templates/**/*.hbs')))
+for temppath in newtemplates
+  name = path.basename temppath, path.extname temppath
+  template = fs.readFileSync temppath, 'utf8'
+  templates[name] = handlebars.compile template
 
 extendChapter = (Chapter) ->
   Object.defineProperty Chapter.prototype, 'epubManifest', {
     get: ->
-      chapterTemplates.manifest(this)
+      manifest = chapterTemplates.manifest(@context())
+      return manifest
     enumerable: true
   }
 
   Object.defineProperty Chapter.prototype, 'epubSpine', {
     get: ->
-      chapterTemplates.spine(this)
+      chapterTemplates.spine(@context())
     enumerable: true
   }
 
   Object.defineProperty Chapter.prototype, 'navList', {
     get: ->
-      chapterTemplates.nav(this)
+      chapterTemplates.nav(@context())
     enumerable: true
   }
 
   Object.defineProperty Chapter.prototype, 'epubNCX', {
     get: ->
-      chapterTemplates.ncx(this)
+      chapterTemplates.ncx(@context())
     enumerable: true
   }
 
-  Chapter.prototype.addToZip = (book, zip) ->
+  Chapter.prototype.addToZip = (zip) ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    @addToZipFn(book, zip, deferred.resolver)
-    return promise
-  Chapter.prototype.addToZipFn = (book, zip, resolver) ->
-    @htmlPromise.then(respond, resolver.reject)
-    context = @context()
+    context = @context
     fn = @filename
-    respond = (html) ->
-      zip.add(@book.templates.chapter(context), { name: fn })
-      resolver.resolve(fn)
-    return
+    process.nextTick(() ->
+      zip.addFile(templates.chapters(context()), { name: fn }, deferred.resolve))
+    return promise
   return Chapter
 
 extendBook = (Book) ->
@@ -124,22 +127,25 @@ extendBook = (Book) ->
       bookTemplates.ncx(this)
     enumerable: true
   }
+  Object.defineProperty Book.prototype, 'chapterIndex', {
+    get: ->
+      @_chapterIndex++
+      return @_chapterIndex
+    enumerable: true
+  }
+  Object.defineProperty Book.prototype, 'navPoint', {
+    get: ->
+      @_navPoint++
+      return @_navPoint
+    enumerable: true
+  }
+
   Book.prototype.addChaptersToZip = (zip) ->
     chapterFn = (chapter) ->
-      chapter.addToZip(this, zip)
+      chapter.addToZip(zip)
     whenjs.map(@chapters, chapterFn)
 
   Book.prototype.toEpub = toEpub
-
-  newtemplates = glob.sync(path.resolve module.filename, '../../', 'templates/**/*.hbs')
-  newtemplates.concat(glob.sync('templates/**/*.hbs'))
-  # newtemplates.concat(glob.sync(path.join(@root, 'templates/**/*.hbs')))
-  for temppath in newtemplates
-    name = path.basename temppath, path.extname temppath
-    template = fs.readFileSync temppath, 'utf8'
-    templates[name] = handlebars.compile template
-
-  Book.prototype.templates = templates
 
   return Book
 
@@ -229,4 +235,7 @@ module.exports = {
     extendChapter Chapter
     extendBook Book
     extendAssets Assets
+  extendChapter: extendChapter
+  extendBook: extendBook
+  extendAssets: extendAssets
 }

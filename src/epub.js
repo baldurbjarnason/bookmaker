@@ -1,5 +1,6 @@
 'use strict';
-var bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, mangler, path, renderEpub, template, templates, toEpub, whenjs, zipStream;
+var bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, mangler, name, newtemplates, path, renderEpub, template, templates, tempname, temppath, toEpub, whenjs, zipStream, _i, _len,
+  __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
 
@@ -11,8 +12,6 @@ whenjs = require('when');
 
 callbacks = require('when/callbacks');
 
-templates = require('../lib/templates');
-
 path = require('path');
 
 glob = require('glob');
@@ -22,23 +21,14 @@ fs = require('fs');
 mangler = require('./lib/mangler');
 
 chapterTemplates = {
-  manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"\
-    {{#if svg }}properties="svg"{{/if}}/>{{/if}}\
-    {{ subChapters.epubManifest }}',
-  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>{{/if}}\
-    {{ subChapters.epubSpine }}',
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>{{/if}}\
-    {{ subChapters.navList }}\
-    </li>',
-  ncx: '{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">\
-            <navLabel>\
-                <text>{{ title }}</text>\
-            </navLabel>\
-            <content src="{{ filename }}"></content>\
-            {{ subChapters.epubNCX }}\
-        </navPoint>{{else}}\
-         {{ subChapters.epubNCX }}\
-        {{/if}}'
+  manifest: '{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}\
+    {{ subChapters.epubManifest }}{{/if}}',
+  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\
+    {{ subChapters.epubSpine }}{{/if}}',
+  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\
+{{ subChapters.navList }}\
+</li>\n',
+  ncx: '{{#if filename }}<navPoint id="navPoint-{{ book.navPoint }}" playOrder="{{ book.chapterIndex }}">\n  <navLabel>\n      <text>{{ title }}</text>\n  </navLabel>\n  <content src="{{ filename }}"></content>\n{{ subChapters.epubNCX }}</navPoint>{{else}}\n {{ subChapters.epubNCX }}\n{{/if}}'
 };
 
 bookTemplates = {
@@ -48,66 +38,76 @@ bookTemplates = {
   ncx: '{{#each chapters }}{{ this.epubNCX }}{{/each}}'
 };
 
-for (template in chapterTemplates) {
-  chapterTemplates[template] = handlebars.compile(template);
+for (tempname in chapterTemplates) {
+  if (!__hasProp.call(chapterTemplates, tempname)) continue;
+  template = chapterTemplates[tempname];
+  chapterTemplates[tempname] = handlebars.compile(template);
 }
 
-for (template in bookTemplates) {
-  bookTemplates[template] = handlebars.compile(template);
+for (tempname in bookTemplates) {
+  template = bookTemplates[tempname];
+  bookTemplates[tempname] = handlebars.compile(template);
+}
+
+templates = {};
+
+newtemplates = glob.sync(path.resolve(module.filename, '../../', 'templates/**/*.hbs'));
+
+newtemplates.concat(glob.sync('templates/**/*.hbs'));
+
+for (_i = 0, _len = newtemplates.length; _i < _len; _i++) {
+  temppath = newtemplates[_i];
+  name = path.basename(temppath, path.extname(temppath));
+  template = fs.readFileSync(temppath, 'utf8');
+  templates[name] = handlebars.compile(template);
 }
 
 extendChapter = function(Chapter) {
   Object.defineProperty(Chapter.prototype, 'epubManifest', {
     get: function() {
-      return chapterTemplates.manifest(this);
+      var manifest;
+
+      manifest = chapterTemplates.manifest(this.context());
+      return manifest;
     },
     enumerable: true
   });
   Object.defineProperty(Chapter.prototype, 'epubSpine', {
     get: function() {
-      return chapterTemplates.spine(this);
+      return chapterTemplates.spine(this.context());
     },
     enumerable: true
   });
   Object.defineProperty(Chapter.prototype, 'navList', {
     get: function() {
-      return chapterTemplates.nav(this);
+      return chapterTemplates.nav(this.context());
     },
     enumerable: true
   });
   Object.defineProperty(Chapter.prototype, 'epubNCX', {
     get: function() {
-      return chapterTemplates.ncx(this);
+      return chapterTemplates.ncx(this.context());
     },
     enumerable: true
   });
-  Chapter.prototype.addToZip = function(book, zip) {
-    var deferred, promise;
+  Chapter.prototype.addToZip = function(zip) {
+    var context, deferred, fn, promise;
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    this.addToZipFn(book, zip, deferred.resolver);
-    return promise;
-  };
-  Chapter.prototype.addToZipFn = function(book, zip, resolver) {
-    var context, fn, respond;
-
-    this.htmlPromise.then(respond, resolver.reject);
-    context = this.context();
+    context = this.context;
     fn = this.filename;
-    respond = function(html) {
-      zip.add(this.book.templates.chapter(context), {
+    process.nextTick(function() {
+      return zip.addFile(templates.chapters(context()), {
         name: fn
-      });
-      return resolver.resolve(fn);
-    };
+      }, deferred.resolve);
+    });
+    return promise;
   };
   return Chapter;
 };
 
 extendBook = function(Book) {
-  var name, newtemplates, temppath, _i, _len;
-
   Object.defineProperty(Book.prototype, 'chapterList', {
     get: function() {
       return findSubs(this.chapters);
@@ -138,24 +138,29 @@ extendBook = function(Book) {
     },
     enumerable: true
   });
+  Object.defineProperty(Book.prototype, 'chapterIndex', {
+    get: function() {
+      this._chapterIndex++;
+      return this._chapterIndex;
+    },
+    enumerable: true
+  });
+  Object.defineProperty(Book.prototype, 'navPoint', {
+    get: function() {
+      this._navPoint++;
+      return this._navPoint;
+    },
+    enumerable: true
+  });
   Book.prototype.addChaptersToZip = function(zip) {
     var chapterFn;
 
     chapterFn = function(chapter) {
-      return chapter.addToZip(this, zip);
+      return chapter.addToZip(zip);
     };
     return whenjs.map(this.chapters, chapterFn);
   };
   Book.prototype.toEpub = toEpub;
-  newtemplates = glob.sync(path.resolve(module.filename, '../../', 'templates/**/*.hbs'));
-  newtemplates.concat(glob.sync('templates/**/*.hbs'));
-  for (_i = 0, _len = newtemplates.length; _i < _len; _i++) {
-    temppath = newtemplates[_i];
-    name = path.basename(temppath, path.extname(temppath));
-    template = fs.readFileSync(temppath, 'utf8');
-    templates[name] = handlebars.compile(template);
-  }
-  Book.prototype.templates = templates;
   return Book;
 };
 
@@ -205,12 +210,12 @@ renderEpub = function(book, out, resolver) {
 
 extendAssets = function(Assets) {
   Assets.prototype.addToZip = function(zip) {
-    var promises, type, types, _i, _len;
+    var promises, type, types, _j, _len1;
 
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
     promises = [];
-    for (_i = 0, _len = types.length; _i < _len; _i++) {
-      type = types[_i];
+    for (_j = 0, _len1 = types.length; _j < _len1; _j++) {
+      type = types[_j];
       promises.push(this.addTypeToZip(type, zip));
     }
     return whenjs.all(promises);
@@ -269,5 +274,8 @@ module.exports = {
     extendChapter(Chapter);
     extendBook(Book);
     return extendAssets(Assets);
-  }
+  },
+  extendChapter: extendChapter,
+  extendBook: extendBook,
+  extendAssets: extendAssets
 };

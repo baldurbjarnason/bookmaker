@@ -12,25 +12,25 @@ serializeOpts = {
   lowercase: true
 };
 
-register = function(Handlebars) {
-  var chapterIndex, globalCounter, navPoint, processHTML, renderHtmlToc;
+register = function(Handlebars, book) {
+  var processHTML, renderHtmlToc;
 
-  chapterIndex = 1;
-  navPoint = 1;
-  globalCounter = 0;
+  book.chapterIndex = 1;
+  book.navPoint = 1;
+  book.globalCounter = 0;
   Handlebars.registerHelper('chapterIndex', function() {
-    chapterIndex++;
-    return chapterIndex;
+    book.chapterIndex++;
+    return book.chapterIndex;
   });
   Handlebars.registerHelper('navPoint', function() {
-    navPoint++;
-    return navPoint;
+    book.navPoint++;
+    return book.navPoint;
   });
   Handlebars.registerHelper('globalCounter', function() {
     var counter;
 
-    globalCounter++;
-    counter = "c" + globalCounter;
+    book.globalCounter++;
+    counter = "c" + book.globalCounter;
     return counter;
   });
   Handlebars.registerHelper('chapterId', function(filepath) {

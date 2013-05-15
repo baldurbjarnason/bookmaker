@@ -2,7 +2,10 @@
 
 chai = require 'chai'
 should = chai.should()
-book = require '../src/book'
+index = require '../src/index'
+Chapter = index.Chapter
+Book = index.Book
+SubOutline = index.SubOutline
 
 testbook = {}
 testchapters =  {
@@ -81,7 +84,7 @@ testoutline = {
 describe 'Book',
   () ->
     beforeEach () ->
-      testbook = new book.Book({
+      testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
         sharedAssetsFolder: 'sharedassets/',
@@ -119,7 +122,8 @@ describe 'Book',
       () ->
         it 'should generate the appropriate properties but no more',
           () ->
-            testbook.addChapter(testchapters.chapter1)
+            testchapter = new Chapter(testchapters.chapter1)
+            testbook.addChapter(testchapter)
             testbook.chapters[0].should.have.property('body', '# This is Markdown!')
             testbook.chapters[0].should.have.property('type', 'md')
             testbook.chapters[0].should.have.property('id', 'doc1')
@@ -129,8 +133,8 @@ describe 'Book',
       () ->
         it 'should provide all necessary context for templates',
           () ->
-            for chapter in testchapters
-              testbook.addChapter(chapter)
+            for chapter in testoutline.subChapters
+              testbook.addChapter(new Chapter(chapter))
             testbook.context().should.have.property('meta', testbook.meta)
             testbook.context().should.have.property('assets', testbook.assets)
             testbook.context().should.have.property('chapters', testbook.chapters)
@@ -138,7 +142,7 @@ describe 'Book',
 describe 'SubOutline',
   () ->
     beforeEach () ->
-      testbook = new book.Book({
+      testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
         sharedAssetsFolder: 'sharedassets/',
@@ -147,10 +151,18 @@ describe 'SubOutline',
       () ->
         it 'should provide access to all subChapters',
           () ->
-            testbook.addChapter(testoutline)
-            console.log testbook.chapters[0].subChapters.chapters
+            testbook.addChapter(new Chapter(testoutline))
             testbook.chapters[0].should.have.property('subChapters')
             testbook.chapters[0].subChapters.should.have.property('book', testbook)
             testbook.chapters[0].subChapters.should.have.property('chapters')
             testbook.chapters[0].subChapters.chapters.should.be.instanceOf(Array)
             testbook.chapters[0].subChapters.chapters.should.have.length(4)
+    describe '#docId',
+      () ->
+        it 'should equal doc1, doc2, doc3, doc4',
+          () ->
+            testbook.docId().should.equal('doc1')
+            testbook.docId().should.equal('doc2')
+            testbook.docId().should.equal('doc3')
+            testbook.addChapter(testoutline)
+            testbook.docId().should.equal('doc4')

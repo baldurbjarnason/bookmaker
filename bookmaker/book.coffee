@@ -1,17 +1,17 @@
 'use strict'
 
 handlebars = require('handlebars')
-helpers = require('./lib/hbs')
 Assets = require './assets'
 Chapter = require './chapter'
 
 
 class Book
   constructor: (meta, @assets, @sharedAssets) ->
-    helpers.register(handlebars)
     @chapters = []
     @root = meta.bookFolder || process.cwd()
     @meta = meta
+    @_chapterIndex = 1
+    @_navPoint = 1
     unless @assets
       @assetsFolder = @meta.assetsFolder || 'assets/'
       @assets = new Assets(@root, @assetsFolder)
@@ -23,8 +23,10 @@ class Book
     return "doc" + @docIdCount
   addChapter: (chapter, bookoverride) ->
     chapter.book = this or bookoverride
-    chapter.id = @docId() unless chapter.id
-    chapter.filename = 'chapters/' + chapter.id + '.html' unless chapter.filename
+    unless chapter.id
+      chapter.id = @docId()
+    unless chapter.filename
+      chapter.filename = 'chapters/' + chapter.id + '.html'
     if chapter.subChapters
       chapter.subChapters = new SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
@@ -52,10 +54,8 @@ class SubOutline extends Book
         chapter.subChapters = new SubOutline(entry.subChapters, @book)
       @addChapter(chapter, @book)
     docId: ->
-      @book.docId()
-
-require('./epub').extend(Chapter, Book, Assets)
-require('./loaders').extend(Book)
+      id = @book.docId()
+      return id
 
 module.exports = {
   Book: Book

@@ -1,11 +1,17 @@
 'use strict';
-var book, chai, should, testbook, testchapters, testoutline;
+var Book, Chapter, SubOutline, chai, index, should, testbook, testchapters, testoutline;
 
 chai = require('chai');
 
 should = chai.should();
 
-book = require('../src/book');
+index = require('../src/index');
+
+Chapter = index.Chapter;
+
+Book = index.Book;
+
+SubOutline = index.SubOutline;
 
 testbook = {};
 
@@ -82,7 +88,7 @@ testoutline = {
 
 describe('Book', function() {
   beforeEach(function() {
-    return testbook = new book.Book({
+    return testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
       sharedAssetsFolder: 'sharedassets/',
@@ -120,7 +126,10 @@ describe('Book', function() {
   });
   describe('#addChapter', function() {
     return it('should generate the appropriate properties but no more', function() {
-      testbook.addChapter(testchapters.chapter1);
+      var testchapter;
+
+      testchapter = new Chapter(testchapters.chapter1);
+      testbook.addChapter(testchapter);
       testbook.chapters[0].should.have.property('body', '# This is Markdown!');
       testbook.chapters[0].should.have.property('type', 'md');
       testbook.chapters[0].should.have.property('id', 'doc1');
@@ -130,11 +139,12 @@ describe('Book', function() {
   });
   return describe('#context', function() {
     return it('should provide all necessary context for templates', function() {
-      var chapter, _i, _len;
+      var chapter, _i, _len, _ref;
 
-      for (_i = 0, _len = testchapters.length; _i < _len; _i++) {
-        chapter = testchapters[_i];
-        testbook.addChapter(chapter);
+      _ref = testoutline.subChapters;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        chapter = _ref[_i];
+        testbook.addChapter(new Chapter(chapter));
       }
       testbook.context().should.have.property('meta', testbook.meta);
       testbook.context().should.have.property('assets', testbook.assets);
@@ -145,22 +155,30 @@ describe('Book', function() {
 
 describe('SubOutline', function() {
   beforeEach(function() {
-    return testbook = new book.Book({
+    return testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
       sharedAssetsFolder: 'sharedassets/',
       sharedAssetsRoot: '../'
     });
   });
-  return describe('#constructor', function() {
+  describe('#constructor', function() {
     return it('should provide access to all subChapters', function() {
-      testbook.addChapter(testoutline);
-      console.log(testbook.chapters[0].subChapters.chapters);
+      testbook.addChapter(new Chapter(testoutline));
       testbook.chapters[0].should.have.property('subChapters');
       testbook.chapters[0].subChapters.should.have.property('book', testbook);
       testbook.chapters[0].subChapters.should.have.property('chapters');
       testbook.chapters[0].subChapters.chapters.should.be.instanceOf(Array);
       return testbook.chapters[0].subChapters.chapters.should.have.length(4);
+    });
+  });
+  return describe('#docId', function() {
+    return it('should equal doc1, doc2, doc3, doc4', function() {
+      testbook.docId().should.equal('doc1');
+      testbook.docId().should.equal('doc2');
+      testbook.docId().should.equal('doc3');
+      testbook.addChapter(testoutline);
+      return testbook.docId().should.equal('doc4');
     });
   });
 });

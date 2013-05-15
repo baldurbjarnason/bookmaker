@@ -1,5 +1,6 @@
 'use strict';
-var $, Assets, Chapter, mdparser, processHTML, renderer, rs, toHtml, _;
+var $, Assets, Chapter, handlebars, mdparser, processHTML, renderer, rs, toHtml, whenjs, _,
+  __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
 
@@ -13,47 +14,52 @@ Assets = require('./assets');
 
 _ = require('underscore');
 
-Chapter = (function() {
-  var context;
+handlebars = require('handlebars');
 
+whenjs = require('when');
+
+Chapter = (function() {
   function Chapter(doc) {
-    _.extend(this, doc);
+    this.context = __bind(this.context, this);    _.extend(this, doc);
   }
 
-  context = function() {
-    context = {
-      meta: this.book.meta,
-      assets: this.book.assets,
-      outline: this.book.chapters
-    };
-    _.extend(context, this);
-    return context;
+  Chapter.prototype.context = function() {
+    if (!this.meta) {
+      this.meta = this.book.meta;
+    }
+    if (!this.assets) {
+      this.assets = this.book.assets;
+    }
+    if (!this.chapters) {
+      this.chapters = this.book.chapters;
+    }
+    return this;
   };
 
   return Chapter;
 
 })();
 
-Object.defineProperty(Chapter.prototype, 'html', {
-  get: toHtml,
-  enumerable: true
-});
-
 toHtml = function() {
   var bodytemplate;
 
   switch (this.type) {
     case 'md':
-      return processHTML(mdparser.render(chapter.body));
+      return processHTML(mdparser.render(this.body));
     case 'html':
-      return processHTML(chapter.body);
+      return processHTML(this.body);
     case 'hbs':
-      bodytemplate = handlebars.compile(chapter.body);
-      return processHTML(bodytemplate(chapter.context()));
+      bodytemplate = handlebars.compile(this.body);
+      return processHTML(bodytemplate(this.context()));
     case 'xhtml':
-      return chapter.body;
+      return this.body;
   }
 };
+
+Object.defineProperty(Chapter.prototype, 'html', {
+  get: toHtml,
+  enumerable: true
+});
 
 processHTML = function(html) {
   var addId, counter, elem, elements, nbsp, _counter, _i, _len;
@@ -94,7 +100,7 @@ Chapter.prototype.htmlPromise = function() {
 };
 
 Chapter.prototype.renderHtml = function(resolver) {
-  return resolver.resolve(this.toHtml);
+  return resolver.resolve(this.html);
 };
 
 module.exports = Chapter;
