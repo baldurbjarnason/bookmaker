@@ -32,3 +32,8 @@ Icon
 # Files that might appear on external disk
 .Spotlight-V100
 .Trashes
+test/files/assets.zip
+test/files/chapters.zip
+test/files/js.zip
+test/files/mangledfonts.zip
+test/files/test.zip
