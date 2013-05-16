@@ -1,15 +1,19 @@
 'use strict';
-var Assets, Chapter, book, fs, loadYaml, titlecounter, titlegen, yaml, yamlToBook;
+var Assets, Book, Chapter, SubOutline, bookmaker, fs, loadYaml, titlecounter, titlegen, yaml, yamlToBook;
 
 fs = require('fs');
 
 yaml = require('js-yaml');
 
-Assets = require('./assets');
+bookmaker = require('index');
 
-Chapter = require('./chapter');
+Assets = bookmaker.Assets;
 
-book = require('./book');
+Chapter = bookmaker.Chapter;
+
+Book = bookmaker.Book;
+
+SubOutline = bookmaker.SubOutline;
 
 titlecounter = 0;
 
@@ -32,20 +36,20 @@ yamlToBook = function(docs) {
   titlere = new RegExp('^# (.+)', 'm');
   meta = docs[0];
   chapters = docs.slice(1);
-  mdBook = new book.Book(meta);
+  mdBook = new Book(meta);
   for (_i = 0, _len = chapters.length; _i < _len; _i++) {
     entry = chapters[_i];
-    if (entry.title) {
-      chapter = new Chapter(entry);
-      if (entry.subChapters) {
-        chapter.subChapters = new SubOutline(entry.subChapters, this);
-      }
-    } else {
+    if (typeof entry === 'string') {
       chapter = new Chapter({
         title: titlegen(entry),
         type: 'md',
         body: entry
       });
+    } else {
+      chapter = new Chapter(entry);
+      if (entry.subChapters) {
+        chapter.subChapters = new SubOutline(entry.subChapters, this);
+      }
     }
     mdBook.addChapter(chapter);
   }
@@ -60,8 +64,8 @@ loadYaml = function(filename, meta) {
   yaml.safeLoadAll(yamlfile, function(doc) {
     docs.push(doc);
   });
-  if ((typeof docs[0] === string) && (meta != null)) {
+  if ((typeof docs[0] === 'string') && (meta != null)) {
     docs.unshift(meta);
-    return docs;
   }
+  return docs;
 };
