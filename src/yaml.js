@@ -57,7 +57,7 @@ loadYaml = function(filename, meta) {
 
   yamlfile = fs.readFileSync(filename, 'utf8');
   docs = [];
-  yaml.loadAll(yamlfile, function(doc) {
+  yaml.safeLoadAll(yamlfile, function(doc) {
     docs.push(doc);
   });
   if ((typeof docs[0] === string) && (meta != null)) {

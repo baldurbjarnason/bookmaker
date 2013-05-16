@@ -18,7 +18,7 @@ loadFile = function(filename) {
 
   file = fs.readFileSync(path.resolve(this.root, 'chapters', filename), 'utf8');
   docs = [];
-  yaml.loadAll(mainfile, function(doc) {
+  yaml.safeLoadAll(mainfile, function(doc) {
     return docs.push(doc);
   });
   doc = docs[0];
