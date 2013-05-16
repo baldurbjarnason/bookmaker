@@ -11,22 +11,22 @@
     <meta property="dcterms:modified">{{ meta.modified.isoDate }}</meta>
     <dc:date>{{ meta.date.isoDate }}</dc:date>
     <dc:rights>Copyright {{ meta.copyrightYear }} {{ meta.author }}{{#if meta.author2 }} and {{ meta.author2 }}{{/if}}</dc:rights>
-    <dc:description>{{ meta.description }}</dc:description>
-    <dc:publisher>{{ meta.publisher }}</dc:publisher>
-    <dc:subject>{{ meta.subject1 }}</dc:subject>
+    {{#if meta.description }}<dc:description>{{ meta.description }}</dc:description>{{/if}}
+    {{#if meta.publisher }}<dc:publisher>{{ meta.publisher }}</dc:publisher>{{/if}}
+    {{#if meta.subject1 }}<dc:subject>{{ meta.subject1 }}</dc:subject>{{/if}}
     {{#if meta.subject2 }}
     <dc:subject>{{ meta.subject2 }}</dc:subject>
     {{/if}}
     {{#if meta.subject3 }}
     <dc:subject>{{ meta.subject3 }}</dc:subject>
     {{/if}}
-    <meta name="cover" content="bookcover" />
+    {{#if meta.cover }}<meta name="cover" content="bookcover" />{{/if}}
     <meta property="ibooks:specified-fonts">true</meta>
     <meta property="ibooks:version">{{ meta.version }}</meta>
 </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
-    <item id="bookcover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>
+    {{#if meta.cover }}<item id="bookcover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>{{/if}}
     {{#each assets.css}}
     <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="text/css"/>
     {{/each}}
@@ -55,15 +55,15 @@
     <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="application/javascript"/>
     {{/each}}
     {{{ epubManifest }}}
-	<item id="cover" href="cover.html" media-type="application/xhtml+xml" />  
+	{{#if meta.cover }}<item id="cover" href="cover.html" media-type="application/xhtml+xml" />{{/if}}
 	<item id="nav" href="index.html" media-type="application/xhtml+xml" properties="nav"/>
   </manifest>
   <spine toc="ncx">
-  <itemref idref="cover" linear="no"></itemref>
+  {{#if meta.cover }}<itemref idref="cover" linear="no"></itemref>{{/if}}
   {{{ epubSpine }}}
   </spine>
       <guide>
-        <reference type="cover" title="Cover" href="cover.html"></reference>
+        {{#if meta.cover }}<reference type="cover" title="Cover" href="cover.html"></reference>{{/if}}
         {{! <reference type="toc" title="Contents" href="index.html"></reference> }}
         {{{ opftoc }}}
     </guide>

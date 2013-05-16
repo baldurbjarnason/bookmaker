@@ -20,10 +20,16 @@ Book = (function() {
     this.chapters = [];
     this.root = meta.root || process.cwd();
     this.meta = meta;
-    this.meta.date = dateProcess(meta.date);
+    this.meta.date = meta.date ? dateProcess(meta.date) : dateProcess();
     this.meta.modified = dateProcess();
-    this._chapterIndex = 1;
-    this._navPoint = 1;
+    this.meta.copyrightYear = meta.copyrightYear || meta.date.dateYear;
+    this.meta.version = meta.version || "0.1";
+    this.meta.lang = meta.lang || 'en';
+    if (!meta.bookId) {
+      this.meta.bookId = require('crypto').randomBytes(16).toString('hex');
+    }
+    this._chapterIndex = 0;
+    this._navPoint = 0;
     this._globalCounter = 0;
     if (this.init) {
       _ref = this.init;

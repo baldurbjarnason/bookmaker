@@ -9,6 +9,8 @@ Book = bookmaker.Book
 SubOutline = bookmaker.SubOutline
 
 titlecounter = 0
+titlere = new RegExp('^# (.+)', 'm')
+stripre = new RegExp('\W', 'g')
 titlegen = (chapter) ->
   title = titlere.exec(chapter)[1]
   if title
@@ -18,18 +20,30 @@ titlegen = (chapter) ->
     title = titlecounter
     return title
 
+chaptergen = (chapter) ->
+  title = titlere.exec(chapter)[1]
+  if title
+    filename = title.replace(stripre, '') + '.html'
+  else
+    titlecounter += 1
+    title = titlecounter
+    filename = 'doc' + titlecounter + '.html'
+  retur {
+    title: title
+    filename: filename
+    type: 'md'
+    body: chapter
+  }
+
+
+
 yamlToBook = (docs) ->
-  titlere = new RegExp('^# (.+)', 'm')
   meta = docs[0]
   chapters = docs.slice(1)
   mdBook = new Book(meta)
   for entry in chapters
     if typeof entry is 'string'
-      chapter = new Chapter({
-        title: titlegen(entry),
-        type: 'md',
-        body: entry
-      })
+      chapter = new Chapter(chaptergen(entry))
     else
       chapter = new Chapter(entry)
       if entry.subChapters

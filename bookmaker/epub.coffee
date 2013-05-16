@@ -107,7 +107,6 @@ extendBook = (Book) ->
     absolutecurrent = path.dirname path.resolve("/", current)
     absolutetarget = path.resolve("/", target)
     relativetarget = path.relative(absolutecurrent, absolutetarget)
-    console.log "Path from #{absolutecurrent} to #{absolutetarget} is #{relativetarget}"
     return relativetarget
   # Object.defineProperty Book.prototype, 'chapterList', {
   #   get: ->

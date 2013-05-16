@@ -5,16 +5,24 @@ Assets = require './assets'
 Chapter = require './chapter'
 path = require 'path'
 
-
 class Book
   constructor: (meta, @assets, @sharedAssets) ->
     @chapters = []
     @root = meta.root || process.cwd()
     @meta = meta
-    @meta.date = dateProcess meta.date
+    @meta.date =
+      if meta.date
+        dateProcess(meta.date)
+      else
+        dateProcess()
     @meta.modified = dateProcess()
-    @_chapterIndex = 1
-    @_navPoint = 1
+    @meta.copyrightYear = meta.copyrightYear || meta.date.dateYear
+    @meta.version = meta.version || "0.1"
+    @meta.lang = meta.lang || 'en'
+    unless meta.bookId
+      @meta.bookId = require('crypto').randomBytes(16).toString('hex')
+    @_chapterIndex = 0
+    @_navPoint = 0
     @_globalCounter = 0
     if @init
       for fn in @init

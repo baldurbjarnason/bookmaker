@@ -114,7 +114,7 @@ describe('EpubChapter', function() {
   describe('#epubNCX', function() {
     return it('generates the xml NCX entry for epub', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].epubNCX.should.equal('<navPoint id="navPoint-2" playOrder="2">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src="htmlexample.html"></content>\n</navPoint>');
+      return testbook.chapters[0].epubNCX.should.equal('<navPoint id="navPoint-1" playOrder="1">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src="htmlexample.html"></content>\n</navPoint>');
     });
   });
   return describe('#addToZip', function() {
@@ -129,7 +129,7 @@ describe('EpubChapter', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
       return testbook.chapters[0].addToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(516);
+          written.should.equal(517);
           return done();
         });
       });
@@ -241,7 +241,7 @@ describe('EpubBook', function() {
   });
   describe('#epubNCX', function() {
     return it('Renders the ncx xml for epub', function() {
-      return testbook.epubNCX.should.equal("<navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-5\" playOrder=\"5\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>");
+      return testbook.epubNCX.should.equal("<navPoint id=\"navPoint-1\" playOrder=\"1\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>");
     });
   });
   describe('#addChaptersToZip', function() {

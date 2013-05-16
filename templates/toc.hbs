@@ -11,12 +11,12 @@
         <text>{{ meta.title }}</text>
     </docTitle>
     <navMap>
-        <navPoint id="navPoint-1" playOrder="1">
+        {{#if meta.cover }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">
             <navLabel>
                 <text>Cover</text>
             </navLabel>
             <content src="cover.html"></content>
-        </navPoint>
+        </navPoint>{{/if}}
         {{{ epubNCX }}}
         {{#each outline}}
         <navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">

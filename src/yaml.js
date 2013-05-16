@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, bookmaker, fs, loadYaml, titlecounter, titlegen, yaml, yamlToBook;
+var Assets, Book, Chapter, SubOutline, bookmaker, chaptergen, fs, loadYaml, stripre, titlecounter, titlegen, titlere, yaml, yamlToBook;
 
 fs = require('fs');
 
@@ -17,6 +17,10 @@ SubOutline = bookmaker.SubOutline;
 
 titlecounter = 0;
 
+titlere = new RegExp('^# (.+)', 'm');
+
+stripre = new RegExp('\W', 'g');
+
 titlegen = function(chapter) {
   var title;
 
@@ -30,21 +34,35 @@ titlegen = function(chapter) {
   }
 };
 
-yamlToBook = function(docs) {
-  var chapter, chapters, entry, mdBook, meta, titlere, _i, _len;
+chaptergen = function(chapter) {
+  var filename, title;
 
-  titlere = new RegExp('^# (.+)', 'm');
+  title = titlere.exec(chapter)[1];
+  if (title) {
+    filename = title.replace(stripre, '') + '.html';
+  } else {
+    titlecounter += 1;
+    title = titlecounter;
+    filename = 'doc' + titlecounter + '.html';
+  }
+  return retur({
+    title: title,
+    filename: filename,
+    type: 'md',
+    body: chapter
+  });
+};
+
+yamlToBook = function(docs) {
+  var chapter, chapters, entry, mdBook, meta, _i, _len;
+
   meta = docs[0];
   chapters = docs.slice(1);
   mdBook = new Book(meta);
   for (_i = 0, _len = chapters.length; _i < _len; _i++) {
     entry = chapters[_i];
     if (typeof entry === 'string') {
-      chapter = new Chapter({
-        title: titlegen(entry),
-        type: 'md',
-        body: entry
-      });
+      chapter = new Chapter(chaptergen(entry));
     } else {
       chapter = new Chapter(entry);
       if (entry.subChapters) {

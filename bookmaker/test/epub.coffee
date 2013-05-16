@@ -108,7 +108,7 @@ describe 'EpubChapter',
           () ->
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].epubNCX.should.equal('''
-<navPoint id="navPoint-2" playOrder="2">
+<navPoint id="navPoint-1" playOrder="1">
   <navLabel>
       <text>HTML</text>
   </navLabel>
@@ -124,7 +124,7 @@ describe 'EpubChapter',
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].addToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(516)
+                written.should.equal(517)
                 done()))
 testassets = {}
 describe 'EpubAssets',
@@ -207,7 +207,7 @@ describe 'EpubBook',
       () ->
         it 'Renders the ncx xml for epub',
           () ->
-            testbook.epubNCX.should.equal("<navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-5\" playOrder=\"5\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
+            testbook.epubNCX.should.equal("<navPoint id=\"navPoint-1\" playOrder=\"1\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
     describe '#addChaptersToZip',
       () ->
         it 'Adds all chapters to zip (chapters.zip)',
