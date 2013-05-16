@@ -11,7 +11,7 @@ SubOutline = require('./book').SubOutline
 loadFile= (filename) ->
   file = fs.readFileSync(path.resolve(@root, 'chapters', filename), 'utf8')
   docs = []
-  yaml.loadAll mainfile, (doc) ->
+  yaml.safeLoadAll mainfile, (doc) ->
     docs.push(doc)
   doc = docs[0]
   doc.body = docs[1] if docs[1]?

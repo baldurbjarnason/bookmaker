@@ -38,7 +38,7 @@ yamlToBook = (docs) ->
 loadYaml = (filename, meta) ->
   yamlfile = fs.readFileSync filename, 'utf8'
   docs = []
-  yaml.loadAll yamlfile,
+  yaml.safeLoadAll yamlfile,
     (doc) ->
       docs.push(doc)
       return

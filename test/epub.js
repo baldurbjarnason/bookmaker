@@ -96,7 +96,7 @@ describe('EpubChapter', function() {
   describe('#epubManifest', function() {
     return it('generates the xml manifest for epub', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml"/>\n');
+      return testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml" properties=\"\"/>\n');
     });
   });
   describe('#epubSpine', function() {
@@ -118,7 +118,7 @@ describe('EpubChapter', function() {
     });
   });
   return describe('#addToZip', function() {
-    return it('Returns a promise to add the chapter to zip', function(done) {
+    return it('Returns a promise to add the chapter to zip (test.zip)', function(done) {
       var out, zip;
 
       zip = zipStream.createZip({
@@ -129,7 +129,7 @@ describe('EpubChapter', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
       return testbook.chapters[0].addToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(417);
+          written.should.equal(516);
           return done();
         });
       });
@@ -171,7 +171,7 @@ describe('EpubAssets', function() {
       zip.pipe(out);
       return testassets.addToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(335230);
+          written.should.equal(335211);
           return done();
         });
       });
@@ -197,14 +197,25 @@ describe('EpubAssets', function() {
 });
 
 describe('EpubBook', function() {
-  before(function() {
+  beforeEach(function() {
     var chap, _i, _len, _results;
 
     testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
+      assetsFolder: "assets/",
+      root: "test/files/",
+      bookId: "this-is-an-id",
+      lang: "en",
+      cover: "cover.jpg",
+      description: 'foo',
+      publisher: 'Bar',
+      subject1: 'Foobar',
+      version: "1.0",
+      date: "15 May 2013",
+      copyrightYear: "19watsit",
       sharedAssetsFolder: 'sharedassets/',
-      sharedAssetsRoot: '../'
+      sharedAssetsRoot: 'test/files/'
     });
     _results = [];
     for (_i = 0, _len = testchapters.length; _i < _len; _i++) {
@@ -215,7 +226,7 @@ describe('EpubBook', function() {
   });
   describe('#epubManifest', function() {
     return it('Renders the manifest xml for epub', function() {
-      return testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\"/>\n");
+      return testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n");
     });
   });
   describe('#epubSpine', function() {
@@ -233,8 +244,8 @@ describe('EpubBook', function() {
       return testbook.epubNCX.should.equal("<navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-5\" playOrder=\"5\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>");
     });
   });
-  return describe('#addChaptersToZip', function() {
-    return it('Adds all chapters to zip', function(done) {
+  describe('#addChaptersToZip', function() {
+    return it('Adds all chapters to zip (chapters.zip)', function(done) {
       var out, zip;
 
       zip = zipStream.createZip({
@@ -244,9 +255,22 @@ describe('EpubBook', function() {
       zip.pipe(out);
       return testbook.addChaptersToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(1533);
+          written.should.equal(1930);
           return done();
         });
+      });
+    });
+  });
+  return describe('#toEpub', function() {
+    return it('Renders the book to epub', function(done) {
+      var out;
+
+      out = fs.createWriteStream('test/files/test.epub');
+      return testbook.toEpub(out).then(function(thing) {
+        console.log(thing);
+        return done();
+      }, void 0, function(notice) {
+        return console.log(notice);
       });
     });
   });

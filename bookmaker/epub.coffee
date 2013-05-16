@@ -23,7 +23,7 @@ sequence = require('when/sequence')
 
 chapterTemplates = {
   manifest: '{{#if this.nomanifest }}
-    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml"{{#if svg }} properties="svg"{{/if}}/>\n{{/if}}{{#if subChapters.epubManifest}}
+    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if book.scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}
     {{ subChapters.epubManifest }}{{/if}}{{/if}}'
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
     {{ subChapters.epubSpine }}{{/if}}'
@@ -55,13 +55,14 @@ for tempname, template of bookTemplates
   bookTemplates[tempname] = handlebars.compile template
 
 templates = {}
-newtemplates = glob.sync(path.resolve module.filename, '../../', 'templates/**/*.hbs')
-newtemplates.concat(glob.sync('templates/**/*.hbs'))
-# newtemplates.concat(glob.sync(path.join(@root, 'templates/**/*.hbs')))
-for temppath in newtemplates
-  name = path.basename temppath, path.extname temppath
-  template = fs.readFileSync temppath, 'utf8'
-  templates[name] = handlebars.compile template
+loadTemplates = (searchpath) ->
+  newtemplates = glob.sync(searchpath)
+  for temppath in newtemplates
+    name = path.basename temppath, path.extname temppath
+    template = fs.readFileSync temppath, 'utf8'
+    templates[name] = handlebars.compile template
+loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
+loadTemplates('templates/**/*.hbs')
 
 extendChapter = (Chapter) ->
   Object.defineProperty Chapter.prototype, 'epubManifest', {
@@ -100,6 +101,14 @@ extendChapter = (Chapter) ->
   return Chapter
 
 extendBook = (Book) ->
+  Book.prototype.init = [] unless Book.prototype.init
+  Book.prototype.init.push((book) -> handlebars.registerHelper 'relative', book.relative.bind(book))
+  Book.prototype.relative = (current, target) ->
+    absolutecurrent = path.dirname path.resolve("/", current)
+    absolutetarget = path.resolve("/", target)
+    relativetarget = path.relative(absolutecurrent, absolutetarget)
+    console.log "Path from #{absolutecurrent} to #{absolutetarget} is #{relativetarget}"
+    return relativetarget
   # Object.defineProperty Book.prototype, 'chapterList', {
   #   get: ->
   #     findSubs(@chapters)
@@ -149,70 +158,130 @@ extendBook = (Book) ->
     tasks = []
     for chapter in @chapters
       tasks.push(chapterTask(chapter, zip))
-    sequence tasks
+    sequence(tasks)
 
+
+  Object.defineProperty Book.prototype, 'optToc', {
+    get: ->
+      for doc in @chapters
+        do (doc) ->
+          if doc.toc?
+            return "<reference type='toc' title='Contents' href='#{doc.filename}'></reference>"
+    enumerable: true
+  }
   Book.prototype.toEpub = toEpub
+  Object.defineProperty Book.prototype, 'globalCounter', {
+    get: ->
+      prefre = new RegExp("\/", "g")
+      @_globalCounter++
+      prefix = @assetsFolder.replace(prefre, "")
+      return prefix + @_globalCounter
+    enumerable: true
+  }
 
   return Book
 
-toEpub = (out) ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
-  renderEpub(this, out, deferred.resolver)
-  return promise
 
-renderEpub = (book, out, resolver) ->
-  zip = zipstream.createZip({ level: 1 })
+addTask = (file, name, zip, store) ->
+  return () ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    process.nextTick(() ->
+      deferred.notify "#{name} written to zip"
+      zip.addFile(file, { name: name, store: store }, deferred.resolve))
+    return promise
+addFsTask = (path, name, zip, store) ->
+  return () ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    process.nextTick(() ->
+      fs.readFile(path, (err, data) ->
+        if err
+          deferred.reject
+        else
+          deferred.notify "#{name} written to zip"
+          zip.addFile(data, { name: name, store: store }, deferred.resolve)))
+    return promise
+addTemplateTask = (template, book, zip, name, store) ->
+  return () ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    process.nextTick(() ->
+      deferred.notify "#{name} written to zip"
+      zip.addFile(template(book), { name: name, store: store }, deferred.resolve))
+    return promise
+
+# final = () ->
+#   return () ->
+#     deferred = whenjs.defer()
+#     promise = deferred.promise
+#     process.nextTick(() ->
+#       zip.addFile(template(book), { name: name, store: store }, deferred.resolve))
+#     return promise
+
+toEpub = (out, options) ->
+  zip = zipStream.createZip({ level: 1 })
   zip.pipe(out)
-  zip.add = callbacks.lift(zip.addFile)
-  zip.final = callbacks.lift(zip.finalize)
-  zippromises = [zip.add('''
+  final = () ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    process.nextTick(() ->
+      deferred.notify 'Writing to file...'
+      zip.finalize(deferred.resolve))
+    return promise
+  renderEpub(this, out, options, zip).then(final)
+
+renderEpub = (book, out, options, zip) ->
+  if options?.templates
+    loadTemplates(options.templates + '**/*.hbs')
+  if book.assets.js
+    book.scripted = true
+  tasks = []
+  tasks.push(addTask("application/epub+zip", 'mimetype', zip, true))
+  tasks.push(addTask('''
       <?xml version="1.0" encoding="UTF-8"?>
       <display_options>
         <platform name="*">
           <option name="specified-fonts">true</option>
         </platform>
       </display_options>
-      ''', { name: 'META-INF/com.apple.ibooks.display-options.xml' }),
-    zip.add("application/epub+zip", { name: 'mimetype'}),
-    zip.add('''
-      <?xml version="1.0" encoding="UTF-8"?>
+      ''', 'META-INF/com.apple.ibooks.display-options.xml', zip))
+  tasks.push(addTask('''
+    <?xml version="1.0" encoding="UTF-8"?>
       <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
         <rootfiles>
           <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />
         </rootfiles>
       </container>
-      ''', 'container.xml'),
-    zip.add(fs.createReadStream(path.join(book.root, 'cover.jpg')), { name: 'cover.jpg'}),
-    zip.add(@templates.content(book.context), { name: 'content.opf' }),
-    zip.add(@templates.cover(book.context), { name: 'cover.html' }),
-    zip.add(@templates.toc(book.context), { name: 'toc.ncx' }),
-    zip.add(@templates.nav(book.context), { name: 'index.html' }),
-    book.addChaptersToZip(zip),
-    book.assets.addToZip(zip)]
+      ''', 'META-INF/container.xml', zip))
+  if book.meta.cover
+    tasks.push(addFsTask(book.root + book.meta.cover, "cover.jpg", zip))
+    tasks.push(addTemplateTask(templates.cover, book, zip, 'cover.html'))
+  tasks.push(addTemplateTask(templates.content, book, zip, 'content.opf'))
+  tasks.push(addTemplateTask(templates.toc, book, zip, 'toc.ncx'))
+  tasks.push(addTemplateTask(templates.nav, book, zip, 'index.html'))
+  tasks.push(() -> book.addChaptersToZip(zip))
+  tasks.push(() -> book.assets.addToZip(zip))
   if book.sharedAssets
-    zippromises.push(book.sharedAssets.addToZip(zip))
-  if options.obfuscateFonts
-    zippromises.push(book.assets.mangleFonts(zip, book.id))
-  whenjs.all(zippromises).then(zip.final()).then(resolver.resolved, resolver.reject)
-
-
-  # zip.addFile(fs.createReadStream('README.md'), { name: 'README.md' }, function() {
- #      zip.addFile(fs.createReadStream('example.js'), { name: 'example.js' }, function() {
- #        zip.finalize(function(written) { console.log(written + ' total bytes written'); });
- #      });
- #    });
+    tasks.push(() -> book.sharedAssets.addToZip(zip))
+  if options?.assets
+    tasks.push(() -> options.assets.addToZip(zip))
+  if options?.obfuscateFonts or book.obfuscateFonts
+    tasks.push(() -> book.assets.mangleFonts(zip, book.id))
+  sequence(tasks)
 
 extendAssets = (Assets) ->
   zipTask = (item, root, zip) ->
     return () ->
       deferred = whenjs.defer()
       promise = deferred.promise
+      deferred.notify 'task added'
       process.nextTick(() ->
         file = fs.readFile(root + item, (err, data) ->
           if err
             deferred.reject
           else
+            deferred.notify "Writing #{item} to zip"
             zip.addFile(data, { name: item }, deferred.resolve)))
       return promise
   mangleTask = (item, root, zip, id) ->

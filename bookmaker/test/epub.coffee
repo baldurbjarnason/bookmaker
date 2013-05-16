@@ -89,7 +89,7 @@ describe 'EpubChapter',
         it 'generates the xml manifest for epub',
           () ->
             testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml"/>\n')
+            testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml" properties=\"\"/>\n')
     describe '#epubSpine',
       () ->
         it 'generates the xml spine for epub',
@@ -116,7 +116,7 @@ describe 'EpubChapter',
 </navPoint>''')
     describe '#addToZip',
       () ->
-        it 'Returns a promise to add the chapter to zip',
+        it 'Returns a promise to add the chapter to zip (test.zip)',
           (done) ->
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/test.zip')
@@ -124,7 +124,7 @@ describe 'EpubChapter',
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].addToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(417)
+                written.should.equal(516)
                 done()))
 testassets = {}
 describe 'EpubAssets',
@@ -152,7 +152,7 @@ describe 'EpubAssets',
             zip.pipe(out)
             testassets.addToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(335230)
+                written.should.equal(335211)
                 done()))
     describe '#mangleFonts',
       () ->
@@ -169,19 +169,30 @@ describe 'EpubAssets',
 
 describe 'EpubBook',
   () ->
-    before () ->
+    beforeEach () ->
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
+        assetsFolder: "assets/",
+        root: "test/files/",
+        bookId: "this-is-an-id"
+        lang: "en"
+        cover: "cover.jpg"
+        description: 'foo'
+        publisher: 'Bar'
+        subject1: 'Foobar'
+        version: "1.0"
+        date: "15 May 2013"
+        copyrightYear: "19watsit"
         sharedAssetsFolder: 'sharedassets/',
-        sharedAssetsRoot: '../' })
+        sharedAssetsRoot: 'test/files/' })
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))
     describe '#epubManifest',
       () ->
         it 'Renders the manifest xml for epub',
           () ->
-            testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\"/>\n")
+            testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n")
     describe '#epubSpine',
       () ->
         it 'Renders the spine xml for epub',
@@ -199,14 +210,23 @@ describe 'EpubBook',
             testbook.epubNCX.should.equal("<navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-5\" playOrder=\"5\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
     describe '#addChaptersToZip',
       () ->
-        it 'Adds all chapters to zip',
+        it 'Adds all chapters to zip (chapters.zip)',
           (done) ->
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/chapters.zip')
             zip.pipe(out)
             testbook.addChaptersToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(1533)
+                written.should.equal(1930)
                 done()))
+    describe '#toEpub',
+      () ->
+        it 'Renders the book to epub',
+          (done) ->
+            out = fs.createWriteStream('test/files/test.epub')
+            testbook.toEpub(out).then((thing) ->
+              console.log(thing)
+              done()
+            , undefined, (notice) -> console.log notice)
 
 

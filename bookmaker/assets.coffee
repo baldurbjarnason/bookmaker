@@ -4,6 +4,7 @@ glob = require 'glob'
 whenjs = require('when')
 nodefn = require("when/node/function")
 pglob = nodefn.lift(glob)
+_ = require 'underscore'
 
 # Some way to enable single chapter css and js? Is that even necessary?
 
@@ -28,57 +29,61 @@ class Assets
   woffPromise: () ->
     pglob(@assetFolder + '**/*.woff', { cwd: @root })
 
+mglob = _.memoize glob.sync
+
 Object.defineProperty Assets.prototype, 'png', {
   get: ->
-    glob.sync(@assetFolder + '**/*.png', { cwd: @root })
+    mglob(@assetFolder + '**/*.png', { cwd: @root })
   enumerable: true
 }
 
+
+
 Object.defineProperty Assets.prototype, 'jpg', {
   get: ->
-    glob.sync(@assetFolder + '**/*.jpg', { cwd: @root })
+    mglob(@assetFolder + '**/*.jpg', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'gif', {
   get: ->
-    glob.sync(@assetFolder + '**/*.gif', { cwd: @root })
+    mglob(@assetFolder + '**/*.gif', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'css', {
   get: ->
-    glob.sync(@assetFolder + '**/*.css', { cwd: @root })
+    mglob(@assetFolder + '**/*.css', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'svg', {
   get: ->
-    glob.sync(@assetFolder + '**/*.svg', { cwd: @root })
+    mglob(@assetFolder + '**/*.svg', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'js', {
   get: ->
-    glob.sync(@assetFolder + '**/*.js', { cwd: @root })
+    mglob(@assetFolder + '**/*.js', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'ttf', {
   get: ->
-    glob.sync(@assetFolder + '**/*.ttf', { cwd: @root })
+    mglob(@assetFolder + '**/*.ttf', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'otf', {
   get: ->
-    glob.sync(@assetFolder + '**/*.otf', { cwd: @root })
+    mglob(@assetFolder + '**/*.otf', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'woff', {
   get: ->
-    glob.sync(@assetFolder + '**/*.woff', { cwd: @root })
+    mglob(@assetFolder + '**/*.woff', { cwd: @root })
   enumerable: true
 }
 

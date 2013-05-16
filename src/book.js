@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, handlebars,
+var Assets, Book, Chapter, SubOutline, dateProcess, handlebars, path,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -9,15 +9,29 @@ Assets = require('./assets');
 
 Chapter = require('./chapter');
 
+path = require('path');
+
 Book = (function() {
   function Book(meta, assets, sharedAssets) {
+    var fn, _i, _len, _ref;
+
     this.assets = assets;
     this.sharedAssets = sharedAssets;
     this.chapters = [];
-    this.root = meta.bookFolder || process.cwd();
+    this.root = meta.root || process.cwd();
     this.meta = meta;
+    this.meta.date = dateProcess(meta.date);
+    this.meta.modified = dateProcess();
     this._chapterIndex = 1;
     this._navPoint = 1;
+    this._globalCounter = 0;
+    if (this.init) {
+      _ref = this.init;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        fn = _ref[_i];
+        fn(this);
+      }
+    }
     if (!this.assets) {
       this.assetsFolder = this.meta.assetsFolder || 'assets/';
       this.assets = new Assets(this.root, this.assetsFolder);
@@ -61,6 +75,36 @@ Book = (function() {
   return Book;
 
 })();
+
+dateProcess = function(date) {
+  var pad, _date, _meta;
+
+  pad = function(n) {
+    var padded;
+
+    if (n < 10) {
+      padded = '0' + n;
+    } else {
+      padded = n;
+    }
+    return padded;
+  };
+  _meta = {};
+  if (date != null) {
+    _date = new Date(date);
+  } else {
+    _date = new Date();
+  }
+  _meta.date = _date;
+  _meta.dateYear = _date.getUTCFullYear();
+  _meta.dateDay = pad(_date.getUTCDate());
+  _meta.dateMonth = pad(_date.getUTCMonth() + 1);
+  _meta.dateHours = pad(_date.getUTCHours());
+  _meta.dateMinutes = pad(_date.getUTCMinutes());
+  _meta.dateSeconds = pad(_date.getUTCSeconds());
+  _meta.isoDate = "" + _meta.dateYear + "-" + _meta.dateMonth + "-" + _meta.dateDay + "T" + _meta.dateHours + ":" + _meta.dateMinutes + ":" + _meta.dateSeconds + "Z";
+  return _meta;
+};
 
 SubOutline = (function(_super) {
   __extends(SubOutline, _super);

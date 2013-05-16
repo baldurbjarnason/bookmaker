@@ -3,15 +3,13 @@
 <head>
 <title>{{ title }} – {{ meta.title }}</title>
 {{#each assets.css}}
-<link href="../{{ this }}" type="text/css" rel="stylesheet" />
+<link href="{{relative ../filename this }}" type="text/css" rel="stylesheet" />
 {{/each}}
 {{#each assets.js}}
-<script src="../{{ this }}" type="application/javascript"></script>
+<script src="{{relative ../filename this }}" type="application/javascript"></script>
 {{/each}}
 </head>
 <body class="chapterBody {{ id }}" id="{{ id }}">
-<h1>{{ title }}</h1>
-
-{{{ html }}}
+<div class="chapter" id="chapter">{{{ html }}}</div>
 </body>
 </html>

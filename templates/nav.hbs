@@ -9,9 +9,7 @@
 <h1>Table of Contents</h1>
 <nav epub:type="toc" id="toc" class="toc h-toc">
 <ol>
-	{{#each outline}}
-	<li class="tocitem {{ this.id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ this.id }}"><a href="{{ this.filename }}">{{ this.title }}</a></li>
-    {{/each}}
+    {{{ navList }}}
 </ol>
 </nav>
 {{#if meta.copyrightStatement}}
