@@ -126,9 +126,25 @@ extendBook = function(Book) {
   Book.prototype.init.push(function(book) {
     return handlebars.registerHelper('relative', book.relative.bind(book));
   });
+  Book.prototype.init.push(function(book) {
+    return handlebars.registerHelper('isCover', book.isCover.bind(book));
+  });
   Book.prototype.relative = function(current, target) {
     var absolutecurrent, absolutetarget, relativetarget;
 
+    absolutecurrent = path.dirname(path.resolve("/", current));
+    absolutetarget = path.resolve("/", target);
+    relativetarget = path.relative(absolutecurrent, absolutetarget);
+    return relativetarget;
+  };
+  Book.prototype.isCover = function(path) {
+    var absolutecurrent, absolutetarget, relativetarget;
+
+    if (this.meta.cover = path) {
+      return new handlebars.SafeString(' properties="cover-image"');
+    } else {
+      return "";
+    }
     absolutecurrent = path.dirname(path.resolve("/", current));
     absolutetarget = path.resolve("/", target);
     relativetarget = path.relative(absolutecurrent, absolutetarget);

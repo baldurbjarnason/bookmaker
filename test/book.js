@@ -113,7 +113,7 @@ describe('Book', function() {
   });
   describe('#sharedAssets', function() {
     return it('should be sharedassets/ and ../', function() {
-      testbook.sharedAssets.should.have.property('assetFolder', 'sharedassets/');
+      testbook.sharedAssets.should.have.property('assetsPath', 'sharedassets/');
       return testbook.sharedAssets.should.have.property('root', '../');
     });
   });

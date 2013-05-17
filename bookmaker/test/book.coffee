@@ -109,7 +109,7 @@ describe 'Book',
       () ->
         it 'should be sharedassets/ and ../',
           () ->
-            testbook.sharedAssets.should.have.property('assetFolder', 'sharedassets/')
+            testbook.sharedAssets.should.have.property('assetsPath', 'sharedassets/')
             testbook.sharedAssets.should.have.property('root', '../')
     describe '#docId',
       () ->

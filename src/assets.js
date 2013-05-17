@@ -14,61 +14,61 @@ _ = require('underscore');
 fs = require('fs');
 
 Assets = (function() {
-  function Assets(root, assetFolder) {
+  function Assets(root, assetsPath) {
     this.root = root;
-    this.assetFolder = assetFolder;
+    this.assetsPath = assetsPath;
   }
 
   Assets.prototype.pngPromise = function() {
-    return pglob(this.assetFolder + '**/*.png', {
+    return pglob(this.assetsPath + '**/*.png', {
       cwd: this.root
     });
   };
 
   Assets.prototype.jpgPromise = function() {
-    return pglob(this.assetFolder + '**/*.jpg', {
+    return pglob(this.assetsPath + '**/*.jpg', {
       cwd: this.root
     });
   };
 
   Assets.prototype.gifPromise = function() {
-    return pglob(this.assetFolder + '**/*.gif', {
+    return pglob(this.assetsPath + '**/*.gif', {
       cwd: this.root
     });
   };
 
   Assets.prototype.cssPromise = function() {
-    return pglob(this.assetFolder + '**/*.css', {
+    return pglob(this.assetsPath + '**/*.css', {
       cwd: this.root
     });
   };
 
   Assets.prototype.svgPromise = function() {
-    return pglob(this.assetFolder + '**/*.svg', {
+    return pglob(this.assetsPath + '**/*.svg', {
       cwd: this.root
     });
   };
 
   Assets.prototype.jsPromise = function() {
-    return pglob(this.assetFolder + '**/*.js', {
+    return pglob(this.assetsPath + '**/*.js', {
       cwd: this.root
     });
   };
 
   Assets.prototype.ttfPromise = function() {
-    return pglob(this.assetFolder + '**/*.ttf', {
+    return pglob(this.assetsPath + '**/*.ttf', {
       cwd: this.root
     });
   };
 
   Assets.prototype.otfPromise = function() {
-    return pglob(this.assetFolder + '**/*.otf', {
+    return pglob(this.assetsPath + '**/*.otf', {
       cwd: this.root
     });
   };
 
   Assets.prototype.woffPromise = function() {
-    return pglob(this.assetFolder + '**/*.woff', {
+    return pglob(this.assetsPath + '**/*.woff', {
       cwd: this.root
     });
   };
@@ -84,7 +84,7 @@ Assets = (function() {
         if (err) {
           return deferred.reject;
         } else {
-          return deferred.resolve(data);
+          return deferred.resolve(data, path);
         }
       });
     });
@@ -99,7 +99,7 @@ mglob = _.memoize(glob.sync);
 
 Object.defineProperty(Assets.prototype, 'png', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.png', {
+    return mglob(this.assetsPath + '**/*.png', {
       cwd: this.root
     });
   },
@@ -108,7 +108,7 @@ Object.defineProperty(Assets.prototype, 'png', {
 
 Object.defineProperty(Assets.prototype, 'jpg', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.jpg', {
+    return mglob(this.assetsPath + '**/*.jpg', {
       cwd: this.root
     });
   },
@@ -117,7 +117,7 @@ Object.defineProperty(Assets.prototype, 'jpg', {
 
 Object.defineProperty(Assets.prototype, 'gif', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.gif', {
+    return mglob(this.assetsPath + '**/*.gif', {
       cwd: this.root
     });
   },
@@ -126,7 +126,7 @@ Object.defineProperty(Assets.prototype, 'gif', {
 
 Object.defineProperty(Assets.prototype, 'css', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.css', {
+    return mglob(this.assetsPath + '**/*.css', {
       cwd: this.root
     });
   },
@@ -135,7 +135,7 @@ Object.defineProperty(Assets.prototype, 'css', {
 
 Object.defineProperty(Assets.prototype, 'svg', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.svg', {
+    return mglob(this.assetsPath + '**/*.svg', {
       cwd: this.root
     });
   },
@@ -144,7 +144,7 @@ Object.defineProperty(Assets.prototype, 'svg', {
 
 Object.defineProperty(Assets.prototype, 'js', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.js', {
+    return mglob(this.assetsPath + '**/*.js', {
       cwd: this.root
     });
   },
@@ -153,7 +153,7 @@ Object.defineProperty(Assets.prototype, 'js', {
 
 Object.defineProperty(Assets.prototype, 'ttf', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.ttf', {
+    return mglob(this.assetsPath + '**/*.ttf', {
       cwd: this.root
     });
   },
@@ -162,7 +162,7 @@ Object.defineProperty(Assets.prototype, 'ttf', {
 
 Object.defineProperty(Assets.prototype, 'otf', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.otf', {
+    return mglob(this.assetsPath + '**/*.otf', {
       cwd: this.root
     });
   },
@@ -171,7 +171,7 @@ Object.defineProperty(Assets.prototype, 'otf', {
 
 Object.defineProperty(Assets.prototype, 'woff', {
   get: function() {
-    return mglob(this.assetFolder + '**/*.woff', {
+    return mglob(this.assetsPath + '**/*.woff', {
       cwd: this.root
     });
   },
