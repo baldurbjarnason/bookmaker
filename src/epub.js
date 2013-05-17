@@ -346,48 +346,38 @@ renderEpub = function(book, out, options, zip) {
 extendAssets = function(Assets) {
   var mangleTask, zipTask;
 
-  zipTask = function(item, root, zip) {
+  zipTask = function(item, assets, zip) {
     return function() {
       var deferred, promise;
 
       deferred = whenjs.defer();
       promise = deferred.promise;
-      deferred.notify('task added');
       process.nextTick(function() {
-        var file;
-
-        return file = fs.readFile(root + item, function(err, data) {
-          if (err) {
-            return deferred.reject;
-          } else {
-            deferred.notify("Writing " + item + " to zip");
-            return zip.addFile(data, {
-              name: item
-            }, deferred.resolve);
-          }
+        return assets.get(item).then(function(data) {
+          deferred.notify("Writing " + item + " to zip");
+          return zip.addFile(data, {
+            name: item
+          }, deferred.resolve);
         });
       });
       return promise;
     };
   };
-  mangleTask = function(item, root, zip, id) {
+  mangleTask = function(item, assets, zip, id) {
     return function() {
       var deferred, promise;
 
       deferred = whenjs.defer();
       promise = deferred.promise;
       process.nextTick(function() {
-        return fs.readFile(root + item, function(err, data) {
+        return assets.get(item).then(function(data) {
           var file;
 
-          if (err) {
-            return deferred.reject;
-          } else {
-            file = mangler.mangle(data, id);
-            return zip.addFile(file, {
-              name: item
-            }, deferred.resolve);
-          }
+          deferred.notify("Writing mangled " + item + " to zip");
+          file = mangler.mangle(data, id);
+          return zip.addFile(file, {
+            name: item
+          }, deferred.resolve);
         });
       });
       return promise;
@@ -411,7 +401,7 @@ extendAssets = function(Assets) {
     _ref = this[type];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       item = _ref[_i];
-      tasks.push(zipTask(item, this.root, zip));
+      tasks.push(zipTask(item, this, zip));
     }
     return sequence(tasks);
   };
@@ -422,17 +412,17 @@ extendAssets = function(Assets) {
     _ref = this['otf'];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       item = _ref[_i];
-      tasks.push(mangleTask(item, this.root, zip, id));
+      tasks.push(mangleTask(item, this, zip, id));
     }
     _ref1 = this['ttf'];
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       item = _ref1[_j];
-      tasks.push(mangleTask(item, this.root, zip, id));
+      tasks.push(mangleTask(item, this, zip, id));
     }
     _ref2 = this['woff'];
     for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
       item = _ref2[_k];
-      tasks.push(mangleTask(item, this.root, zip, id));
+      tasks.push(mangleTask(item, this, zip, id));
     }
     return sequence(tasks);
   };

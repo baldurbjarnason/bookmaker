@@ -270,30 +270,24 @@ renderEpub = (book, out, options, zip) ->
   sequence(tasks)
 
 extendAssets = (Assets) ->
-  zipTask = (item, root, zip) ->
+  zipTask = (item, assets, zip) ->
     return () ->
       deferred = whenjs.defer()
       promise = deferred.promise
-      deferred.notify 'task added'
       process.nextTick(() ->
-        file = fs.readFile(root + item, (err, data) ->
-          if err
-            deferred.reject
-          else
-            deferred.notify "Writing #{item} to zip"
-            zip.addFile(data, { name: item }, deferred.resolve)))
+        assets.get(item).then((data) ->
+          deferred.notify "Writing #{item} to zip"
+          zip.addFile(data, { name: item }, deferred.resolve)))
       return promise
-  mangleTask = (item, root, zip, id) ->
+  mangleTask = (item, assets, zip, id) ->
     return () ->
       deferred = whenjs.defer()
       promise = deferred.promise
       process.nextTick(() ->
-        fs.readFile(root + item, (err, data) ->
-          if err
-            deferred.reject
-          else
-            file = mangler.mangle(data, id)
-            zip.addFile(file, { name: item }, deferred.resolve)))
+        assets.get(item).then((data) ->
+          deferred.notify "Writing mangled #{item} to zip"
+          file = mangler.mangle(data, id)
+          zip.addFile(file, { name: item }, deferred.resolve)))
       return promise
 
   Assets.prototype.addToZip = (zip) ->
@@ -305,16 +299,16 @@ extendAssets = (Assets) ->
   Assets.prototype.addTypeToZip = (type, zip) ->
     tasks = []
     for item in this[type]
-      tasks.push(zipTask(item, @root, zip))
+      tasks.push(zipTask(item, this, zip))
     sequence tasks
   Assets.prototype.addMangledFontsToZip = (zip, id) ->
     tasks = []
     for item in this['otf']
-      tasks.push(mangleTask(item, @root, zip, id))
+      tasks.push(mangleTask(item, this, zip, id))
     for item in this['ttf']
-      tasks.push(mangleTask(item, @root, zip, id))
+      tasks.push(mangleTask(item, this, zip, id))
     for item in this['woff']
-      tasks.push(mangleTask(item, @root, zip, id))
+      tasks.push(mangleTask(item, this, zip, id))
     sequence tasks
   Assets.prototype.mangleFonts = (zip, id) ->
     fonts = @ttf.concat(@otf, @woff)

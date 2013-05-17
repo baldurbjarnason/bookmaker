@@ -1,5 +1,5 @@
 'use strict';
-var Assets, glob, mglob, nodefn, pglob, whenjs, _;
+var Assets, fs, glob, mglob, nodefn, pglob, whenjs, _;
 
 glob = require('glob');
 
@@ -10,6 +10,8 @@ nodefn = require("when/node/function");
 pglob = nodefn.lift(glob);
 
 _ = require('underscore');
+
+fs = require('fs');
 
 Assets = (function() {
   function Assets(root, assetFolder) {
@@ -69,6 +71,24 @@ Assets = (function() {
     return pglob(this.assetFolder + '**/*.woff', {
       cwd: this.root
     });
+  };
+
+  Assets.prototype.get = function(path) {
+    var deferred, fn, promise;
+
+    deferred = whenjs.defer();
+    promise = deferred.promise;
+    fn = this.root + path;
+    process.nextTick(function() {
+      return fs.readFile(fn, function(err, data) {
+        if (err) {
+          return deferred.reject;
+        } else {
+          return deferred.resolve(data);
+        }
+      });
+    });
+    return promise;
   };
 
   return Assets;

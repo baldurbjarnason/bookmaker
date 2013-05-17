@@ -67,17 +67,6 @@ Book = (function() {
     return this.chapters.push(chapter);
   };
 
-  Book.prototype.context = function() {
-    var context;
-
-    context = {
-      meta: this.meta,
-      assets: this.assets,
-      chapters: this.chapters
-    };
-    return context;
-  };
-
   return Book;
 
 })();

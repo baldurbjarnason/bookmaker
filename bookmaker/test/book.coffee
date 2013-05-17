@@ -129,15 +129,15 @@ describe 'Book',
             testbook.chapters[0].should.have.property('id', 'doc1')
             testbook.chapters[0].should.have.property('filename', 'chapters/doc1.html')
             testbook.chapters[0].should.not.have.property('title')
-    describe '#context',
-      () ->
-        it 'should provide all necessary context for templates',
-          () ->
-            for chapter in testoutline.subChapters
-              testbook.addChapter(new Chapter(chapter))
-            testbook.context().should.have.property('meta', testbook.meta)
-            testbook.context().should.have.property('assets', testbook.assets)
-            testbook.context().should.have.property('chapters', testbook.chapters)
+    # describe '#context',
+    #   () ->
+    #     it 'should provide all necessary context for templates',
+    #       () ->
+    #         for chapter in testoutline.subChapters
+    #           testbook.addChapter(new Chapter(chapter))
+    #         testbook.context().should.have.property('meta', testbook.meta)
+    #         testbook.context().should.have.property('assets', testbook.assets)
+    #         testbook.context().should.have.property('chapters', testbook.chapters)
 
 describe 'SubOutline',
   () ->

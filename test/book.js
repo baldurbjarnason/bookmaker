@@ -124,7 +124,7 @@ describe('Book', function() {
       return testbook.docId().should.equal('doc3');
     });
   });
-  describe('#addChapter', function() {
+  return describe('#addChapter', function() {
     return it('should generate the appropriate properties but no more', function() {
       var testchapter;
 
@@ -135,20 +135,6 @@ describe('Book', function() {
       testbook.chapters[0].should.have.property('id', 'doc1');
       testbook.chapters[0].should.have.property('filename', 'chapters/doc1.html');
       return testbook.chapters[0].should.not.have.property('title');
-    });
-  });
-  return describe('#context', function() {
-    return it('should provide all necessary context for templates', function() {
-      var chapter, _i, _len, _ref;
-
-      _ref = testoutline.subChapters;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        chapter = _ref[_i];
-        testbook.addChapter(new Chapter(chapter));
-      }
-      testbook.context().should.have.property('meta', testbook.meta);
-      testbook.context().should.have.property('assets', testbook.assets);
-      return testbook.context().should.have.property('chapters', testbook.chapters);
     });
   });
 });

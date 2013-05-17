@@ -45,13 +45,13 @@ class Book
     if chapter.subChapters
       chapter.subChapters = new SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
-  context: () ->
-    context = {
-      meta: @meta,
-      assets: @assets,
-      chapters: @chapters
-    }
-    return context
+  # context: () ->
+  #   context = {
+  #     meta: @meta,
+  #     assets: @assets,
+  #     chapters: @chapters
+  #   }
+  #   return context
 
 
   # everyChapter: (callback) ->

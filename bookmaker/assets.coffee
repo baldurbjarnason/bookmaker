@@ -5,6 +5,7 @@ whenjs = require('when')
 nodefn = require("when/node/function")
 pglob = nodefn.lift(glob)
 _ = require 'underscore'
+fs = require 'fs'
 
 # Some way to enable single chapter css and js? Is that even necessary?
 
@@ -28,6 +29,17 @@ class Assets
     pglob(@assetFolder + '**/*.otf', { cwd: @root })
   woffPromise: () ->
     pglob(@assetFolder + '**/*.woff', { cwd: @root })
+  get: (path) ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    fn = @root + path
+    process.nextTick(() ->
+      fs.readFile(fn, (err, data) ->
+        if err
+          deferred.reject
+        else
+          deferred.resolve(data)))
+    return promise
 
 mglob = _.memoize glob.sync
 
