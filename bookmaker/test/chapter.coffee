@@ -48,7 +48,7 @@ describe 'Chapter',
             testbook = new Book({
               title: 'The Wonderful Wizard of Oz',
               author: 'L. Frank Baum',
-              sharedAssetsFolder: 'sharedassets/',
+              sharedAssetsPath: 'sharedassets/',
               sharedAssetsRoot: '../' })
             testbook.addChapter(new Chapter(testchapters.html))
             testbook.chapters.should.be.instanceOf(Array)
@@ -85,7 +85,7 @@ describe 'Chapter',
             testbook = new Book({
               title: 'The Wonderful Wizard of Oz',
               author: 'L. Frank Baum',
-              sharedAssetsFolder: 'sharedassets/',
+              sharedAssetsPath: 'sharedassets/',
               sharedAssetsRoot: '../' })
             testbook.addChapter(new Chapter(testchapters.hbs))
             testbook.chapters[0].should.be.instanceOf(Chapter)

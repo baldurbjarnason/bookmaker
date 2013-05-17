@@ -102,7 +102,7 @@ yamlLoader = function(data, filename, meta, resolver, assets) {
   if ((typeof docs[0] === 'string') && (meta != null)) {
     docs.unshift(meta);
   }
-  if (docs[0].assetsFolder && !assets) {
+  if (docs[0].assetsPath && !assets) {
     return;
   }
   return resolver.resolve(arrayToBook(docs));

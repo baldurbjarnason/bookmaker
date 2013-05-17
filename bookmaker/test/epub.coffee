@@ -82,7 +82,7 @@ describe 'EpubChapter',
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: '../' })
     describe '#epubManifest',
       () ->
@@ -173,7 +173,7 @@ describe 'EpubBook',
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        assetsFolder: "assets/",
+        assetsPath: "assets/",
         root: "test/files/",
         bookId: "this-is-an-id"
         lang: "en"
@@ -184,7 +184,7 @@ describe 'EpubBook',
         version: "1.0"
         date: "15 May 2013"
         copyrightYear: "19watsit"
-        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: 'test/files/' })
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))

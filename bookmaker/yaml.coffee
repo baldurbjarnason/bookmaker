@@ -69,7 +69,7 @@ yamlLoader = (data, filename, meta, resolver, assets) ->
       return
   if (typeof docs[0] is 'string') and (meta?)
     docs.unshift(meta)
-  if docs[0].assetsFolder and !assets
+  if docs[0].assetsPath and !assets
     return
   resolver.resolve arrayToBook docs
 

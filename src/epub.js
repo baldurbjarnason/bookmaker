@@ -213,7 +213,7 @@ extendBook = function(Book) {
 
       prefre = new RegExp("\/", "g");
       this._globalCounter++;
-      prefix = this.assetsFolder.replace(prefre, "");
+      prefix = this.assetsPath.replace(prefre, "");
       return prefix + this._globalCounter;
     },
     enumerable: true

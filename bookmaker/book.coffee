@@ -28,10 +28,10 @@ class Book
       for fn in @init
         fn(this)
     unless @assets
-      @assetsFolder = @meta.assetsFolder || 'assets/'
-      @assets = new Assets(@root, @assetsFolder)
-    if @meta.sharedAssetsFolder and !(@sharedAssets?)
-      @sharedAssets = new Assets(@meta.sharedAssetsRoot, @meta.sharedAssetsFolder)
+      @assetsPath = @meta.assetsPath || 'assets/'
+      @assets = new Assets(@root, @assetsPath)
+    if @meta.sharedAssetsPath and !(@sharedAssets?)
+      @sharedAssets = new Assets(@meta.sharedAssetsRoot, @meta.sharedAssetsPath)
     @docIdCount = 0
   docId: () ->
     @docIdCount++

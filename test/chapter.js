@@ -56,7 +56,7 @@ describe('Chapter', function() {
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: '../'
       });
       testbook.addChapter(new Chapter(testchapters.html));
@@ -98,7 +98,7 @@ describe('Chapter', function() {
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: '../'
       });
       testbook.addChapter(new Chapter(testchapters.hbs));

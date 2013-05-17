@@ -91,7 +91,7 @@ describe('Book', function() {
     return testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
-      sharedAssetsFolder: 'sharedassets/',
+      sharedAssetsPath: 'sharedassets/',
       sharedAssetsRoot: '../'
     });
   });
@@ -106,9 +106,9 @@ describe('Book', function() {
       return testbook.should.have.property('root', process.cwd());
     });
   });
-  describe('#assetsFolder', function() {
+  describe('#assetsPath', function() {
     return it('should be assets/', function() {
-      return testbook.should.have.property('assetsFolder', 'assets/');
+      return testbook.should.have.property('assetsPath', 'assets/');
     });
   });
   describe('#sharedAssets', function() {
@@ -144,7 +144,7 @@ describe('SubOutline', function() {
     return testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
-      sharedAssetsFolder: 'sharedassets/',
+      sharedAssetsPath: 'sharedassets/',
       sharedAssetsRoot: '../'
     });
   });

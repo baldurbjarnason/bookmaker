@@ -89,7 +89,7 @@ describe('EpubChapter', function() {
     return testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
-      sharedAssetsFolder: 'sharedassets/',
+      sharedAssetsPath: 'sharedassets/',
       sharedAssetsRoot: '../'
     });
   });
@@ -203,7 +203,7 @@ describe('EpubBook', function() {
     testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
-      assetsFolder: "assets/",
+      assetsPath: "assets/",
       root: "test/files/",
       bookId: "this-is-an-id",
       lang: "en",
@@ -214,7 +214,7 @@ describe('EpubBook', function() {
       version: "1.0",
       date: "15 May 2013",
       copyrightYear: "19watsit",
-      sharedAssetsFolder: 'sharedassets/',
+      sharedAssetsPath: 'sharedassets/',
       sharedAssetsRoot: 'test/files/'
     });
     _results = [];

@@ -87,7 +87,7 @@ describe 'Book',
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: '../' })
     describe '#meta',
       () ->
@@ -100,11 +100,11 @@ describe 'Book',
         it 'should equal the current working directory',
           () ->
             testbook.should.have.property('root', process.cwd())
-    describe '#assetsFolder',
+    describe '#assetsPath',
       () ->
         it 'should be assets/',
           () ->
-            testbook.should.have.property('assetsFolder', 'assets/')
+            testbook.should.have.property('assetsPath', 'assets/')
     describe '#sharedAssets',
       () ->
         it 'should be sharedassets/ and ../',
@@ -145,7 +145,7 @@ describe 'SubOutline',
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        sharedAssetsFolder: 'sharedassets/',
+        sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: '../' })
     describe '#constructor',
       () ->
