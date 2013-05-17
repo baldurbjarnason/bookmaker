@@ -2,12 +2,13 @@
 
 fs = require('fs')
 yaml = require('js-yaml')
-bookmaker = require 'index'
+bookmaker = require './index'
 Assets = bookmaker.Assets
 Chapter = bookmaker.Chapter
 Book = bookmaker.Book
 SubOutline = bookmaker.SubOutline
 whenjs = require('when')
+_ = require 'underscore'
 
 titlecounter = 0
 titlere = new RegExp('^# (.+)', 'm')
@@ -70,8 +71,47 @@ yamlLoader = (data, filename, meta, resolver, assets) ->
   if (typeof docs[0] is 'string') and (meta?)
     docs.unshift(meta)
   if docs[0].assetsPath and !assets
-    return
-  resolver.resolve arrayToBook docs
+    root = path.dirname path.resolve(process.cwd(), filename)
+    assets = new Assets(root, docs[0].assetsPath)
+  resolver.resolve arrayToBook docs, assets
 
-# Needs a toYaml
-# Write epub2yaml, epub2bookFolder, epub2json, epub2html scripts
+chapterToYaml = (chapter) ->
+  entry = {}
+  _.extend entry, @meta
+  entry.book = null
+  if chapter.subChapters
+    entry.subChapters = []
+    for subChapter in chapter.subChapters.chapters
+      entry.subChapters.push(chapterToYaml subChapter)
+  return entry
+
+extend = (Book) ->
+  Book.prototype.toYaml = (filename, options) ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    process.nextTick(() ->
+      yamlWriter filename, options, this, deferred.resolver)
+    return promise
+  return Book
+
+yamlWriter = (filename, options, book, resolver) ->
+  if filename instanceof fs.WriteStream
+    out = filename
+  else
+    out = fs.createWriteStream filename
+  meta = {}
+  _.extend meta, book.meta
+  meta.date = book.meta.date.date.toString()
+  meta.assetsPath = book.assets.assetsPath
+  out.write(yaml.safeDump(meta))
+  out.write('\n---\n')
+  for chapter in book.chapters
+    entry = chapterToYaml chapter
+    out.write(yaml.safeDump(entry))
+    out.write('\n---\n')
+  out.end(resolver.resolve)
+
+module.exports = {
+  loadYaml: loadYaml
+  extend: extend
+}
