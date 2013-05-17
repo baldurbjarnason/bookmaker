@@ -7,6 +7,7 @@ Assets = bookmaker.Assets
 Chapter = bookmaker.Chapter
 Book = bookmaker.Book
 SubOutline = bookmaker.SubOutline
+whenjs = require('when')
 
 titlecounter = 0
 titlere = new RegExp('^# (.+)', 'm')
@@ -35,10 +36,10 @@ chaptergen = (chapter) ->
     body: chapter
   }
 
-arrayToBook = (docs) ->
+arrayToBook = (docs, assets) ->
   meta = docs[0]
   chapters = docs.slice(1)
-  mdBook = new Book(meta)
+  mdBook = new Book(meta, assets)
   for entry in chapters
     if typeof entry is 'string'
       chapter = new Chapter(chaptergen(entry))
@@ -49,8 +50,18 @@ arrayToBook = (docs) ->
     mdBook.addChapter(chapter)
   return mdBook
 
-loadYaml = (filename, meta) ->
-  yamlfile = fs.readFileSync filename, 'utf8'
+loadYaml = (filename, meta, assets) ->
+  deferred = whenjs.defer()
+  promise = deferred.promise
+  fs.readFile filename, 'utf8', (err, data) ->
+    if err
+      deferred.reject
+    else
+      yamlLoader data, filename, meta, deferred.resolver, assets
+  return promise
+
+yamlLoader = (data, filename, meta, resolver, assets) ->
+  yamlfile = data
   docs = []
   yaml.safeLoadAll yamlfile,
     (doc) ->
@@ -58,7 +69,9 @@ loadYaml = (filename, meta) ->
       return
   if (typeof docs[0] is 'string') and (meta?)
     docs.unshift(meta)
-  return docs
+  if docs[0].assetsFolder and !assets
+    return
+  resolver.resolve arrayToBook docs
 
 # Needs a toYaml
 # Write epub2yaml, epub2bookFolder, epub2json, epub2html scripts

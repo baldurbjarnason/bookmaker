@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, arrayToBook, bookmaker, chaptergen, fs, loadYaml, stripre, titlecounter, titlegen, titlere, yaml;
+var Assets, Book, Chapter, SubOutline, arrayToBook, bookmaker, chaptergen, fs, loadYaml, stripre, titlecounter, titlegen, titlere, whenjs, yaml, yamlLoader;
 
 fs = require('fs');
 
@@ -14,6 +14,8 @@ Chapter = bookmaker.Chapter;
 Book = bookmaker.Book;
 
 SubOutline = bookmaker.SubOutline;
+
+whenjs = require('when');
 
 titlecounter = 0;
 
@@ -53,12 +55,12 @@ chaptergen = function(chapter) {
   });
 };
 
-arrayToBook = function(docs) {
+arrayToBook = function(docs, assets) {
   var chapter, chapters, entry, mdBook, meta, _i, _len;
 
   meta = docs[0];
   chapters = docs.slice(1);
-  mdBook = new Book(meta);
+  mdBook = new Book(meta, assets);
   for (_i = 0, _len = chapters.length; _i < _len; _i++) {
     entry = chapters[_i];
     if (typeof entry === 'string') {
@@ -74,10 +76,25 @@ arrayToBook = function(docs) {
   return mdBook;
 };
 
-loadYaml = function(filename, meta) {
+loadYaml = function(filename, meta, assets) {
+  var deferred, promise;
+
+  deferred = whenjs.defer();
+  promise = deferred.promise;
+  fs.readFile(filename, 'utf8', function(err, data) {
+    if (err) {
+      return deferred.reject;
+    } else {
+      return yamlLoader(data, filename, meta, deferred.resolver, assets);
+    }
+  });
+  return promise;
+};
+
+yamlLoader = function(data, filename, meta, resolver, assets) {
   var docs, yamlfile;
 
-  yamlfile = fs.readFileSync(filename, 'utf8');
+  yamlfile = data;
   docs = [];
   yaml.safeLoadAll(yamlfile, function(doc) {
     docs.push(doc);
@@ -85,5 +102,8 @@ loadYaml = function(filename, meta) {
   if ((typeof docs[0] === 'string') && (meta != null)) {
     docs.unshift(meta);
   }
-  return docs;
+  if (docs[0].assetsFolder && !assets) {
+    return;
+  }
+  return resolver.resolve(arrayToBook(docs));
 };
