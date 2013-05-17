@@ -10,25 +10,25 @@ fs = require 'fs'
 # Some way to enable single chapter css and js? Is that even necessary?
 
 class Assets
-  constructor: (@root, @assetFolder) ->
+  constructor: (@root, @assetsPath) ->
   pngPromise: () ->
-    pglob(@assetFolder + '**/*.png', { cwd: @root })
+    pglob(@assetsPath + '**/*.png', { cwd: @root })
   jpgPromise: () ->
-    pglob(@assetFolder + '**/*.jpg', { cwd: @root })
+    pglob(@assetsPath + '**/*.jpg', { cwd: @root })
   gifPromise: () ->
-    pglob(@assetFolder + '**/*.gif', { cwd: @root })
+    pglob(@assetsPath + '**/*.gif', { cwd: @root })
   cssPromise: () ->
-    pglob(@assetFolder + '**/*.css', { cwd: @root })
+    pglob(@assetsPath + '**/*.css', { cwd: @root })
   svgPromise: () ->
-    pglob(@assetFolder + '**/*.svg', { cwd: @root })
+    pglob(@assetsPath + '**/*.svg', { cwd: @root })
   jsPromise: () ->
-    pglob(@assetFolder + '**/*.js', { cwd: @root })
+    pglob(@assetsPath + '**/*.js', { cwd: @root })
   ttfPromise: () ->
-    pglob(@assetFolder + '**/*.ttf', { cwd: @root })
+    pglob(@assetsPath + '**/*.ttf', { cwd: @root })
   otfPromise: () ->
-    pglob(@assetFolder + '**/*.otf', { cwd: @root })
+    pglob(@assetsPath + '**/*.otf', { cwd: @root })
   woffPromise: () ->
-    pglob(@assetFolder + '**/*.woff', { cwd: @root })
+    pglob(@assetsPath + '**/*.woff', { cwd: @root })
   get: (path) ->
     deferred = whenjs.defer()
     promise = deferred.promise
@@ -38,14 +38,14 @@ class Assets
         if err
           deferred.reject
         else
-          deferred.resolve(data)))
+          deferred.resolve(data, path)))
     return promise
 
 mglob = _.memoize glob.sync
 
 Object.defineProperty Assets.prototype, 'png', {
   get: ->
-    mglob(@assetFolder + '**/*.png', { cwd: @root })
+    mglob(@assetsPath + '**/*.png', { cwd: @root })
   enumerable: true
 }
 
@@ -53,49 +53,49 @@ Object.defineProperty Assets.prototype, 'png', {
 
 Object.defineProperty Assets.prototype, 'jpg', {
   get: ->
-    mglob(@assetFolder + '**/*.jpg', { cwd: @root })
+    mglob(@assetsPath + '**/*.jpg', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'gif', {
   get: ->
-    mglob(@assetFolder + '**/*.gif', { cwd: @root })
+    mglob(@assetsPath + '**/*.gif', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'css', {
   get: ->
-    mglob(@assetFolder + '**/*.css', { cwd: @root })
+    mglob(@assetsPath + '**/*.css', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'svg', {
   get: ->
-    mglob(@assetFolder + '**/*.svg', { cwd: @root })
+    mglob(@assetsPath + '**/*.svg', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'js', {
   get: ->
-    mglob(@assetFolder + '**/*.js', { cwd: @root })
+    mglob(@assetsPath + '**/*.js', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'ttf', {
   get: ->
-    mglob(@assetFolder + '**/*.ttf', { cwd: @root })
+    mglob(@assetsPath + '**/*.ttf', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'otf', {
   get: ->
-    mglob(@assetFolder + '**/*.otf', { cwd: @root })
+    mglob(@assetsPath + '**/*.otf', { cwd: @root })
   enumerable: true
 }
 
 Object.defineProperty Assets.prototype, 'woff', {
   get: ->
-    mglob(@assetFolder + '**/*.woff', { cwd: @root })
+    mglob(@assetsPath + '**/*.woff', { cwd: @root })
   enumerable: true
 }
 
