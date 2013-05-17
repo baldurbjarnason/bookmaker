@@ -103,7 +103,17 @@ extendChapter = (Chapter) ->
 extendBook = (Book) ->
   Book.prototype.init = [] unless Book.prototype.init
   Book.prototype.init.push((book) -> handlebars.registerHelper 'relative', book.relative.bind(book))
+  Book.prototype.init.push((book) -> handlebars.registerHelper 'isCover', book.isCover.bind(book))
   Book.prototype.relative = (current, target) ->
+    absolutecurrent = path.dirname path.resolve("/", current)
+    absolutetarget = path.resolve("/", target)
+    relativetarget = path.relative(absolutecurrent, absolutetarget)
+    return relativetarget
+  Book.prototype.isCover = (path) ->
+    if @meta.cover = path
+      return new handlebars.SafeString(' properties="cover-image"')
+    else
+      return ""
     absolutecurrent = path.dirname path.resolve("/", current)
     absolutetarget = path.resolve("/", target)
     relativetarget = path.relative(absolutecurrent, absolutetarget)
