@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, bookmaker, chaptergen, fs, loadYaml, stripre, titlecounter, titlegen, titlere, yaml, yamlToBook;
+var Assets, Book, Chapter, SubOutline, arrayToBook, bookmaker, chaptergen, fs, loadYaml, stripre, titlecounter, titlegen, titlere, yaml;
 
 fs = require('fs');
 
@@ -53,7 +53,7 @@ chaptergen = function(chapter) {
   });
 };
 
-yamlToBook = function(docs) {
+arrayToBook = function(docs) {
   var chapter, chapters, entry, mdBook, meta, _i, _len;
 
   meta = docs[0];

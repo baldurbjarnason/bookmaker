@@ -35,9 +35,7 @@ chaptergen = (chapter) ->
     body: chapter
   }
 
-
-
-yamlToBook = (docs) ->
+arrayToBook = (docs) ->
   meta = docs[0]
   chapters = docs.slice(1)
   mdBook = new Book(meta)
