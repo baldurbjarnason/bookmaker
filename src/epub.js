@@ -107,11 +107,9 @@ extendChapter = function(Chapter) {
     promise = deferred.promise;
     context = this.context;
     fn = this.filename;
-    process.nextTick(function() {
-      return zip.addFile(templates.chapters(context()), {
-        name: fn
-      }, deferred.resolve);
-    });
+    zip.addFile(templates.chapters(context()), {
+      name: fn
+    }, deferred.resolve);
     return promise;
   };
   return Chapter;
@@ -243,13 +241,11 @@ addTask = function(file, name, zip, store) {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    process.nextTick(function() {
-      deferred.notify("" + name + " written to zip");
-      return zip.addFile(file, {
-        name: name,
-        store: store
-      }, deferred.resolve);
-    });
+    deferred.notify("" + name + " written to zip");
+    zip.addFile(file, {
+      name: name,
+      store: store
+    }, deferred.resolve);
     return promise;
   };
 };
@@ -260,18 +256,16 @@ addFsTask = function(path, name, zip, store) {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    process.nextTick(function() {
-      return fs.readFile(path, function(err, data) {
-        if (err) {
-          return deferred.reject;
-        } else {
-          deferred.notify("" + name + " written to zip");
-          return zip.addFile(data, {
-            name: name,
-            store: store
-          }, deferred.resolve);
-        }
-      });
+    fs.readFile(path, function(err, data) {
+      if (err) {
+        return deferred.reject;
+      } else {
+        deferred.notify("" + name + " written to zip");
+        return zip.addFile(data, {
+          name: name,
+          store: store
+        }, deferred.resolve);
+      }
     });
     return promise;
   };
@@ -283,13 +277,11 @@ addTemplateTask = function(template, book, zip, name, store) {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    process.nextTick(function() {
-      deferred.notify("" + name + " written to zip");
-      return zip.addFile(template(book), {
-        name: name,
-        store: store
-      }, deferred.resolve);
-    });
+    deferred.notify("" + name + " written to zip");
+    zip.addFile(template(book), {
+      name: name,
+      store: store
+    }, deferred.resolve);
     return promise;
   };
 };
@@ -306,10 +298,8 @@ toEpub = function(out, options) {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    process.nextTick(function() {
-      deferred.notify('Writing to file...');
-      return zip.finalize(deferred.resolve);
-    });
+    deferred.notify('Writing to file...');
+    zip.finalize(deferred.resolve);
     return promise;
   };
   return renderEpub(this, out, options, zip).then(final);
@@ -368,13 +358,11 @@ extendAssets = function(Assets) {
 
       deferred = whenjs.defer();
       promise = deferred.promise;
-      process.nextTick(function() {
-        return assets.get(item).then(function(data) {
-          deferred.notify("Writing " + item + " to zip");
-          return zip.addFile(data, {
-            name: item
-          }, deferred.resolve);
-        });
+      assets.get(item).then(function(data) {
+        deferred.notify("Writing " + item + " to zip");
+        return zip.addFile(data, {
+          name: item
+        }, deferred.resolve);
       });
       return promise;
     };
@@ -385,16 +373,14 @@ extendAssets = function(Assets) {
 
       deferred = whenjs.defer();
       promise = deferred.promise;
-      process.nextTick(function() {
-        return assets.get(item).then(function(data) {
-          var file;
+      assets.get(item).then(function(data) {
+        var file;
 
-          deferred.notify("Writing mangled " + item + " to zip");
-          file = mangler.mangle(data, id);
-          return zip.addFile(file, {
-            name: item
-          }, deferred.resolve);
-        });
+        deferred.notify("Writing mangled " + item + " to zip");
+        file = mangler.mangle(data, id);
+        return zip.addFile(file, {
+          name: item
+        }, deferred.resolve);
       });
       return promise;
     };
@@ -451,11 +437,9 @@ extendAssets = function(Assets) {
 
       deferred = whenjs.defer();
       promise = deferred.promise;
-      process.nextTick(function() {
-        return zip.addFile(templates.encryption(fonts), {
-          name: 'META-INF/encryption.xml'
-        }, deferred.resolve);
-      });
+      zip.addFile(templates.encryption(fonts), {
+        name: 'META-INF/encryption.xml'
+      }, deferred.resolve);
       return promise;
     });
   };

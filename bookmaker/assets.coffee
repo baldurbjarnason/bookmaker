@@ -33,12 +33,11 @@ class Assets
     deferred = whenjs.defer()
     promise = deferred.promise
     fn = @root + path
-    process.nextTick(() ->
-      fs.readFile(fn, (err, data) ->
-        if err
-          deferred.reject
-        else
-          deferred.resolve(data, path)))
+    fs.readFile(fn, (err, data) ->
+      if err
+        deferred.reject
+      else
+        deferred.resolve(data, path))
     return promise
 
 mglob = _.memoize glob.sync

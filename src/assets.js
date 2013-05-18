@@ -79,14 +79,12 @@ Assets = (function() {
     deferred = whenjs.defer();
     promise = deferred.promise;
     fn = this.root + path;
-    process.nextTick(function() {
-      return fs.readFile(fn, function(err, data) {
-        if (err) {
-          return deferred.reject;
-        } else {
-          return deferred.resolve(data, path);
-        }
-      });
+    fs.readFile(fn, function(err, data) {
+      if (err) {
+        return deferred.reject;
+      } else {
+        return deferred.resolve(data, path);
+      }
     });
     return promise;
   };

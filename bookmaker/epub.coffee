@@ -95,8 +95,7 @@ extendChapter = (Chapter) ->
     promise = deferred.promise
     context = @context
     fn = @filename
-    process.nextTick(() ->
-      zip.addFile(templates.chapters(context()), { name: fn }, deferred.resolve))
+    zip.addFile(templates.chapters(context()), { name: fn }, deferred.resolve)
     return promise
   return Chapter
 
@@ -195,38 +194,27 @@ addTask = (file, name, zip, store) ->
   return () ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    process.nextTick(() ->
-      deferred.notify "#{name} written to zip"
-      zip.addFile(file, { name: name, store: store }, deferred.resolve))
+    deferred.notify "#{name} written to zip"
+    zip.addFile(file, { name: name, store: store }, deferred.resolve)
     return promise
 addFsTask = (path, name, zip, store) ->
   return () ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    process.nextTick(() ->
-      fs.readFile(path, (err, data) ->
-        if err
-          deferred.reject
-        else
-          deferred.notify "#{name} written to zip"
-          zip.addFile(data, { name: name, store: store }, deferred.resolve)))
+    fs.readFile(path, (err, data) ->
+      if err
+        deferred.reject
+      else
+        deferred.notify "#{name} written to zip"
+        zip.addFile(data, { name: name, store: store }, deferred.resolve))
     return promise
 addTemplateTask = (template, book, zip, name, store) ->
   return () ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    process.nextTick(() ->
-      deferred.notify "#{name} written to zip"
-      zip.addFile(template(book), { name: name, store: store }, deferred.resolve))
+    deferred.notify "#{name} written to zip"
+    zip.addFile(template(book), { name: name, store: store }, deferred.resolve)
     return promise
-
-# final = () ->
-#   return () ->
-#     deferred = whenjs.defer()
-#     promise = deferred.promise
-#     process.nextTick(() ->
-#       zip.addFile(template(book), { name: name, store: store }, deferred.resolve))
-#     return promise
 
 toEpub = (out, options) ->
   zip = zipStream.createZip({ level: 1 })
@@ -234,9 +222,8 @@ toEpub = (out, options) ->
   final = () ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    process.nextTick(() ->
-      deferred.notify 'Writing to file...'
-      zip.finalize(deferred.resolve))
+    deferred.notify 'Writing to file...'
+    zip.finalize(deferred.resolve)
     return promise
   renderEpub(this, out, options, zip).then(final)
 
@@ -284,20 +271,18 @@ extendAssets = (Assets) ->
     return () ->
       deferred = whenjs.defer()
       promise = deferred.promise
-      process.nextTick(() ->
-        assets.get(item).then((data) ->
-          deferred.notify "Writing #{item} to zip"
-          zip.addFile(data, { name: item }, deferred.resolve)))
+      assets.get(item).then((data) ->
+        deferred.notify "Writing #{item} to zip"
+        zip.addFile(data, { name: item }, deferred.resolve))
       return promise
   mangleTask = (item, assets, zip, id) ->
     return () ->
       deferred = whenjs.defer()
       promise = deferred.promise
-      process.nextTick(() ->
-        assets.get(item).then((data) ->
-          deferred.notify "Writing mangled #{item} to zip"
-          file = mangler.mangle(data, id)
-          zip.addFile(file, { name: item }, deferred.resolve)))
+      assets.get(item).then((data) ->
+        deferred.notify "Writing mangled #{item} to zip"
+        file = mangler.mangle(data, id)
+        zip.addFile(file, { name: item }, deferred.resolve))
       return promise
 
   Assets.prototype.addToZip = (zip) ->
@@ -325,8 +310,7 @@ extendAssets = (Assets) ->
     @addMangledFontsToZip(zip, id).then(()->
       deferred = whenjs.defer()
       promise = deferred.promise
-      process.nextTick(() ->
-        zip.addFile(templates.encryption(fonts), { name: 'META-INF/encryption.xml' }, deferred.resolve))
+      zip.addFile(templates.encryption(fonts), { name: 'META-INF/encryption.xml' }, deferred.resolve)
       return promise)
   return Assets
 
