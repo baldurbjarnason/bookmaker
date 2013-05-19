@@ -37,3 +37,11 @@ test/files/chapters.zip
 test/files/js.zip
 test/files/mangledfonts.zip
 test/files/test.zip
+test/files/assets2/SourceSansPro-Regular.otf
+test/files/assets2/SourceSansPro-Regular.ttf
+test/files/assets2/cover.jpg
+test/files/assets2/jquery.js
+test/files/assets2/jquery2.js
+test/files/assets2/noise.png
+test/files/assets2/style.css
+test/files/assets2/texture.jpg
