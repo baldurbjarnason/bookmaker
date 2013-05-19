@@ -120,6 +120,21 @@ describe('Chapter', function() {
       return testchapter.html.should.equal('<h1>header</h1><p>Test<br/></p>');
     });
   });
+  describe('#toJSON', function() {
+    return it('should correctly give you a safe json file', function() {
+      var jsontest;
+
+      testbook = new Book({
+        title: 'The Wonderful Wizard of Oz',
+        author: 'L. Frank Baum',
+        sharedAssetsPath: 'sharedassets/',
+        sharedAssetsRoot: '../'
+      });
+      testbook.addChapter(new Chapter(testchapters.hbs));
+      jsontest = testbook.chapters[0].toJSON();
+      return jsontest.should.equal("{\n  \"type\": \"html\",\n  \"title\": \"Template\",\n  \"body\": \"<h1 id=\\\"h1-1\\\">Template</h1><p class=\\\"noindent\\\" id=\\\"p-1\\\">Test<br />‘—’“–”&#160;</p>\",\n  \"id\": \"doc1\",\n  \"filename\": \"chapters/doc1.html\",\n  \"_links\": {\n    \"toc\": {\n      \"href\": \"../index.json\",\n      \"name\": \"JSON\"\n    },\n    \"self\": {\n      \"href\": \"chapters/doc1.json\"\n    }\n  }\n}");
+    });
+  });
   return describe('#htmlPromise (html)', function() {
     return it('should correctly render xhtml body content', function(done) {
       var testchapter;

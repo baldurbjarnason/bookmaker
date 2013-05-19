@@ -101,6 +101,18 @@ describe 'Chapter',
             testchapter.title.should.equal('XHTML')
             testchapter.should.be.instanceOf(Chapter)
             testchapter.html.should.equal('<h1>header</h1><p>Test<br/></p>')
+    describe '#toJSON',
+      () ->
+        it 'should correctly give you a safe json file',
+          () ->
+            testbook = new Book({
+              title: 'The Wonderful Wizard of Oz',
+              author: 'L. Frank Baum',
+              sharedAssetsPath: 'sharedassets/',
+              sharedAssetsRoot: '../' })
+            testbook.addChapter(new Chapter(testchapters.hbs))
+            jsontest = testbook.chapters[0].toJSON()
+            jsontest.should.equal("{\n  \"type\": \"html\",\n  \"title\": \"Template\",\n  \"body\": \"<h1 id=\\\"h1-1\\\">Template</h1><p class=\\\"noindent\\\" id=\\\"p-1\\\">Test<br />‘—’“–”&#160;</p>\",\n  \"id\": \"doc1\",\n  \"filename\": \"chapters/doc1.html\",\n  \"_links\": {\n    \"toc\": {\n      \"href\": \"../index.json\",\n      \"name\": \"JSON\"\n    },\n    \"self\": {\n      \"href\": \"chapters/doc1.json\"\n    }\n  }\n}")
     describe '#htmlPromise (html)',
       () ->
         it 'should correctly render xhtml body content',
