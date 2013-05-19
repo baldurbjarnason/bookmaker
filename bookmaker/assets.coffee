@@ -7,6 +7,7 @@ nodefn = require("when/node/function")
 pglob = nodefn.lift(glob)
 _ = require 'underscore'
 fs = require 'fs'
+ncp = require('ncp').ncp
 
 # Some way to enable single chapter css and js? Is that even necessary?
 
@@ -41,6 +42,16 @@ class Assets
     for type in types
       tasks.push(@addTypeToZip.bind(this, type, zip))
     sequence tasks
+  copy: (directory) ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    deferred.notify "Copying assets"
+    ncp(@root + @assetsPath, directory, (err) ->
+      if err
+        deferred.reject err
+      else
+        deferred.resolve())
+
   init: () ->
     task = (type) ->
       @[type] = glob.sync(@assetsPath + "**/*.#{type}", { cwd: @root })
@@ -49,6 +60,6 @@ class Assets
     tasks = []
     for type in types
       tasks.push(task.bind(this, type))
-    sequence tasks
+    sequence(tasks).then(() -> return this)
 
 module.exports = Assets

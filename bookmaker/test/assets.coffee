@@ -47,3 +47,11 @@ describe 'Assets',
           () ->
             testassets.ttf.should.be.instanceOf(Array)
             testassets.ttf[0].should.equal('assets/SourceSansPro-Regular.ttf')
+    describe '#copy',
+      () ->
+        it 'should copy the assets folder to a new location',
+          () ->
+            testassets.copy('test/files/assets2/')
+            assets1 = glob.sync('assets/*', {cwd: 'test/files/assets/'}).join()
+            assets2 = glob.sync('assets2/*', {cwd: 'test/files/assets2/'}).join()
+            assets1.should.equal(assets2)

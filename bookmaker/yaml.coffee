@@ -9,6 +9,8 @@ Book = bookmaker.Book
 SubOutline = bookmaker.SubOutline
 whenjs = require('when')
 _ = require 'underscore'
+path = require 'path'
+sequence = require('when/sequence')
 
 titlecounter = 0
 titlere = new RegExp('^# (.+)', 'm')
@@ -77,8 +79,9 @@ yamlLoader = (data, filename, meta, resolver, assets) ->
 
 chapterToYaml = (chapter) ->
   entry = {}
-  _.extend entry, @meta
-  entry.book = null
+  omitted =  _.methods(chapter)
+  omitted.push('book')
+  entry = _.omit chapter, omitted
   if chapter.subChapters
     entry.subChapters = []
     for subChapter in chapter.subChapters.chapters
@@ -87,14 +90,15 @@ chapterToYaml = (chapter) ->
 
 extend = (Book) ->
   Book.prototype.toYaml = (filename, options) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    process.nextTick(() ->
-      yamlWriter filename, options, this, deferred.resolver)
-    return promise
+    directory = path.dirname filename + @assetsPath
+    tasks = [@assets.copy(directory),
+      yamlWriter(filename, options, this)]
+    sequence tasks
   return Book
 
 yamlWriter = (filename, options, book, resolver) ->
+  deferred = whenjs.defer()
+  promise = deferred.promise
   if filename instanceof fs.WriteStream
     out = filename
   else
@@ -102,14 +106,14 @@ yamlWriter = (filename, options, book, resolver) ->
   meta = {}
   _.extend meta, book.meta
   meta.date = book.meta.date.date.toString()
-  meta.assetsPath = book.assets.assetsPath
   out.write(yaml.safeDump(meta))
   out.write('\n---\n')
   for chapter in book.chapters
     entry = chapterToYaml chapter
     out.write(yaml.safeDump(entry))
     out.write('\n---\n')
-  out.end(resolver.resolve)
+  out.end(deferred.resolve)
+  return promise
 
 module.exports = {
   loadYaml: loadYaml

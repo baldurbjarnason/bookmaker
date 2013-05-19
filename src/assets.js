@@ -1,5 +1,5 @@
 'use strict';
-var Assets, fs, glob, nodefn, pglob, sequence, whenjs, _;
+var Assets, fs, glob, ncp, nodefn, pglob, sequence, whenjs, _;
 
 glob = require('glob');
 
@@ -14,6 +14,8 @@ pglob = nodefn.lift(glob);
 _ = require('underscore');
 
 fs = require('fs');
+
+ncp = require('ncp').ncp;
 
 Assets = (function() {
   function Assets(root, assetsPath) {
@@ -77,6 +79,21 @@ Assets = (function() {
     return sequence(tasks);
   };
 
+  Assets.prototype.copy = function(directory) {
+    var deferred, promise;
+
+    deferred = whenjs.defer();
+    promise = deferred.promise;
+    deferred.notify("Copying assets");
+    return ncp(this.root + this.assetsPath, directory, function(err) {
+      if (err) {
+        return deferred.reject(err);
+      } else {
+        return deferred.resolve();
+      }
+    });
+  };
+
   Assets.prototype.init = function() {
     var task, tasks, type, types, _i, _len;
 
@@ -91,7 +108,9 @@ Assets = (function() {
       type = types[_i];
       tasks.push(task.bind(this, type));
     }
-    return sequence(tasks);
+    return sequence(tasks).then(function() {
+      return this;
+    });
   };
 
   return Assets;

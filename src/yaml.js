@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, arrayToBook, bookmaker, chapterToYaml, chaptergen, extend, fs, loadYaml, stripre, titlecounter, titlegen, titlere, whenjs, yaml, yamlLoader, yamlWriter, _;
+var Assets, Book, Chapter, SubOutline, arrayToBook, bookmaker, chapterToYaml, chaptergen, extend, fs, loadYaml, path, sequence, stripre, titlecounter, titlegen, titlere, whenjs, yaml, yamlLoader, yamlWriter, _;
 
 fs = require('fs');
 
@@ -18,6 +18,10 @@ SubOutline = bookmaker.SubOutline;
 whenjs = require('when');
 
 _ = require('underscore');
+
+path = require('path');
+
+sequence = require('when/sequence');
 
 titlecounter = 0;
 
@@ -112,11 +116,12 @@ yamlLoader = function(data, filename, meta, resolver, assets) {
 };
 
 chapterToYaml = function(chapter) {
-  var entry, subChapter, _i, _len, _ref;
+  var entry, omitted, subChapter, _i, _len, _ref;
 
   entry = {};
-  _.extend(entry, this.meta);
-  entry.book = null;
+  omitted = _.methods(chapter);
+  omitted.push('book');
+  entry = _.omit(chapter, omitted);
   if (chapter.subChapters) {
     entry.subChapters = [];
     _ref = chapter.subChapters.chapters;
@@ -130,21 +135,20 @@ chapterToYaml = function(chapter) {
 
 extend = function(Book) {
   Book.prototype.toYaml = function(filename, options) {
-    var deferred, promise;
+    var directory, tasks;
 
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    process.nextTick(function() {
-      return yamlWriter(filename, options, this, deferred.resolver);
-    });
-    return promise;
+    directory = path.dirname(filename + this.assetsPath);
+    tasks = [this.assets.copy(directory), yamlWriter(filename, options, this)];
+    return sequence(tasks);
   };
   return Book;
 };
 
 yamlWriter = function(filename, options, book, resolver) {
-  var chapter, entry, meta, out, _i, _len, _ref;
+  var chapter, deferred, entry, meta, out, promise, _i, _len, _ref;
 
+  deferred = whenjs.defer();
+  promise = deferred.promise;
   if (filename instanceof fs.WriteStream) {
     out = filename;
   } else {
@@ -153,7 +157,6 @@ yamlWriter = function(filename, options, book, resolver) {
   meta = {};
   _.extend(meta, book.meta);
   meta.date = book.meta.date.date.toString();
-  meta.assetsPath = book.assets.assetsPath;
   out.write(yaml.safeDump(meta));
   out.write('\n---\n');
   _ref = book.chapters;
@@ -163,7 +166,8 @@ yamlWriter = function(filename, options, book, resolver) {
     out.write(yaml.safeDump(entry));
     out.write('\n---\n');
   }
-  return out.end(resolver.resolve);
+  out.end(deferred.resolve);
+  return promise;
 };
 
 module.exports = {

@@ -48,10 +48,24 @@ describe('Assets', function() {
       return testassets.otf[0].should.equal('assets/SourceSansPro-Regular.otf');
     });
   });
-  return describe('#ttf', function() {
+  describe('#ttf', function() {
     return it('should show all ttf', function() {
       testassets.ttf.should.be.instanceOf(Array);
       return testassets.ttf[0].should.equal('assets/SourceSansPro-Regular.ttf');
+    });
+  });
+  return describe('#copy', function() {
+    return it('should copy the assets folder to a new location', function() {
+      var assets1, assets2;
+
+      testassets.copy('test/files/assets2/');
+      assets1 = glob.sync('assets/*', {
+        cwd: 'test/files/assets/'
+      }).join();
+      assets2 = glob.sync('assets2/*', {
+        cwd: 'test/files/assets2/'
+      }).join();
+      return assets1.should.equal(assets2);
     });
   });
 });
