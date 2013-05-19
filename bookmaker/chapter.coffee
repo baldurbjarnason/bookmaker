@@ -21,46 +21,6 @@ class Chapter
   formatPath: (type) ->
     newpath = path.dirname(@filename) + "/" + path.basename(@filename, path.extname(@filename)) + '.' + type
     return newpath
-  toHal: () ->
-    banned = ['book', 'meta', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
-    hal = _.omit this, banned
-    hal.body = @html
-    hal.type = 'html'
-    tocpath = path.relative(path.resolve("/", path.dirname(@filename)), "/index.json")
-    selfpath = @formatPath('json')
-    hal._links = {
-      toc: { href: tocpath, name: 'JSON'},
-      self: { href: selfpath, }
-    }
-    if @book.assets?.css
-      hal._links.stylesheets = for href in @book.assets.css
-        { href: href }
-    if @js
-      hal._links.stylesheets = for href in @js
-        { href: href }
-    selfindex = @book.chapters.indexOf(this)
-    if selfindex isnt 0
-      hal._links.prev = { href: @books.chapters[selfindex - 1].formatPath() }
-    if selfindex isnt @book.chapters.length - 1
-      hal._links.next = { href: @books.chapters[selfindex + 1].formatPath() }
-    return hal
-  toJSON: () ->
-    json = @toHal()
-    filter = (key, value) ->
-      if key is ""
-        return value
-      if key is 'subChapters'
-        subChapters = []
-        for subChapter in subChapters.chapters
-          subChapters.push(subChapter)
-        return subChapters
-      if key is 'date'
-        return date.date.toString()
-      if key is 'toJSON'
-        return ""
-      return value
-    stringified = JSON.stringify json, filter, 2
-    return stringified
 
 toHtml = ->
   switch @type

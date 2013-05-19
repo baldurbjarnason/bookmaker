@@ -10,6 +10,8 @@ Chapter = require('./chapter');
 
 require('./epub').extend(Chapter, Book, Assets);
 
+require('./json').extend(Chapter, Book, Assets);
+
 require('./loaders').extend(Book);
 
 yaml = require('./yaml');

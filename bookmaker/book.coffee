@@ -15,7 +15,11 @@ class Book
         dateProcess(meta.date)
       else
         dateProcess()
-    @meta.modified = dateProcess()
+    @meta.modified =
+      if meta.modified
+        dateProcess(meta.modified)
+      else
+        dateProcess()
     @meta.copyrightYear = meta.copyrightYear || meta.date.dateYear
     @meta.version = meta.version || "0.1"
     @meta.lang = meta.lang || 'en'
