@@ -2,12 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
 <head>
 <title>{{ title }} – {{ meta.title }}</title>
+{{#if meta.specifiedCss }}{{#each css}}
+<link href="{{relative ../filename this }}" type="text/css" rel="stylesheet" />
+{{/each}}{{else}}
 {{#each assets.css}}
 <link href="{{relative ../filename this }}" type="text/css" rel="stylesheet" />
-{{/each}}
+{{/each}}{{/if}}{{#if meta.specifiedJs }}{{#each js}}
+<script src="{{relative ../filename this }}" type="application/javascript"></script>
+{{/each}}{{else}}
 {{#each assets.js}}
 <script src="{{relative ../filename this }}" type="application/javascript"></script>
-{{/each}}
+{{/each}}{{/if}}
 </head>
 <body class="chapterBody {{ id }}" id="{{ id }}">
 <div class="chapter" id="chapter">{{{ html }}}</div>
