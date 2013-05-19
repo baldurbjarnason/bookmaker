@@ -63,6 +63,7 @@
   </spine>
       <guide>
         {{#if meta.cover }}<reference type="cover" title="Cover" href="cover.html"></reference>{{/if}}
+        {{#if meta.start }}<reference type="text" title="Beginning" href="{{ meta.start.filename }}"></reference>{{/if}}
         {{! <reference type="toc" title="Contents" href="index.html"></reference> }}
         {{{ opftoc }}}
     </guide>
