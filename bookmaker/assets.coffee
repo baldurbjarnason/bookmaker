@@ -12,24 +12,24 @@ fs = require 'fs'
 
 class Assets
   constructor: (@root, @assetsPath) ->
-  pngPromise: () ->
-    pglob(@assetsPath + '**/*.png', { cwd: @root })
-  jpgPromise: () ->
-    pglob(@assetsPath + '**/*.jpg', { cwd: @root })
-  gifPromise: () ->
-    pglob(@assetsPath + '**/*.gif', { cwd: @root })
-  cssPromise: () ->
-    pglob(@assetsPath + '**/*.css', { cwd: @root })
-  svgPromise: () ->
-    pglob(@assetsPath + '**/*.svg', { cwd: @root })
-  jsPromise: () ->
-    pglob(@assetsPath + '**/*.js', { cwd: @root })
-  ttfPromise: () ->
-    pglob(@assetsPath + '**/*.ttf', { cwd: @root })
-  otfPromise: () ->
-    pglob(@assetsPath + '**/*.otf', { cwd: @root })
-  woffPromise: () ->
-    pglob(@assetsPath + '**/*.woff', { cwd: @root })
+  # pngPromise: () ->
+  #   pglob(@assetsPath + '**/*.png', { cwd: @root })
+  # jpgPromise: () ->
+  #   pglob(@assetsPath + '**/*.jpg', { cwd: @root })
+  # gifPromise: () ->
+  #   pglob(@assetsPath + '**/*.gif', { cwd: @root })
+  # cssPromise: () ->
+  #   pglob(@assetsPath + '**/*.css', { cwd: @root })
+  # svgPromise: () ->
+  #   pglob(@assetsPath + '**/*.svg', { cwd: @root })
+  # jsPromise: () ->
+  #   pglob(@assetsPath + '**/*.js', { cwd: @root })
+  # ttfPromise: () ->
+  #   pglob(@assetsPath + '**/*.ttf', { cwd: @root })
+  # otfPromise: () ->
+  #   pglob(@assetsPath + '**/*.otf', { cwd: @root })
+  # woffPromise: () ->
+  #   pglob(@assetsPath + '**/*.woff', { cwd: @root })
   get: (filepath) ->
     deferred = whenjs.defer()
     promise = deferred.promise

@@ -171,7 +171,7 @@ describe('EpubAssets', function() {
       zip.pipe(out);
       return testassets.addToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(335211);
+          written.should.equal(386001);
           return done();
         });
       });
@@ -207,7 +207,7 @@ describe('EpubBook', function() {
       root: "test/files/",
       bookId: "this-is-an-id",
       lang: "en",
-      cover: "cover.jpg",
+      cover: "assets/cover.jpg",
       description: 'foo',
       publisher: 'Bar',
       subject1: 'Foobar',

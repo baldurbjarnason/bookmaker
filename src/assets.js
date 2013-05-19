@@ -21,60 +21,6 @@ Assets = (function() {
     this.assetsPath = assetsPath;
   }
 
-  Assets.prototype.pngPromise = function() {
-    return pglob(this.assetsPath + '**/*.png', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.jpgPromise = function() {
-    return pglob(this.assetsPath + '**/*.jpg', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.gifPromise = function() {
-    return pglob(this.assetsPath + '**/*.gif', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.cssPromise = function() {
-    return pglob(this.assetsPath + '**/*.css', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.svgPromise = function() {
-    return pglob(this.assetsPath + '**/*.svg', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.jsPromise = function() {
-    return pglob(this.assetsPath + '**/*.js', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.ttfPromise = function() {
-    return pglob(this.assetsPath + '**/*.ttf', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.otfPromise = function() {
-    return pglob(this.assetsPath + '**/*.otf', {
-      cwd: this.root
-    });
-  };
-
-  Assets.prototype.woffPromise = function() {
-    return pglob(this.assetsPath + '**/*.woff', {
-      cwd: this.root
-    });
-  };
-
   Assets.prototype.get = function(filepath) {
     var deferred, fn, promise;
 

@@ -152,7 +152,7 @@ describe 'EpubAssets',
             zip.pipe(out)
             testassets.addToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(335211)
+                written.should.equal(386001)
                 done()))
     describe '#mangleFonts',
       () ->
@@ -177,7 +177,7 @@ describe 'EpubBook',
         root: "test/files/",
         bookId: "this-is-an-id"
         lang: "en"
-        cover: "cover.jpg"
+        cover: "assets/cover.jpg"
         description: 'foo'
         publisher: 'Bar'
         subject1: 'Foobar'

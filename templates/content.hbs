@@ -26,18 +26,17 @@
 </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
-    {{#if meta.cover }}<item id="bookcover" href="cover.jpg" media-type="image/jpeg" properties="cover-image"/>{{/if}}
     {{#each assets.css}}
     <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="text/css"/>
     {{/each}}
     {{#each assets.jpg}}
-    <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/jpeg"/>
+    <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/jpeg"{{isCover this}}/>
     {{/each}}
     {{#each assets.png}}
-    <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/png"/>
+    <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/png"{{isCover this}}/>
     {{/each}}
     {{#each assets.gif}}
-    <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/gif"/>
+    <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/gif"{{isCover this}}/>
     {{/each}}
     {{#each assets.svg}}
     <item id="{{ ../globalCounter }}" href="{{ this }}" media-type="image/svg+xml"/>

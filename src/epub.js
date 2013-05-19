@@ -1,5 +1,5 @@
 'use strict';
-var addFsTask, addTask, addTemplateTask, bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, path, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream,
+var addTask, addTemplateTask, bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, path, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream,
   __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
@@ -138,7 +138,7 @@ extendBook = function(Book) {
   Book.prototype.isCover = function(path) {
     var absolutecurrent, absolutetarget, relativetarget;
 
-    if (this.meta.cover = path) {
+    if (this.meta.cover === path) {
       return new handlebars.SafeString(' properties="cover-image"');
     } else {
       return "";
@@ -250,27 +250,6 @@ addTask = function(file, name, zip, store) {
   };
 };
 
-addFsTask = function(path, name, zip, store) {
-  return function() {
-    var deferred, promise;
-
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    fs.readFile(path, function(err, data) {
-      if (err) {
-        return deferred.reject;
-      } else {
-        deferred.notify("" + name + " written to zip");
-        return zip.addFile(data, {
-          name: name,
-          store: store
-        }, deferred.resolve);
-      }
-    });
-    return promise;
-  };
-};
-
 addTemplateTask = function(template, book, zip, name, store) {
   return function() {
     var deferred, promise;
@@ -319,7 +298,6 @@ renderEpub = function(book, out, options, zip) {
   tasks.push(addTask('<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>', 'META-INF/com.apple.ibooks.display-options.xml', zip));
   tasks.push(addTask('<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>', 'META-INF/container.xml', zip));
   if (book.meta.cover) {
-    tasks.push(addFsTask(book.root + book.meta.cover, "cover.jpg", zip));
     tasks.push(addTemplateTask(templates.cover, book, zip, 'cover.html'));
   }
   tasks.push(addTemplateTask(templates.content, book, zip, 'content.opf'));

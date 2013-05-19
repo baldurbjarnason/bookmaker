@@ -109,7 +109,7 @@ extendBook = (Book) ->
     relativetarget = path.relative(absolutecurrent, absolutetarget)
     return relativetarget
   Book.prototype.isCover = (path) ->
-    if @meta.cover = path
+    if @meta.cover is path
       return new handlebars.SafeString(' properties="cover-image"')
     else
       return ""
@@ -197,17 +197,17 @@ addTask = (file, name, zip, store) ->
     deferred.notify "#{name} written to zip"
     zip.addFile(file, { name: name, store: store }, deferred.resolve)
     return promise
-addFsTask = (path, name, zip, store) ->
-  return () ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    fs.readFile(path, (err, data) ->
-      if err
-        deferred.reject
-      else
-        deferred.notify "#{name} written to zip"
-        zip.addFile(data, { name: name, store: store }, deferred.resolve))
-    return promise
+# addFsTask = (path, name, zip, store) ->
+#   return () ->
+#     deferred = whenjs.defer()
+#     promise = deferred.promise
+#     fs.readFile(path, (err, data) ->
+#       if err
+#         deferred.reject
+#       else
+#         deferred.notify "#{name} written to zip"
+#         zip.addFile(data, { name: name, store: store }, deferred.resolve))
+#     return promise
 addTemplateTask = (template, book, zip, name, store) ->
   return () ->
     deferred = whenjs.defer()
@@ -251,7 +251,7 @@ renderEpub = (book, out, options, zip) ->
       </container>
       ''', 'META-INF/container.xml', zip))
   if book.meta.cover
-    tasks.push(addFsTask(book.root + book.meta.cover, "cover.jpg", zip))
+    # tasks.push(addFsTask(book.root + book.meta.cover, "cover.jpg", zip))
     tasks.push(addTemplateTask(templates.cover, book, zip, 'cover.html'))
   tasks.push(addTemplateTask(templates.content, book, zip, 'content.opf'))
   tasks.push(addTemplateTask(templates.toc, book, zip, 'toc.ncx'))
