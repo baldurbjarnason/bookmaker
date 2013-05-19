@@ -1,89 +1,13 @@
-# grunt-bookmaker
+# bookmaker
 
-> A grunt task for ebook creation
+> A node module for digital book formats
 
-## Getting Started
-This plugin requires Grunt `~0.4.1`
+## Big picture
 
-If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
+This is a collection of objects and functions for converting digital books to and from a few formats.
 
-```shell
-npm install grunt-bookmaker --save-dev
-```
+Currently it implements fromYaml, toYaml, toJSON, and toEpub methods. Its internal structure is a subset of that of Epub3 so not all Epub3 features are supported and some conversions will be lossy. It will get better but full Epub3 is not on the cards (some bits of that spec are just plain dumb).
 
-One the plugin has been installed, it may be enabled inside your Gruntfile with this line of JavaScript:
+The idea is that this will become the basis for grunt plugins and command line tools, but I'm not planning on releasing those just yet. Not until this module is more stable.
 
-```js
-grunt.loadNpmTasks('grunt-bookmaker');
-```
-
-## The "bookmaker" task
-
-### Overview
-In your project's Gruntfile, add a section named `bookmaker` to the data object passed into `grunt.initConfig()`.
-
-```js
-grunt.initConfig({
-  bookmaker: {
-    options: {
-      // Task-specific options go here.
-    },
-    your_target: {
-      // Target-specific file lists and/or options go here.
-    },
-  },
-})
-```
-
-### Options
-
-#### options.separator
-Type: `String`
-Default value: `',  '`
-
-A string value that is used to do something with whatever.
-
-#### options.punctuation
-Type: `String`
-Default value: `'.'`
-
-A string value that is used to do something else with whatever else.
-
-### Usage Examples
-
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
-
-```js
-grunt.initConfig({
-  bookmaker: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-})
-```
-
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
-
-```js
-grunt.initConfig({
-  bookmaker: {
-    options: {
-      separator: ': ',
-      punctuation: ' !!!',
-    },
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-})
-```
-
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
-
-## Release History
-_(Nothing yet)_
+The idea is that eventually you should be able to easily convert from JSON to Epub, or from a BookFolder to Epub, or from Epub to Structured HTML.

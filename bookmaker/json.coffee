@@ -96,9 +96,13 @@ extendBook = (Book) ->
     return hal
   Book.prototype.toJSON = (options) ->
     hal = @toHal(options)
-    console.log JSON.stringify hal, filter, 2
     return JSON.stringify hal, filter, 2
   return Book
+
+
+# Don't forget to add
+#     hal.assetsPath = @assets.assetsPath
+# When you do the toJsonFiles method
 
 module.exports = {
   extend: extend

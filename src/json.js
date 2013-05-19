@@ -197,7 +197,6 @@ extendBook = function(Book) {
     var hal;
 
     hal = this.toHal(options);
-    console.log(JSON.stringify(hal, filter, 2));
     return JSON.stringify(hal, filter, 2);
   };
   return Book;
