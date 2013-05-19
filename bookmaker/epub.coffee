@@ -267,14 +267,6 @@ renderEpub = (book, out, options, zip) ->
   sequence(tasks)
 
 extendAssets = (Assets) ->
-  zipTask = (item, assets, zip) ->
-    return () ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
-      assets.get(item).then((data) ->
-        deferred.notify "Writing #{item} to zip"
-        zip.addFile(data, { name: item }, deferred.resolve))
-      return promise
   mangleTask = (item, assets, zip, id) ->
     return () ->
       deferred = whenjs.defer()
@@ -285,17 +277,6 @@ extendAssets = (Assets) ->
         zip.addFile(file, { name: item }, deferred.resolve))
       return promise
 
-  Assets.prototype.addToZip = (zip) ->
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
-    tasks = []
-    for type in types
-      tasks.push(@addTypeToZip.bind(this, type, zip))
-    sequence tasks
-  Assets.prototype.addTypeToZip = (type, zip) ->
-    tasks = []
-    for item in this[type]
-      tasks.push(zipTask(item, this, zip))
-    sequence tasks
   Assets.prototype.addMangledFontsToZip = (zip, id) ->
     tasks = []
     for item in this['otf']

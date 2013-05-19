@@ -350,23 +350,8 @@ renderEpub = function(book, out, options, zip) {
 };
 
 extendAssets = function(Assets) {
-  var mangleTask, zipTask;
+  var mangleTask;
 
-  zipTask = function(item, assets, zip) {
-    return function() {
-      var deferred, promise;
-
-      deferred = whenjs.defer();
-      promise = deferred.promise;
-      assets.get(item).then(function(data) {
-        deferred.notify("Writing " + item + " to zip");
-        return zip.addFile(data, {
-          name: item
-        }, deferred.resolve);
-      });
-      return promise;
-    };
-  };
   mangleTask = function(item, assets, zip, id) {
     return function() {
       var deferred, promise;
@@ -384,28 +369,6 @@ extendAssets = function(Assets) {
       });
       return promise;
     };
-  };
-  Assets.prototype.addToZip = function(zip) {
-    var tasks, type, types, _i, _len;
-
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
-    tasks = [];
-    for (_i = 0, _len = types.length; _i < _len; _i++) {
-      type = types[_i];
-      tasks.push(this.addTypeToZip.bind(this, type, zip));
-    }
-    return sequence(tasks);
-  };
-  Assets.prototype.addTypeToZip = function(type, zip) {
-    var item, tasks, _i, _len, _ref;
-
-    tasks = [];
-    _ref = this[type];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      item = _ref[_i];
-      tasks.push(zipTask(item, this, zip));
-    }
-    return sequence(tasks);
   };
   Assets.prototype.addMangledFontsToZip = function(zip, id) {
     var item, tasks, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;

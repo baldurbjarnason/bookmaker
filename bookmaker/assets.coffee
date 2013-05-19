@@ -2,6 +2,7 @@
 
 glob = require 'glob'
 whenjs = require('when')
+sequence = require('when/sequence')
 nodefn = require("when/node/function")
 pglob = nodefn.lift(glob)
 _ = require 'underscore'
@@ -29,16 +30,35 @@ class Assets
     pglob(@assetsPath + '**/*.otf', { cwd: @root })
   woffPromise: () ->
     pglob(@assetsPath + '**/*.woff', { cwd: @root })
-  get: (path) ->
+  get: (filepath) ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    fn = @root + path
+    fn = @root + filepath
     fs.readFile(fn, (err, data) ->
       if err
         deferred.reject
       else
-        deferred.resolve(data, path))
+        deferred.resolve(data, filepath))
     return promise
+  getStream: (filepath, options) ->
+    fs.createReadStream(@root + filepath, options)
+  addItemToZip: (item, zip) ->
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    deferred.notify "Writing #{item} to zip"
+    zip.addFile(@getStream(item), { name: item }, deferred.resolve)
+    return promise
+  addTypeToZip: (type, zip) ->
+    tasks = []
+    for item in this[type]
+      tasks.push(@addItemToZip.bind(this, item, zip))
+    sequence tasks
+  addToZip: (zip) ->
+    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
+    tasks = []
+    for type in types
+      tasks.push(@addTypeToZip.bind(this, type, zip))
+    sequence tasks
 
 mglob = _.memoize glob.sync
 
