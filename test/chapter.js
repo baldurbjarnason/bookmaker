@@ -1,5 +1,5 @@
 'use strict';
-var Book, Chapter, SubOutline, chai, index, should, testbook, testchapters;
+var Assets, Book, Chapter, SubOutline, chai, index, should, testbook, testchapters;
 
 chai = require('chai');
 
@@ -10,6 +10,8 @@ index = require('../src/index');
 Chapter = index.Chapter;
 
 Book = index.Book;
+
+Assets = index.Assets;
 
 SubOutline = index.SubOutline;
 
@@ -58,7 +60,7 @@ describe('Chapter', function() {
         author: 'L. Frank Baum',
         sharedAssetsPath: 'sharedassets/',
         sharedAssetsRoot: '../'
-      });
+      }, new Assets('test/files', 'assets/'));
       testbook.addChapter(new Chapter(testchapters.html));
       testbook.chapters.should.be.instanceOf(Array);
       testbook.chapters[0].title.should.equal('HTML');

@@ -38,13 +38,6 @@ Book = (function() {
         fn(this);
       }
     }
-    if (!this.assets) {
-      this.assetsPath = this.meta.assetsPath || 'assets/';
-      this.assets = new Assets(this.root, this.assetsPath);
-    }
-    if (this.meta.sharedAssetsPath && !(this.sharedAssets != null)) {
-      this.sharedAssets = new Assets(this.meta.sharedAssetsRoot, this.meta.sharedAssetsPath);
-    }
     this.docIdCount = 0;
   }
 

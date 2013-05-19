@@ -5,6 +5,7 @@ should = chai.should()
 index = require '../src/index'
 Chapter = index.Chapter
 Book = index.Book
+Assets = index.Assets
 SubOutline = index.SubOutline
 
 testbook = {}
@@ -49,7 +50,7 @@ describe 'Chapter',
               title: 'The Wonderful Wizard of Oz',
               author: 'L. Frank Baum',
               sharedAssetsPath: 'sharedassets/',
-              sharedAssetsRoot: '../' })
+              sharedAssetsRoot: '../' }, new Assets('test/files', 'assets/'))
             testbook.addChapter(new Chapter(testchapters.html))
             testbook.chapters.should.be.instanceOf(Array)
             testbook.chapters[0].title.should.equal('HTML')

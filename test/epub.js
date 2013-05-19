@@ -1,5 +1,5 @@
 'use strict';
-var Book, Chapter, SubOutline, callbacks, chai, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, SubOutline, callbacks, chai, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
 
 chai = require('chai');
 
@@ -12,6 +12,8 @@ Chapter = index.Chapter;
 Book = index.Book;
 
 SubOutline = index.SubOutline;
+
+Assets = index.Assets;
 
 zipStream = require('zipstream-contentment');
 
@@ -85,12 +87,16 @@ testchapters = [
 ];
 
 describe('EpubChapter', function() {
-  beforeEach(function() {
-    return testbook = new Book({
+  beforeEach(function(done) {
+    var assets;
+
+    assets = new Assets("test/files/", "assets/");
+    testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
-      author: 'L. Frank Baum',
-      sharedAssetsPath: 'sharedassets/',
-      sharedAssetsRoot: '../'
+      author: 'L. Frank Baum'
+    }, assets);
+    return testbook.assets.init().then(function() {
+      return done();
     });
   });
   describe('#epubManifest', function() {
@@ -140,8 +146,11 @@ describe('EpubChapter', function() {
 testassets = {};
 
 describe('EpubAssets', function() {
-  beforeEach(function() {
-    return testassets = new index.Assets('test/files/', 'assets/');
+  beforeEach(function(done) {
+    testassets = new index.Assets('test/files/', 'assets/');
+    return testassets.init().then(function() {
+      return done();
+    });
   });
   describe('#addTypeToZip', function() {
     return it('Adds all assets of a type to zip', function(done) {
@@ -197,14 +206,13 @@ describe('EpubAssets', function() {
 });
 
 describe('EpubBook', function() {
-  beforeEach(function() {
-    var chap, _i, _len, _results;
+  beforeEach(function(done) {
+    var assets, chap, _i, _len;
 
+    assets = new Assets("test/files/", "assets/");
     testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum',
-      assetsPath: "assets/",
-      root: "test/files/",
       bookId: "this-is-an-id",
       lang: "en",
       cover: "assets/cover.jpg",
@@ -213,16 +221,15 @@ describe('EpubBook', function() {
       subject1: 'Foobar',
       version: "1.0",
       date: "15 May 2013",
-      copyrightYear: "19watsit",
-      sharedAssetsPath: 'sharedassets/',
-      sharedAssetsRoot: 'test/files/'
-    });
-    _results = [];
+      copyrightYear: "19watsit"
+    }, assets);
     for (_i = 0, _len = testchapters.length; _i < _len; _i++) {
       chap = testchapters[_i];
-      _results.push(testbook.addChapter(new Chapter(chap)));
+      testbook.addChapter(new Chapter(chap));
     }
-    return _results;
+    return testbook.assets.init().then(function() {
+      return done();
+    });
   });
   describe('#epubManifest', function() {
     return it('Renders the manifest xml for epub', function() {

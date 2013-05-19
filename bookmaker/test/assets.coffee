@@ -8,8 +8,9 @@ glob = require 'glob'
 testassets = {}
 describe 'Assets',
   () ->
-    before () ->
+    before (done) ->
       testassets = new Assets('test/files/', 'assets/')
+      testassets.init().then(() -> done())
     describe '#png',
       () ->
         it 'should show all pngs',
@@ -46,58 +47,3 @@ describe 'Assets',
           () ->
             testassets.ttf.should.be.instanceOf(Array)
             testassets.ttf[0].should.equal('assets/SourceSansPro-Regular.ttf')
-
-    # describe '#pngPromise',
-    #   () ->
-    #     it 'should show all pngs',
-    #       (done) ->
-    #         testassets.pngPromise().then(
-    #           (png) ->
-    #             png.should.be.instanceOf(Array)
-    #             png[0].should.equal('assets/noise.png')
-    #             done())
-    # describe '#jpgPromise',
-    #   () ->
-    #     it 'should show all jpgs',
-    #       (done) ->
-    #         testassets.jpgPromise().then(
-    #           (files) ->
-    #             files.should.be.instanceOf(Array)
-    #             files[0].should.equal('assets/texture.jpg')
-    #             done())
-    # describe '#jsPromise',
-    #   () ->
-    #     it 'should show all js',
-    #       (done) ->
-    #         testassets.jsPromise().then(
-    #           (files) ->
-    #             files.should.be.instanceOf(Array)
-    #             files[0].should.equal('assets/jquery.js')
-    #             done())
-    # describe '#cssPromise',
-    #   () ->
-    #     it 'should show all css',
-    #       (done) ->
-    #         testassets.cssPromise().then(
-    #           (files) ->
-    #             files.should.be.instanceOf(Array)
-    #             files[0].should.equal('assets/style.css')
-    #             done())
-    # describe '#otfPromise',
-    #   () ->
-    #     it 'should show all otf',
-    #       (done) ->
-    #         testassets.otfPromise().then(
-    #           (files) ->
-    #             files.should.be.instanceOf(Array)
-    #             files[0].should.equal('assets/SourceSansPro-Regular.otf')
-    #             done())
-    # describe '#ttfPromise',
-    #   () ->
-    #     it 'should show all ttf',
-    #       (done) ->
-    #         testassets.ttfPromise().then(
-    #           (files) ->
-    #             files.should.be.instanceOf(Array)
-    #             files[0].should.equal('assets/SourceSansPro-Regular.ttf')
-    #             done())

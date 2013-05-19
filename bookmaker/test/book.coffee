@@ -86,9 +86,7 @@ describe 'Book',
     beforeEach () ->
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../' })
+        author: 'L. Frank Baum'})
     describe '#meta',
       () ->
         it 'should contain all of the properties of the passed meta object',
@@ -100,17 +98,6 @@ describe 'Book',
         it 'should equal the current working directory',
           () ->
             testbook.should.have.property('root', process.cwd())
-    describe '#assetsPath',
-      () ->
-        it 'should be assets/',
-          () ->
-            testbook.should.have.property('assetsPath', 'assets/')
-    describe '#sharedAssets',
-      () ->
-        it 'should be sharedassets/ and ../',
-          () ->
-            testbook.sharedAssets.should.have.property('assetsPath', 'sharedassets/')
-            testbook.sharedAssets.should.have.property('root', '../')
     describe '#docId',
       () ->
         it 'should equal doc1, doc2, and doc3',
@@ -129,15 +116,6 @@ describe 'Book',
             testbook.chapters[0].should.have.property('id', 'doc1')
             testbook.chapters[0].should.have.property('filename', 'chapters/doc1.html')
             testbook.chapters[0].should.not.have.property('title')
-    # describe '#context',
-    #   () ->
-    #     it 'should provide all necessary context for templates',
-    #       () ->
-    #         for chapter in testoutline.subChapters
-    #           testbook.addChapter(new Chapter(chapter))
-    #         testbook.context().should.have.property('meta', testbook.meta)
-    #         testbook.context().should.have.property('assets', testbook.assets)
-    #         testbook.context().should.have.property('chapters', testbook.chapters)
 
 describe 'SubOutline',
   () ->

@@ -90,9 +90,7 @@ describe('Book', function() {
   beforeEach(function() {
     return testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
-      author: 'L. Frank Baum',
-      sharedAssetsPath: 'sharedassets/',
-      sharedAssetsRoot: '../'
+      author: 'L. Frank Baum'
     });
   });
   describe('#meta', function() {
@@ -104,17 +102,6 @@ describe('Book', function() {
   describe('#root', function() {
     return it('should equal the current working directory', function() {
       return testbook.should.have.property('root', process.cwd());
-    });
-  });
-  describe('#assetsPath', function() {
-    return it('should be assets/', function() {
-      return testbook.should.have.property('assetsPath', 'assets/');
-    });
-  });
-  describe('#sharedAssets', function() {
-    return it('should be sharedassets/ and ../', function() {
-      testbook.sharedAssets.should.have.property('assetsPath', 'sharedassets/');
-      return testbook.sharedAssets.should.have.property('root', '../');
     });
   });
   describe('#docId', function() {

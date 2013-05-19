@@ -12,8 +12,11 @@ glob = require('glob');
 testassets = {};
 
 describe('Assets', function() {
-  before(function() {
-    return testassets = new Assets('test/files/', 'assets/');
+  before(function(done) {
+    testassets = new Assets('test/files/', 'assets/');
+    return testassets.init().then(function() {
+      return done();
+    });
   });
   describe('#png', function() {
     return it('should show all pngs', function() {

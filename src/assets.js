@@ -1,5 +1,5 @@
 'use strict';
-var Assets, fs, glob, mglob, nodefn, pglob, sequence, whenjs, _;
+var Assets, fs, glob, nodefn, pglob, sequence, whenjs, _;
 
 glob = require('glob');
 
@@ -77,91 +77,25 @@ Assets = (function() {
     return sequence(tasks);
   };
 
+  Assets.prototype.init = function() {
+    var task, tasks, type, types, _i, _len;
+
+    task = function(type) {
+      this[type] = glob.sync(this.assetsPath + ("**/*." + type), {
+        cwd: this.root
+      });
+    };
+    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
+    tasks = [];
+    for (_i = 0, _len = types.length; _i < _len; _i++) {
+      type = types[_i];
+      tasks.push(task.bind(this, type));
+    }
+    return sequence(tasks);
+  };
+
   return Assets;
 
 })();
-
-mglob = _.memoize(glob.sync);
-
-Object.defineProperty(Assets.prototype, 'png', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.png', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'jpg', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.jpg', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'gif', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.gif', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'css', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.css', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'svg', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.svg', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'js', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.js', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'ttf', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.ttf', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'otf', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.otf', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
-
-Object.defineProperty(Assets.prototype, 'woff', {
-  get: function() {
-    return mglob(this.assetsPath + '**/*.woff', {
-      cwd: this.root
-    });
-  },
-  enumerable: true
-});
 
 module.exports = Assets;

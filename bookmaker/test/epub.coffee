@@ -6,6 +6,7 @@ index = require '../src/index'
 Chapter = index.Chapter
 Book = index.Book
 SubOutline = index.SubOutline
+Assets = index.Assets
 zipStream = require('zipstream-contentment')
 fs = require 'fs'
 whenjs = require('when')
@@ -78,12 +79,12 @@ testchapters =  [{
 
 describe 'EpubChapter',
   () ->
-    beforeEach () ->
+    beforeEach (done) ->
+      assets = new Assets("test/files/", "assets/")
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../' })
+        author: 'L. Frank Baum'}, assets)
+      testbook.assets.init().then(() -> done())
     describe '#epubManifest',
       () ->
         it 'generates the xml manifest for epub',
@@ -129,9 +130,9 @@ describe 'EpubChapter',
 testassets = {}
 describe 'EpubAssets',
   () ->
-    beforeEach () ->
+    beforeEach (done) ->
       testassets = new index.Assets('test/files/', 'assets/')
-
+      testassets.init().then(() -> done())
     describe '#addTypeToZip',
       () ->
         it 'Adds all assets of a type to zip',
@@ -169,12 +170,11 @@ describe 'EpubAssets',
 
 describe 'EpubBook',
   () ->
-    beforeEach () ->
+    beforeEach (done) ->
+      assets = new Assets("test/files/", "assets/")
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum',
-        assetsPath: "assets/",
-        root: "test/files/",
         bookId: "this-is-an-id"
         lang: "en"
         cover: "assets/cover.jpg"
@@ -184,10 +184,11 @@ describe 'EpubBook',
         version: "1.0"
         date: "15 May 2013"
         copyrightYear: "19watsit"
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: 'test/files/' })
+        }, assets)
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))
+      testbook.assets.init().then(() ->
+        done())
     describe '#epubManifest',
       () ->
         it 'Renders the manifest xml for epub',

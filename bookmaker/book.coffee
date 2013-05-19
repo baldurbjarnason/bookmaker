@@ -27,11 +27,11 @@ class Book
     if @init
       for fn in @init
         fn(this)
-    unless @assets
-      @assetsPath = @meta.assetsPath || 'assets/'
-      @assets = new Assets(@root, @assetsPath)
-    if @meta.sharedAssetsPath and !(@sharedAssets?)
-      @sharedAssets = new Assets(@meta.sharedAssetsRoot, @meta.sharedAssetsPath)
+    # unless @assets
+    #   @assetsPath = @meta.assetsPath || 'assets/'
+    #   @assets = new Assets(@root, @assetsPath)
+    # if @meta.sharedAssetsPath and !(@sharedAssets?)
+    #   @sharedAssets = new Assets(@meta.sharedAssetsRoot, @meta.sharedAssetsPath)
     @docIdCount = 0
   docId: () ->
     @docIdCount++

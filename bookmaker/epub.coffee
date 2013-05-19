@@ -182,7 +182,7 @@ extendBook = (Book) ->
     get: ->
       prefre = new RegExp("\/", "g")
       @_globalCounter++
-      prefix = @assetsPath.replace(prefre, "")
+      prefix = @assets.assetsPath.replace(prefre, "")
       return prefix + @_globalCounter
     enumerable: true
   }
