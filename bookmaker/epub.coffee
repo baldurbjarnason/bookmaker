@@ -113,16 +113,6 @@ extendBook = (Book) ->
       return new handlebars.SafeString(' properties="cover-image"')
     else
       return ""
-    absolutecurrent = path.dirname path.resolve("/", current)
-    absolutetarget = path.resolve("/", target)
-    relativetarget = path.relative(absolutecurrent, absolutetarget)
-    return relativetarget
-  # Object.defineProperty Book.prototype, 'chapterList', {
-  #   get: ->
-  #     findSubs(@chapters)
-  #   enumerable: true
-  # }
-
   Object.defineProperty Book.prototype, 'epubManifest', {
     get: ->
       bookTemplates.manifest(this)

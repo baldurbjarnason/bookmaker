@@ -187,6 +187,7 @@ describe 'EpubBook',
         }, assets)
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))
+      testbook.meta.start = testbook.chapters[1]
       testbook.assets.init().then(() ->
         done())
     describe '#epubManifest',
@@ -218,7 +219,7 @@ describe 'EpubBook',
             zip.pipe(out)
             testbook.addChaptersToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(1930)
+                written.should.equal(1925)
                 done()))
     describe '#toEpub',
       () ->
