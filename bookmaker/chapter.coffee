@@ -17,6 +17,10 @@ class Chapter
     @meta = @book.meta unless @meta
     @assets = @book.assets unless @assets
     @chapters = @book.chapters unless @chapters
+    if @meta.specifiedJs and @js
+      @scripted = true
+    else if @assets?.js
+      @scripted = true
     return this
   formatPath: (type) ->
     newpath = path.dirname(@filename) + "/" + path.basename(@filename, path.extname(@filename)) + '.' + type

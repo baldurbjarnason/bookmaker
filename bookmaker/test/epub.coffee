@@ -90,7 +90,7 @@ describe 'EpubChapter',
         it 'generates the xml manifest for epub',
           () ->
             testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml" properties=\"\"/>\n')
+            testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml" properties=\"scripted\"/>\n')
     describe '#epubSpine',
       () ->
         it 'generates the xml spine for epub',
@@ -194,7 +194,7 @@ describe 'EpubBook',
       () ->
         it 'Renders the manifest xml for epub',
           () ->
-            testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\" properties=\"\"/>\n")
+            testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n")
     describe '#epubSpine',
       () ->
         it 'Renders the spine xml for epub',

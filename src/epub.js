@@ -1,5 +1,5 @@
 'use strict';
-var addTask, addTemplateTask, bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, path, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream,
+var addTask, addTemplateTask, bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, links, loadTemplates, mangler, path, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream, _,
   __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
@@ -22,9 +22,11 @@ mangler = require('./lib/mangler');
 
 sequence = require('when/sequence');
 
+_ = require('underscore');
+
 chapterTemplates = {
   manifest: '{{#if this.nomanifest }}\
-    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if book.scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\
+    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\
     {{ subChapters.epubManifest }}{{/if}}{{/if}}',
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\
     {{ subChapters.epubSpine }}{{/if}}',
@@ -72,6 +74,19 @@ loadTemplates(path.resolve(__filename, '../../', 'templates/**/*.hbs'));
 
 loadTemplates('templates/**/*.hbs');
 
+links = function() {
+  var key, link, value, _ref;
+
+  _ref = this._links;
+  for (key in _ref) {
+    value = _ref[key];
+    link = {};
+    _.extend(link, value);
+    link.rel = key;
+    return link;
+  }
+};
+
 extendChapter = function(Chapter) {
   Object.defineProperty(Chapter.prototype, 'epubManifest', {
     get: function() {
@@ -79,26 +94,25 @@ extendChapter = function(Chapter) {
 
       manifest = chapterTemplates.manifest(this.context());
       return manifest;
-    },
-    enumerable: true
+    }
   });
   Object.defineProperty(Chapter.prototype, 'epubSpine', {
     get: function() {
       return chapterTemplates.spine(this.context());
-    },
-    enumerable: true
+    }
   });
   Object.defineProperty(Chapter.prototype, 'navList', {
     get: function() {
       return chapterTemplates.nav(this.context());
-    },
-    enumerable: true
+    }
   });
   Object.defineProperty(Chapter.prototype, 'epubNCX', {
     get: function() {
       return chapterTemplates.ncx(this.context());
-    },
-    enumerable: true
+    }
+  });
+  Object.defineProperty(Chapter.prototype, 'links', {
+    get: links
   });
   Chapter.prototype.addToZip = function(zip) {
     var context, deferred, fn, promise;
@@ -179,6 +193,9 @@ extendBook = function(Book) {
       return this._navPoint;
     },
     enumerable: true
+  });
+  Object.defineProperty(Book.prototype, 'links', {
+    get: links
   });
   chapterTask = function(chapter, zip) {
     return function() {
@@ -283,9 +300,6 @@ renderEpub = function(book, out, options, zip) {
 
   if (options != null ? options.templates : void 0) {
     loadTemplates(options.templates + '**/*.hbs');
-  }
-  if (book.assets.js) {
-    book.scripted = true;
   }
   tasks = [];
   tasks.push(addTask("application/epub+zip", 'mimetype', zip, true));

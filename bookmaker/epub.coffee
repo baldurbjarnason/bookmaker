@@ -11,6 +11,7 @@ glob = require 'glob'
 fs = require 'fs'
 mangler = require './lib/mangler'
 sequence = require('when/sequence')
+_ = require 'underscore'
 
 
 
@@ -23,7 +24,7 @@ sequence = require('when/sequence')
 
 chapterTemplates = {
   manifest: '{{#if this.nomanifest }}
-    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if book.scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}
+    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}
     {{ subChapters.epubManifest }}{{/if}}{{/if}}'
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
     {{ subChapters.epubSpine }}{{/if}}'
@@ -64,30 +65,38 @@ loadTemplates = (searchpath) ->
 loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
 loadTemplates('templates/**/*.hbs')
 
+links = () ->
+  for key, value of @_links
+    link = {}
+    _.extend link, value
+    link.rel = key
+    return link
+
+
 extendChapter = (Chapter) ->
   Object.defineProperty Chapter.prototype, 'epubManifest', {
     get: ->
       manifest = chapterTemplates.manifest(@context())
       return manifest
-    enumerable: true
   }
 
   Object.defineProperty Chapter.prototype, 'epubSpine', {
     get: ->
       chapterTemplates.spine(@context())
-    enumerable: true
   }
 
   Object.defineProperty Chapter.prototype, 'navList', {
     get: ->
       chapterTemplates.nav(@context())
-    enumerable: true
   }
 
   Object.defineProperty Chapter.prototype, 'epubNCX', {
     get: ->
       chapterTemplates.ncx(@context())
-    enumerable: true
+  }
+
+  Object.defineProperty Chapter.prototype, 'links', {
+    get: links
   }
 
   Chapter.prototype.addToZip = (zip) ->
@@ -147,6 +156,10 @@ extendBook = (Book) ->
       @_navPoint++
       return @_navPoint
     enumerable: true
+  }
+
+  Object.defineProperty Book.prototype, 'links', {
+    get: links
   }
 
   chapterTask = (chapter, zip) ->
@@ -220,8 +233,8 @@ toEpub = (out, options) ->
 renderEpub = (book, out, options, zip) ->
   if options?.templates
     loadTemplates(options.templates + '**/*.hbs')
-  if book.assets.js
-    book.scripted = true
+  # if book.assets.js
+  #   book.scripted = true
   tasks = []
   tasks.push(addTask("application/epub+zip", 'mimetype', zip, true))
   tasks.push(addTask('''
@@ -241,7 +254,6 @@ renderEpub = (book, out, options, zip) ->
       </container>
       ''', 'META-INF/container.xml', zip))
   if book.meta.cover
-    # tasks.push(addFsTask(book.root + book.meta.cover, "cover.jpg", zip))
     tasks.push(addTemplateTask(templates.cover, book, zip, 'cover.html'))
   tasks.push(addTemplateTask(templates.content, book, zip, 'content.opf'))
   tasks.push(addTemplateTask(templates.toc, book, zip, 'toc.ncx'))

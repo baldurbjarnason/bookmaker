@@ -26,6 +26,8 @@ Chapter = (function() {
   }
 
   Chapter.prototype.context = function() {
+    var _ref;
+
     if (!this.meta) {
       this.meta = this.book.meta;
     }
@@ -34,6 +36,11 @@ Chapter = (function() {
     }
     if (!this.chapters) {
       this.chapters = this.book.chapters;
+    }
+    if (this.meta.specifiedJs && this.js) {
+      this.scripted = true;
+    } else if ((_ref = this.assets) != null ? _ref.js : void 0) {
+      this.scripted = true;
     }
     return this;
   };
