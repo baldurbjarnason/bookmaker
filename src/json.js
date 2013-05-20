@@ -51,7 +51,6 @@ write = function(filename, data) {
     if (err) {
       return deferred.reject(err);
     } else {
-      console.log(filename);
       return deferred.resolve();
     }
   });
@@ -78,7 +77,7 @@ extendChapter = function(Chapter) {
   Chapter.prototype.toHal = function() {
     var banned, hal, href, selfindex, selfpath, subChapter, subChapters, tocpath, _i, _len, _ref, _ref1, _ref2;
 
-    banned = ['book', 'meta', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this));
+    banned = ['book', 'meta', 'filename', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this));
     hal = _.omit(this, banned);
     hal.body = this.html;
     hal.type = 'html';
@@ -87,10 +86,12 @@ extendChapter = function(Chapter) {
     hal._links = {
       toc: {
         href: tocpath,
-        name: 'JSON'
+        name: 'TOC-JSON',
+        type: "application/hal+json"
       },
       self: {
-        href: selfpath
+        href: selfpath,
+        type: "application/hal+json"
       }
     };
     if (((_ref = this.book.assets) != null ? _ref.css : void 0) && !this.book.meta.specifiedCss) {
@@ -102,42 +103,45 @@ extendChapter = function(Chapter) {
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           href = _ref1[_i];
           _results.push({
-            href: href
+            href: href,
+            type: "text/css"
           });
         }
         return _results;
       }).call(this);
     } else if (this.css) {
-      hal._links.javascript = (function() {
+      hal._links.stylesheets = (function() {
         var _i, _len, _ref1, _results;
 
-        _ref1 = this.js;
+        _ref1 = this.css;
         _results = [];
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
           href = _ref1[_i];
           _results.push({
-            href: href
+            href: href,
+            type: "text/css"
           });
         }
         return _results;
       }).call(this);
     }
     if (((_ref1 = this.book.assets) != null ? _ref1.js : void 0) && !this.book.meta.specifiedJs) {
-      hal._links.stylesheets = (function() {
+      hal._links.javascript = (function() {
         var _i, _len, _ref2, _results;
 
-        _ref2 = this.book.assets.css;
+        _ref2 = this.book.assets.js;
         _results = [];
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
           href = _ref2[_i];
           _results.push({
-            href: href
+            href: href,
+            type: "application/javascript"
           });
         }
         return _results;
       }).call(this);
     } else if (this.js) {
-      hal._links.stylesheets = (function() {
+      hal._links.javascript = (function() {
         var _i, _len, _ref2, _results;
 
         _ref2 = this.js;
@@ -145,7 +149,8 @@ extendChapter = function(Chapter) {
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
           href = _ref2[_i];
           _results.push({
-            href: href
+            href: href,
+            type: "application/javascript"
           });
         }
         return _results;
@@ -154,12 +159,14 @@ extendChapter = function(Chapter) {
     selfindex = this.book.chapters.indexOf(this);
     if (selfindex !== 0) {
       hal._links.prev = {
-        href: this.book.chapters[selfindex - 1].formatPath()
+        href: this.book.chapters[selfindex - 1].formatPath('json'),
+        type: "application/hal+json"
       };
     }
     if (selfindex !== this.book.chapters.length - 1) {
       hal._links.next = {
-        href: this.book.chapters[selfindex + 1].formatPath()
+        href: this.book.chapters[selfindex + 1].formatPath('json'),
+        type: "application/hal+json"
       };
     }
     if (this.subChapters) {
@@ -188,22 +195,32 @@ extendAssets = function(Assets) {
 
 extendBook = function(Book) {
   Book.prototype.toHal = function(options) {
-    var chapter, hal, selfpath;
+    var chapter, hal, href, image, selfpath, stylesheet, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
 
     hal = {};
     _.extend(hal, this.meta);
-    selfpath = 'index.json';
-    hal._links = {
-      self: {
-        href: selfpath
-      }
+    if (options != null ? options.prefix : void 0) {
+      selfpath = options.prefix + 'index.json';
+    } else {
+      selfpath = 'index.json';
+    }
+    if (!hal._links) {
+      hal._links = {};
+    }
+    hal._links.self = {
+      href: selfpath,
+      type: "application/hal+json",
+      hreflang: this.meta.lang
     };
     hal._links.cover = {
       href: this.meta.cover
     };
-    hal._links.start = {
-      href: this.meta.start.formatPath('json')
-    };
+    if (this.meta.start) {
+      hal._links.start = {
+        href: this.meta.start.formatPath('json'),
+        type: "application/hal+json"
+      };
+    }
     if (!(options != null ? options.embedChapters : void 0)) {
       hal._links.chapters = (function() {
         var _i, _len, _ref, _results;
@@ -213,7 +230,9 @@ extendBook = function(Book) {
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           chapter = _ref[_i];
           _results.push({
-            href: chapter.formatPath('json')
+            href: chapter.formatPath('json'),
+            type: "application/hal+json",
+            hreflang: this.meta.lang
           });
         }
         return _results;
@@ -221,13 +240,71 @@ extendBook = function(Book) {
     } else {
       hal._links.chapters = this.chapters;
     }
-    hal._links.images = this.assets.png.concat(this.assets.jpg, this.assets.gif, this.assets.svg);
-    hal._links.stylesheets = this.assets.css;
-    hal._links.javascript = this.assets.js;
-    hal.date = this.meta.date.date.toString();
+    hal._links.images = [];
+    _ref = this.assets.png;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      image = _ref[_i];
+      hal._links.images.push({
+        href: image,
+        type: "image/png"
+      });
+    }
+    _ref1 = this.assets.jpg;
+    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+      image = _ref1[_j];
+      hal._links.images.push({
+        href: image,
+        type: "image/jpeg"
+      });
+    }
+    _ref2 = this.assets.gif;
+    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+      image = _ref2[_k];
+      hal._links.images.push({
+        href: image,
+        type: "image/gif"
+      });
+    }
+    _ref3 = this.assets.svg;
+    for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+      image = _ref3[_l];
+      hal._links.images.push({
+        href: image,
+        type: "image/svg+xml"
+      });
+    }
+    hal._links.stylesheets = (function() {
+      var _len4, _m, _ref4, _results;
+
+      _ref4 = this.assets.css;
+      _results = [];
+      for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+        stylesheet = _ref4[_m];
+        _results.push({
+          href: stylesheet,
+          type: "text/css"
+        });
+      }
+      return _results;
+    }).call(this);
+    hal._links.javascript = (function() {
+      var _len4, _m, _ref4, _results;
+
+      _ref4 = this.assets.js;
+      _results = [];
+      for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
+        href = _ref4[_m];
+        _results.push({
+          href: href,
+          type: "application/javascript"
+        });
+      }
+      return _results;
+    }).call(this);
+    hal.date = this.meta.date.isoDate;
     hal.cover = null;
-    hal.start = this.meta.start.formatPath('json');
-    hal.modified = this.meta.modified.date.toString();
+    hal.start = null;
+    hal.modified = this.meta.modified.isoDate;
     return hal;
   };
   Book.prototype.toJSON = function(options) {
@@ -260,7 +337,6 @@ extendBook = function(Book) {
       tasks.push(write(directory + chapter.formatPath('json'), chapter.toJSON(), 'utf8'));
     }
     tasks.push(write(directory + 'index.json', json, 'utf8'));
-    console.log(tasks[7]);
     return whenjs.all(tasks);
   };
   return Book;
