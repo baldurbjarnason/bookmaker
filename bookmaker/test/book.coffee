@@ -93,11 +93,6 @@ describe 'Book',
           () ->
             testbook.meta.should.have.property('title', 'The Wonderful Wizard of Oz')
             testbook.meta.should.have.property('author', 'L. Frank Baum')
-    describe '#root',
-      () ->
-        it 'should equal the current working directory',
-          () ->
-            testbook.should.have.property('root', process.cwd())
     describe '#docId',
       () ->
         it 'should equal doc1, doc2, and doc3',

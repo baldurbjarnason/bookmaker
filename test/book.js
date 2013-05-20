@@ -99,11 +99,6 @@ describe('Book', function() {
       return testbook.meta.should.have.property('author', 'L. Frank Baum');
     });
   });
-  describe('#root', function() {
-    return it('should equal the current working directory', function() {
-      return testbook.should.have.property('root', process.cwd());
-    });
-  });
   describe('#docId', function() {
     return it('should equal doc1, doc2, and doc3', function() {
       testbook.docId().should.equal('doc1');

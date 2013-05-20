@@ -18,7 +18,6 @@ Book = (function() {
     this.assets = assets;
     this.sharedAssets = sharedAssets;
     this.chapters = [];
-    this.root = meta.root || process.cwd();
     this.meta = meta;
     this.meta.date = meta.date ? dateProcess(meta.date) : dateProcess();
     this.meta.modified = meta.modified ? dateProcess(meta.modified) : dateProcess();
