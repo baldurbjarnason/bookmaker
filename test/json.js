@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, callbacks, chai, fs, index, should, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, SubOutline, callbacks, chai, fs, glob, index, should, testbook, testchapters, testoutline, whenjs, zipStream;
 
 chai = require('chai');
 
@@ -22,6 +22,8 @@ fs = require('fs');
 whenjs = require('when');
 
 callbacks = require('when/callbacks');
+
+glob = require('glob');
 
 testoutline = {
   id: 'titlepage',
@@ -114,7 +116,7 @@ describe('JsonBook', function() {
       return done();
     });
   });
-  return describe('#toJSON', function() {
+  describe('#toJSON', function() {
     return it('Renders the book to json', function() {
       var json;
 
@@ -124,6 +126,18 @@ describe('JsonBook', function() {
         embedChapters: true
       });
       return json.should.equal("{\n  \"title\": \"The Wonderful Wizard of Oz\",\n  \"author\": \"L. Frank Baum\",\n  \"bookId\": \"this-is-an-id\",\n  \"lang\": \"en\",\n  \"cover\": null,\n  \"description\": \"foo\",\n  \"publisher\": \"Bar\",\n  \"subject1\": \"Foobar\",\n  \"version\": \"1.0\",\n  \"date\": \"Wed May 15 2013 00:00:00 GMT+0100 (BST)\",\n  \"copyrightYear\": \"19watsit\",\n  \"modified\": \"Sun May 19 2013 00:00:00 GMT+0100 (BST)\",\n  \"start\": \"./htmlexample.json\",\n  \"_links\": {\n    \"self\": {\n      \"href\": \"index.json\"\n    },\n    \"cover\": {\n      \"href\": \"assets/cover.jpg\"\n    },\n    \"start\": {\n      \"href\": \"./htmlexample.json\"\n    },\n    \"chapters\": [\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"Markdown\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">header</h1>\\\\n\\\\n<p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test</p>\\\\n\\\",\\n  \\\"id\\\": \\\"doc1\\\",\\n  \\\"filename\\\": \\\"chapters/doc1.html\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"JSON\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"chapters/doc1.json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/style.css\\\"\\n      }\\n    ],\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"./htmlexample.undefined\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"id\\\": \\\"htmlexample\\\",\\n  \\\"filename\\\": \\\"htmlexample.html\\\",\\n  \\\"title\\\": \\\"HTML\\\",\\n  \\\"arbitraryMeta\\\": \\\"is arbitrary\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">header</h1><p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test<br />‘—’“–”&#160;</p>\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"index.json\\\",\\n      \\\"name\\\": \\\"JSON\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"./htmlexample.json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/style.css\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"chapters/doc1.undefined\\\"\\n    },\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"chapters/doc2.undefined\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"XHTML\\\",\\n  \\\"body\\\": \\\"<h1>header</h1><p>Test<br/></p>\\\",\\n  \\\"id\\\": \\\"doc2\\\",\\n  \\\"filename\\\": \\\"chapters/doc2.html\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"JSON\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"chapters/doc2.json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/style.css\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"./htmlexample.undefined\\\"\\n    },\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"chapters/doc3.undefined\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"Template\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">Template</h1><p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test<br />‘—’“–”&#160;</p>\\\",\\n  \\\"id\\\": \\\"doc3\\\",\\n  \\\"filename\\\": \\\"chapters/doc3.html\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"JSON\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"chapters/doc3.json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/style.css\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"chapters/doc2.undefined\\\"\\n    }\\n  }\\n}\"\n    ],\n    \"images\": [\n      \"assets/noise.png\",\n      \"assets/cover.jpg\",\n      \"assets/texture.jpg\"\n    ],\n    \"stylesheets\": [\n      \"assets/style.css\"\n    ],\n    \"javascript\": [\n      \"assets/jquery.js\",\n      \"assets/jquery2.js\"\n    ]\n  }\n}");
+    });
+  });
+  return describe('#toJsonFiles', function() {
+    return it('Renders the book to json files', function(done) {
+      var success;
+
+      success = function() {
+        return done();
+      };
+      return testbook.toJsonFiles('test/files/json/').then(success, function(thing) {
+        return done(thing);
+      });
     });
   });
 });

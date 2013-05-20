@@ -10,12 +10,35 @@ whenjs = require('when')
 _ = require 'underscore'
 path = require 'path'
 sequence = require('when/sequence')
+fs = require 'fs'
+nodefn = require("when/node/function")
+mkdirp = require('mkdirp')
+ensuredir = (directory) ->
+  deferred = whenjs.defer()
+  promise = deferred.promise
+  mkdirp(directory, (err) ->
+    if err
+      deferred.reject(err)
+    else
+      deferred.resolve())
+  return promise
+
+
+write = (filename, data) ->
+  deferred = whenjs.defer()
+  promise = deferred.promise
+  fs.writeFile(filename, data, (err) ->
+    if err
+      deferred.reject(err)
+    else
+      console.log filename
+      deferred.resolve())
+  return promise
 
 extend = (Chapter, Book, Assets) ->
   extendChapter(Chapter)
   extendBook(Book)
   extendAssets(Assets)
-
 
 filter = (key, value) ->
   if key is ""
@@ -64,6 +87,7 @@ extendChapter = (Chapter) ->
     return JSON.stringify hal, filter, 2
   return Chapter
 
+
 extendAssets = (Assets) ->
   return Assets
 extendBook = (Book) ->
@@ -97,6 +121,24 @@ extendBook = (Book) ->
   Book.prototype.toJSON = (options) ->
     hal = @toHal(options)
     return JSON.stringify hal, filter, 2
+  Book.prototype.toJsonFiles = (directory, options) ->
+    report = (thing) -> console.log(thing)
+    sequence(tasks)
+    hal = @toHal(options)
+    hal.assetsPath = @assets.assetsPath
+    json = JSON.stringify hal, filter, 2
+    tasks = []
+    if directory
+      tasks.push ensuredir directory
+    else
+      directory = directory || process.cwd()
+    tasks.push ensuredir directory + 'chapters/'
+    tasks.push(@assets.copy(directory + hal.assetsPath))
+    for chapter in @chapters
+      tasks.push(write(directory + chapter.formatPath('json'), chapter.toJSON(), 'utf8'))
+    tasks.push write(directory + 'index.json', json, 'utf8')
+    console.log tasks[7]
+    whenjs.all tasks
   return Book
 
 

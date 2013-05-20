@@ -51,6 +51,7 @@ class Assets
         deferred.reject err
       else
         deferred.resolve())
+    return promise
 
   init: () ->
     task = (type) ->

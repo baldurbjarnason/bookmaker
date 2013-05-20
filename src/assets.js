@@ -85,13 +85,14 @@ Assets = (function() {
     deferred = whenjs.defer();
     promise = deferred.promise;
     deferred.notify("Copying assets");
-    return ncp(this.root + this.assetsPath, directory, function(err) {
+    ncp(this.root + this.assetsPath, directory, function(err) {
       if (err) {
         return deferred.reject(err);
       } else {
         return deferred.resolve();
       }
     });
+    return promise;
   };
 
   Assets.prototype.init = function() {

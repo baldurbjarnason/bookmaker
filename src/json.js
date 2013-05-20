@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, bookmaker, extend, extendAssets, extendBook, extendChapter, filter, fs, path, sequence, whenjs, _;
+var Assets, Book, Chapter, SubOutline, bookmaker, ensuredir, extend, extendAssets, extendBook, extendChapter, filter, fs, mkdirp, nodefn, path, sequence, whenjs, write, _;
 
 fs = require('fs');
 
@@ -20,6 +20,43 @@ _ = require('underscore');
 path = require('path');
 
 sequence = require('when/sequence');
+
+fs = require('fs');
+
+nodefn = require("when/node/function");
+
+mkdirp = require('mkdirp');
+
+ensuredir = function(directory) {
+  var deferred, promise;
+
+  deferred = whenjs.defer();
+  promise = deferred.promise;
+  mkdirp(directory, function(err) {
+    if (err) {
+      return deferred.reject(err);
+    } else {
+      return deferred.resolve();
+    }
+  });
+  return promise;
+};
+
+write = function(filename, data) {
+  var deferred, promise;
+
+  deferred = whenjs.defer();
+  promise = deferred.promise;
+  fs.writeFile(filename, data, function(err) {
+    if (err) {
+      return deferred.reject(err);
+    } else {
+      console.log(filename);
+      return deferred.resolve();
+    }
+  });
+  return promise;
+};
 
 extend = function(Chapter, Book, Assets) {
   extendChapter(Chapter);
@@ -198,6 +235,33 @@ extendBook = function(Book) {
 
     hal = this.toHal(options);
     return JSON.stringify(hal, filter, 2);
+  };
+  Book.prototype.toJsonFiles = function(directory, options) {
+    var chapter, hal, json, report, tasks, _i, _len, _ref;
+
+    report = function(thing) {
+      return console.log(thing);
+    };
+    sequence(tasks);
+    hal = this.toHal(options);
+    hal.assetsPath = this.assets.assetsPath;
+    json = JSON.stringify(hal, filter, 2);
+    tasks = [];
+    if (directory) {
+      tasks.push(ensuredir(directory));
+    } else {
+      directory = directory || process.cwd();
+    }
+    tasks.push(ensuredir(directory + 'chapters/'));
+    tasks.push(this.assets.copy(directory + hal.assetsPath));
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      tasks.push(write(directory + chapter.formatPath('json'), chapter.toJSON(), 'utf8'));
+    }
+    tasks.push(write(directory + 'index.json', json, 'utf8'));
+    console.log(tasks[7]);
+    return whenjs.all(tasks);
   };
   return Book;
 };
