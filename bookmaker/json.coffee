@@ -13,6 +13,8 @@ sequence = require('when/sequence')
 fs = require 'fs'
 nodefn = require("when/node/function")
 mkdirp = require('mkdirp')
+url = require 'url'
+
 ensuredir = (directory) ->
   deferred = whenjs.defer()
   promise = deferred.promise
@@ -46,35 +48,47 @@ filter = (key, value) ->
     return ""
   return value
 
+relative = (current, target) ->
+  absolutecurrent = path.dirname path.resolve("/", current)
+  absolutetarget = path.resolve("/", target)
+  relativetarget = path.relative(absolutecurrent, absolutetarget)
+  return relativetarget
+
 extendChapter = (Chapter) ->
   Chapter.prototype.toHal = () ->
-    banned = ['book', 'meta', 'filename','assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
+    banned = ['links', 'book', 'meta', 'filename','assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
     hal = _.omit this, banned
     hal.body = @html
     hal.type = 'html'
+    urlgen = @book.uri.bind(@book) || relative
     tocpath = path.relative(path.resolve("/", path.dirname(@filename)), "/index.json")
-    selfpath = @formatPath('json')
+    selfpath =
+      if @book._state?.baseurl
+        @book._state.baseurl + @formatPath('json')
+      else
+        path.basename @formatPath('json')
     hal._links = {
       toc: { href: tocpath, name: 'TOC-JSON', type: "application/hal+json" },
       self: { href: selfpath, type: "application/hal+json" }
     }
     if @book.assets?.css and !@book.meta.specifiedCss
       hal._links.stylesheets = for href in @book.assets.css
-        { href: href, type: "text/css" }
+        { href: urlgen(@filename, href), type: "text/css" }
     else if @css
       hal._links.stylesheets = for href in @css
-        { href: href, type: "text/css" }
+        { href: urlgen(@filename, href), type: "text/css" }
     if @book.assets?.js and !@book.meta.specifiedJs
       hal._links.javascript = for href in @book.assets.js
-        { href: href, type: "application/javascript" }
+        { href: urlgen(@filename, href), type: "application/javascript" }
     else if @js
       hal._links.javascript = for href in @js
-        { href: href, type: "application/javascript" }
+        { href: urlgen(@filename, href), type: "application/javascript" }
     selfindex = @book.chapters.indexOf(this)
-    if selfindex isnt 0
-      hal._links.prev = { href: @book.chapters[selfindex - 1].formatPath('json'), type: "application/hal+json" }
-    if selfindex isnt @book.chapters.length - 1
-      hal._links.next = { href: @book.chapters[selfindex + 1].formatPath('json'), type: "application/hal+json" }
+    if selfindex isnt -1
+      if selfindex isnt 0
+        hal._links.prev = { href: urlgen(@filename, @book.chapters[selfindex - 1].formatPath('json')), type: "application/hal+json" }
+      if selfindex isnt @book.chapters.length - 1
+        hal._links.next = { href: urlgen(@filename, @book.chapters[selfindex + 1].formatPath('json')), type: "application/hal+json" }
     if @subChapters
       subChapters = []
       for subChapter in @subChapters.chapters
@@ -90,46 +104,63 @@ extendChapter = (Chapter) ->
 extendAssets = (Assets) ->
   return Assets
 extendBook = (Book) ->
+  Book.prototype.uri = (current, target) ->
+    if @_state.baseurl
+      return url.resolve(@baseurl, target)
+    else
+      return @relative(current, target)
   Book.prototype.toHal = (options) ->
+    @_state = {}
     # banned = ['chapters', '_chapterIndex', '_navPoint', '_globalCounter', 'docIdCount', 'root', 'meta', 'assets', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
     hal = {}
     _.extend hal, @meta
-    if options?.prefix
-      selfpath = options.prefix + 'index.json'
+    if options?.baseurl
+      selfpath = options.baseurl + 'index.json'
+      @_state.baseurl = options.baseurl
+    else if @baseurl
+      @_state.baseurl = @baseurl
     else
       selfpath = 'index.json'
     unless hal._links
       hal._links = {}
     hal._links.self = { href: selfpath, type: "application/hal+json", hreflang: @meta.lang }
-    hal._links.cover = {
-      href: @meta.cover
-    }
+    if path.extname(@meta.cover) is '.jpg'
+      covertype = 'image/jpeg'
+    if path.extname(@meta.cover) is '.png'
+      covertype = 'image/png'
+    if path.extname(@meta.cover) is '.svg'
+      covertype = 'image/svg+xml'
+    hal._links.cover = [{
+          href: @uri 'index.json',@meta.cover
+          type: covertype
+          title: 'Cover Image'
+        }]
     if @meta.start
       hal._links.start = {
-        href: @meta.start.formatPath('json')
+        href: @uri 'index.json', @meta.start.formatPath('json')
         type: "application/hal+json"
       }
     if !options?.embedChapters
       hal._links.chapters = for chapter in @chapters
-        { href: chapter.formatPath('json'), type: "application/hal+json", hreflang: @meta.lang  }
+        { href: @uri('index.json', chapter.formatPath('json')), type: "application/hal+json", hreflang: @meta.lang  }
     else
       hal._links.chapters = @chapters
     hal._links.images = []
     for image in @assets.png
-      hal._links.images.push({ href: image, type: "image/png"  })
+      hal._links.images.push({ href: @uri('index.json', image), type: "image/png"  })
     for image in @assets.jpg
-      hal._links.images.push({ href: image, type: "image/jpeg"  })
+      hal._links.images.push({ href: @uri('index.json', image), type: "image/jpeg"  })
     for image in @assets.gif
-      hal._links.images.push({ href: image, type: "image/gif"  })
+      hal._links.images.push({ href: @uri('index.json', image), type: "image/gif"  })
     for image in @assets.svg
-      hal._links.images.push({ href: image, type: "image/svg+xml"  })
+      hal._links.images.push({ href: @uri('index.json', image), type: "image/svg+xml"  })
     hal._links.stylesheets = for stylesheet in @assets.css
-      { href: stylesheet, type: "text/css"  }
+      { href: @uri('index.json', stylesheet), type: "text/css"  }
     hal._links.javascript = for href in @assets.js
-      { href: href, type: "application/javascript" }
+      { href: @uri('index.json', href), type: "application/javascript" }
     hal.date = @meta.date.isoDate
-    hal.cover = null
-    hal.start = null
+    delete hal.cover
+    delete hal.start
     hal.modified = @meta.modified.isoDate
     return hal
   Book.prototype.toJSON = (options) ->

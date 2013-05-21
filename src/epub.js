@@ -1,5 +1,5 @@
 'use strict';
-var addTask, addTemplateTask, bookTemplates, callbacks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, links, loadTemplates, mangler, path, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream, _,
+var addTask, addTemplateTask, bookTemplates, callbacks, chapterLinks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, links, loadTemplates, mangler, path, relative, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream, _,
   __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
@@ -74,17 +74,87 @@ loadTemplates(path.resolve(__filename, '../../', 'templates/**/*.hbs'));
 
 loadTemplates('templates/**/*.hbs');
 
-links = function() {
-  var key, link, value, _ref;
+relative = function(current, target) {
+  var absolutecurrent, absolutetarget, relativetarget;
 
-  _ref = this._links;
-  for (key in _ref) {
-    value = _ref[key];
-    link = {};
-    _.extend(link, value);
-    link.rel = key;
-    return link;
+  absolutecurrent = path.dirname(path.resolve("/", current));
+  absolutetarget = path.resolve("/", target);
+  relativetarget = path.relative(absolutecurrent, absolutetarget);
+  return relativetarget;
+};
+
+links = function() {
+  var key, link, value;
+
+  return links = (function() {
+    var _ref, _results;
+
+    _ref = this._links;
+    _results = [];
+    for (key in _ref) {
+      value = _ref[key];
+      link = {};
+      _.extend(link, value);
+      link.rel = key;
+      _results.push(link);
+    }
+    return _results;
+  }).call(this);
+};
+
+chapterLinks = function() {
+  var key, type, value, _ref, _ref1;
+
+  links = (function() {
+    var _ref, _results;
+
+    _ref = this._links;
+    _results = [];
+    for (key in _ref) {
+      value = _ref[key];
+      _results.push((function(key, value) {
+        var link;
+
+        link = {};
+        _.extend(link, value);
+        link.rel = key;
+        return link;
+      })(key, value));
+    }
+    return _results;
+  }).call(this);
+  if (this.book.meta.cover) {
+    if (path.extname(this.book.meta.cover) === '.jpg') {
+      type = 'image/jpeg';
+    }
+    if (path.extname(this.book.meta.cover) === '.png') {
+      type = 'image/png';
+    }
+    if (path.extname(this.book.meta.cover) === '.svg') {
+      type = 'image/svg+xml';
+    }
+    links.push({
+      rel: 'cover',
+      href: relative(this.filename, this.book.meta.cover),
+      type: type,
+      title: 'Cover Image'
+    });
+    links.push({
+      rel: 'cover',
+      href: relative(this.filename, 'cover.html'),
+      type: ((_ref = this.book._state) != null ? _ref.htmltype : void 0) || "application/xhtml+xml",
+      title: 'Cover Page'
+    });
   }
+  if (this.book) {
+    links.push({
+      rel: 'contents',
+      href: relative(this.filename, 'index.html'),
+      type: ((_ref1 = this.book._state) != null ? _ref1.htmltype : void 0) || "application/xhtml+xml",
+      title: 'Table of Contents'
+    });
+  }
+  return links;
 };
 
 extendChapter = function(Chapter) {
@@ -95,6 +165,9 @@ extendChapter = function(Chapter) {
       manifest = chapterTemplates.manifest(this.context());
       return manifest;
     }
+  });
+  Object.defineProperty(Chapter.prototype, 'links', {
+    get: chapterLinks
   });
   Object.defineProperty(Chapter.prototype, 'epubSpine', {
     get: function() {
@@ -110,9 +183,6 @@ extendChapter = function(Chapter) {
     get: function() {
       return chapterTemplates.ncx(this.context());
     }
-  });
-  Object.defineProperty(Chapter.prototype, 'links', {
-    get: links
   });
   Chapter.prototype.addToZip = function(zip) {
     var context, deferred, fn, promise;
@@ -141,14 +211,7 @@ extendBook = function(Book) {
   Book.prototype.init.push(function(book) {
     return handlebars.registerHelper('isCover', book.isCover.bind(book));
   });
-  Book.prototype.relative = function(current, target) {
-    var absolutecurrent, absolutetarget, relativetarget;
-
-    absolutecurrent = path.dirname(path.resolve("/", current));
-    absolutetarget = path.resolve("/", target);
-    relativetarget = path.relative(absolutecurrent, absolutetarget);
-    return relativetarget;
-  };
+  Book.prototype.relative = relative;
   Book.prototype.isCover = function(path) {
     if (this.meta.cover === path) {
       return new handlebars.SafeString(' properties="cover-image"');
@@ -298,6 +361,8 @@ toEpub = function(out, options) {
 renderEpub = function(book, out, options, zip) {
   var tasks;
 
+  book._state = {};
+  book._state.htmltype = "application/xhtml+xml";
   if (options != null ? options.templates : void 0) {
     loadTemplates(options.templates + '**/*.hbs');
   }

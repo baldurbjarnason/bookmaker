@@ -65,12 +65,44 @@ loadTemplates = (searchpath) ->
 loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
 loadTemplates('templates/**/*.hbs')
 
+relative = (current, target) ->
+  absolutecurrent = path.dirname path.resolve("/", current)
+  absolutetarget = path.resolve("/", target)
+  relativetarget = path.relative(absolutecurrent, absolutetarget)
+  return relativetarget
+
 links = () ->
-  for key, value of @_links
+  links = for key, value of @_links
     link = {}
     _.extend link, value
     link.rel = key
-    return link
+    link
+
+chapterLinks = () ->
+  links = for key, value of @_links
+    do (key, value) ->
+      link = {}
+      _.extend link, value
+      link.rel = key
+      return link
+  if @book.meta.cover
+    if path.extname(@book.meta.cover) is '.jpg'
+      type = 'image/jpeg'
+    if path.extname(@book.meta.cover) is '.png'
+      type = 'image/png'
+    if path.extname(@book.meta.cover) is '.svg'
+      type = 'image/svg+xml'
+    links.push({ rel: 'cover', href: relative(@filename, @book.meta.cover), type: type, title: 'Cover Image'})
+    links.push({ rel: 'cover', href: relative(@filename, 'cover.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Cover Page'})
+  if @book
+    links.push({ rel: 'contents', href: relative(@filename, 'index.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Table of Contents'})
+  return links
+  # selfindex = @book.chapters.indexOf(this)
+  # if selfindex isnt -1
+  #   if selfindex isnt 0
+  #     links.push({ rel: 'prev', href: relative(@filename, @book.chapters[selfindex - 1].filename), type: type, title: 'Previous Chapter'})
+  #   if selfindex isnt @book.chapters.length - 1
+  #     links.push({ rel: 'next', href: relative(@filename, @book.chapters[selfindex - 1].filename), type: type, title: 'Next Chapter'})
 
 
 extendChapter = (Chapter) ->
@@ -80,6 +112,9 @@ extendChapter = (Chapter) ->
       return manifest
   }
 
+  Object.defineProperty Chapter.prototype, 'links', {
+    get: chapterLinks
+  }
   Object.defineProperty Chapter.prototype, 'epubSpine', {
     get: ->
       chapterTemplates.spine(@context())
@@ -95,10 +130,6 @@ extendChapter = (Chapter) ->
       chapterTemplates.ncx(@context())
   }
 
-  Object.defineProperty Chapter.prototype, 'links', {
-    get: links
-  }
-
   Chapter.prototype.addToZip = (zip) ->
     deferred = whenjs.defer()
     promise = deferred.promise
@@ -112,11 +143,7 @@ extendBook = (Book) ->
   Book.prototype.init = [] unless Book.prototype.init
   Book.prototype.init.push((book) -> handlebars.registerHelper 'relative', book.relative.bind(book))
   Book.prototype.init.push((book) -> handlebars.registerHelper 'isCover', book.isCover.bind(book))
-  Book.prototype.relative = (current, target) ->
-    absolutecurrent = path.dirname path.resolve("/", current)
-    absolutetarget = path.resolve("/", target)
-    relativetarget = path.relative(absolutecurrent, absolutetarget)
-    return relativetarget
+  Book.prototype.relative = relative
   Book.prototype.isCover = (path) ->
     if @meta.cover is path
       return new handlebars.SafeString(' properties="cover-image"')
@@ -231,6 +258,8 @@ toEpub = (out, options) ->
   renderEpub(this, out, options, zip).then(final)
 
 renderEpub = (book, out, options, zip) ->
+  book._state = {}
+  book._state.htmltype = "application/xhtml+xml"
   if options?.templates
     loadTemplates(options.templates + '**/*.hbs')
   # if book.assets.js
