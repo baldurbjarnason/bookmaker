@@ -12,6 +12,9 @@ fs = require 'fs'
 mangler = require './lib/mangler'
 sequence = require('when/sequence')
 _ = require 'underscore'
+temp = require './templates'
+templates = temp.templates
+loadTemplates = temp.loadTemplates
 
 
 
@@ -28,11 +31,11 @@ chapterTemplates = {
     {{ subChapters.epubManifest }}{{/if}}{{/if}}'
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
     {{ subChapters.epubSpine }}{{/if}}'
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
+  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
 {{ subChapters.navList }}
 </li>\n'
   ncx: '''
-{{#if filename }}<navPoint id="navPoint-{{ book.navPoint }}" playOrder="{{ book.chapterIndex }}">
+{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">
   <navLabel>
       <text>{{ title }}</text>
   </navLabel>
@@ -55,15 +58,15 @@ for own tempname, template of chapterTemplates
 for tempname, template of bookTemplates
   bookTemplates[tempname] = handlebars.compile template
 
-templates = {}
-loadTemplates = (searchpath) ->
-  newtemplates = glob.sync(searchpath)
-  for temppath in newtemplates
-    name = path.basename temppath, path.extname temppath
-    template = fs.readFileSync temppath, 'utf8'
-    templates[name] = handlebars.compile template
-loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
-loadTemplates('templates/**/*.hbs')
+# templates = {}
+# loadTemplates = (searchpath) ->
+#   newtemplates = glob.sync(searchpath)
+#   for temppath in newtemplates
+#     name = path.basename temppath, path.extname temppath
+#     template = fs.readFileSync temppath, 'utf8'
+#     templates[name] = handlebars.compile template
+# loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
+# loadTemplates('templates/**/*.hbs')
 
 relative = (current, target) ->
   absolutecurrent = path.dirname path.resolve("/", current)
@@ -71,32 +74,49 @@ relative = (current, target) ->
   relativetarget = path.relative(absolutecurrent, absolutetarget)
   return relativetarget
 
-links = () ->
-  links = for key, value of @_links
-    link = {}
-    _.extend link, value
-    link.rel = key
-    link
-
-chapterLinks = () ->
-  links = for key, value of @_links
+pagelinks = (page, book) ->
+  links = for key, value of page._links
     do (key, value) ->
       link = {}
       _.extend link, value
       link.rel = key
       return link
-  if @book.meta.cover
-    if path.extname(@book.meta.cover) is '.jpg'
+  if book.meta.cover
+    if path.extname(book.meta.cover) is '.jpg'
       type = 'image/jpeg'
-    if path.extname(@book.meta.cover) is '.png'
+    if path.extname(book.meta.cover) is '.png'
       type = 'image/png'
-    if path.extname(@book.meta.cover) is '.svg'
+    if path.extname(book.meta.cover) is '.svg'
       type = 'image/svg+xml'
-    links.push({ rel: 'cover', href: relative(@filename, @book.meta.cover), type: type, title: 'Cover Image'})
-    links.push({ rel: 'cover', href: relative(@filename, 'cover.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Cover Page'})
-  if @book
-    links.push({ rel: 'contents', href: relative(@filename, 'index.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Table of Contents'})
+    links.push({ rel: 'cover', href: relative(page.filename, book.meta.cover), type: type, title: 'Cover Image'})
+    links.push({ rel: 'cover', href: relative(page.filename, 'cover.html'), type: book._state?.htmltype || "application/xhtml+xml", title: 'Cover Page'})
+  if book
+    links.push({ rel: 'contents', href: relative(page.filename, 'index.html'), type: book._state?.htmltype || "application/xhtml+xml", title: 'Table of Contents'})
   return links
+
+bookLinks = () ->
+  pagelinks(this, this)
+
+chapterLinks = () ->
+  pagelinks(this, @book)
+  # links = for key, value of @_links
+  #   do (key, value) ->
+  #     link = {}
+  #     _.extend link, value
+  #     link.rel = key
+  #     return link
+  # if @book.meta.cover
+  #   if path.extname(@book.meta.cover) is '.jpg'
+  #     type = 'image/jpeg'
+  #   if path.extname(@book.meta.cover) is '.png'
+  #     type = 'image/png'
+  #   if path.extname(@book.meta.cover) is '.svg'
+  #     type = 'image/svg+xml'
+  #   links.push({ rel: 'cover', href: relative(@filename, @book.meta.cover), type: type, title: 'Cover Image'})
+  #   links.push({ rel: 'cover', href: relative(@filename, 'cover.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Cover Page'})
+  # if @book
+  #   links.push({ rel: 'contents', href: relative(@filename, 'index.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Table of Contents'})
+  # return links
   # selfindex = @book.chapters.indexOf(this)
   # if selfindex isnt -1
   #   if selfindex isnt 0
@@ -133,9 +153,12 @@ extendChapter = (Chapter) ->
   Chapter.prototype.addToZip = (zip) ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    context = @context
     fn = @filename
-    zip.addFile(templates.chapters(context()), { name: fn }, deferred.resolve)
+    if !@assets
+      context = @context()
+    else
+      context = this
+    zip.addFile(templates.chapters(context), { name: fn }, deferred.resolve)
     return promise
   return Chapter
 
@@ -186,7 +209,7 @@ extendBook = (Book) ->
   }
 
   Object.defineProperty Book.prototype, 'links', {
-    get: links
+    get: bookLinks
   }
 
   chapterTask = (chapter, zip) ->
@@ -195,7 +218,8 @@ extendBook = (Book) ->
   Book.prototype.addChaptersToZip = (zip) ->
     tasks = []
     for chapter in @chapters
-      tasks.push(chapterTask(chapter, zip))
+      context = chapter.context(this)
+      tasks.push(chapterTask(context, zip))
     sequence(tasks)
 
 
@@ -247,6 +271,7 @@ addTemplateTask = (template, book, zip, name, store) ->
     return promise
 
 toEpub = (out, options) ->
+  book = Object.create this
   zip = zipStream.createZip({ level: 1 })
   zip.pipe(out)
   final = () ->
@@ -255,11 +280,21 @@ toEpub = (out, options) ->
     deferred.notify 'Writing to file...'
     zip.finalize(deferred.resolve)
     return promise
-  renderEpub(this, out, options, zip).then(final)
+  renderEpub(book, out, options, zip).then(final)
 
 renderEpub = (book, out, options, zip) ->
   book._state = {}
   book._state.htmltype = "application/xhtml+xml"
+  book._navPoint = 0
+  book._chapterIndex = 0
+  navPoint = ->
+    book._navPoint++
+    return book._navPoint
+  chapterIndex = ->
+    book._chapterIndex++
+    return book._chapterIndex
+  handlebars.registerHelper 'navPoint', navPoint
+  handlebars.registerHelper 'chapterIndex', chapterIndex
   if options?.templates
     loadTemplates(options.templates + '**/*.hbs')
   # if book.assets.js

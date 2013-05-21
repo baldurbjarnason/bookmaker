@@ -25,24 +25,27 @@ Chapter = (function() {
     this.context = __bind(this.context, this);    _.extend(this, doc);
   }
 
-  Chapter.prototype.context = function() {
-    var _ref;
+  Chapter.prototype.context = function(book) {
+    var chapter, _ref;
 
+    book = book || this.book;
+    chapter = Object.create(this);
+    chapter.book = book;
     if (!this.meta) {
-      this.meta = this.book.meta;
+      chapter.meta = book.meta;
     }
     if (!this.assets) {
-      this.assets = this.book.assets;
+      chapter.assets = book.assets;
     }
     if (!this.chapters) {
-      this.chapters = this.book.chapters;
+      chapter.chapters = book.chapters;
     }
-    if (this.meta.specifiedJs && this.js) {
-      this.scripted = true;
-    } else if ((_ref = this.assets) != null ? _ref.js : void 0) {
-      this.scripted = true;
+    if (book.meta.specifiedJs && this.js) {
+      chapter.scripted = true;
+    } else if ((_ref = book.assets) != null ? _ref.js : void 0) {
+      chapter.scripted = true;
     }
-    return this;
+    return chapter;
   };
 
   Chapter.prototype.formatPath = function(type) {

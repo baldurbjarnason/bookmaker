@@ -1,5 +1,5 @@
 'use strict';
-var addTask, addTemplateTask, bookTemplates, callbacks, chapterLinks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, links, loadTemplates, mangler, path, relative, renderEpub, sequence, template, templates, tempname, toEpub, whenjs, zipStream, _,
+var addTask, addTemplateTask, bookLinks, bookTemplates, callbacks, chapterLinks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, pagelinks, path, relative, renderEpub, sequence, temp, template, templates, tempname, toEpub, whenjs, zipStream, _,
   __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
@@ -24,16 +24,22 @@ sequence = require('when/sequence');
 
 _ = require('underscore');
 
+temp = require('./templates');
+
+templates = temp.templates;
+
+loadTemplates = temp.loadTemplates;
+
 chapterTemplates = {
   manifest: '{{#if this.nomanifest }}\
     {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\
     {{ subChapters.epubManifest }}{{/if}}{{/if}}',
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\
     {{ subChapters.epubSpine }}{{/if}}',
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\
+  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\
 {{ subChapters.navList }}\
 </li>\n',
-  ncx: '{{#if filename }}<navPoint id="navPoint-{{ book.navPoint }}" playOrder="{{ book.chapterIndex }}">\n  <navLabel>\n      <text>{{ title }}</text>\n  </navLabel>\n  <content src="{{ filename }}"></content>\n{{ subChapters.epubNCX }}</navPoint>{{else}}\n {{ subChapters.epubNCX }}\n{{/if}}'
+  ncx: '{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">\n  <navLabel>\n      <text>{{ title }}</text>\n  </navLabel>\n  <content src="{{ filename }}"></content>\n{{ subChapters.epubNCX }}</navPoint>{{else}}\n {{ subChapters.epubNCX }}\n{{/if}}'
 };
 
 bookTemplates = {
@@ -54,26 +60,6 @@ for (tempname in bookTemplates) {
   bookTemplates[tempname] = handlebars.compile(template);
 }
 
-templates = {};
-
-loadTemplates = function(searchpath) {
-  var name, newtemplates, temppath, _i, _len, _results;
-
-  newtemplates = glob.sync(searchpath);
-  _results = [];
-  for (_i = 0, _len = newtemplates.length; _i < _len; _i++) {
-    temppath = newtemplates[_i];
-    name = path.basename(temppath, path.extname(temppath));
-    template = fs.readFileSync(temppath, 'utf8');
-    _results.push(templates[name] = handlebars.compile(template));
-  }
-  return _results;
-};
-
-loadTemplates(path.resolve(__filename, '../../', 'templates/**/*.hbs'));
-
-loadTemplates('templates/**/*.hbs');
-
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;
 
@@ -83,32 +69,13 @@ relative = function(current, target) {
   return relativetarget;
 };
 
-links = function() {
-  var key, link, value;
-
-  return links = (function() {
-    var _ref, _results;
-
-    _ref = this._links;
-    _results = [];
-    for (key in _ref) {
-      value = _ref[key];
-      link = {};
-      _.extend(link, value);
-      link.rel = key;
-      _results.push(link);
-    }
-    return _results;
-  }).call(this);
-};
-
-chapterLinks = function() {
-  var key, type, value, _ref, _ref1;
+pagelinks = function(page, book) {
+  var key, links, type, value, _ref, _ref1;
 
   links = (function() {
     var _ref, _results;
 
-    _ref = this._links;
+    _ref = page._links;
     _results = [];
     for (key in _ref) {
       value = _ref[key];
@@ -122,39 +89,47 @@ chapterLinks = function() {
       })(key, value));
     }
     return _results;
-  }).call(this);
-  if (this.book.meta.cover) {
-    if (path.extname(this.book.meta.cover) === '.jpg') {
+  })();
+  if (book.meta.cover) {
+    if (path.extname(book.meta.cover) === '.jpg') {
       type = 'image/jpeg';
     }
-    if (path.extname(this.book.meta.cover) === '.png') {
+    if (path.extname(book.meta.cover) === '.png') {
       type = 'image/png';
     }
-    if (path.extname(this.book.meta.cover) === '.svg') {
+    if (path.extname(book.meta.cover) === '.svg') {
       type = 'image/svg+xml';
     }
     links.push({
       rel: 'cover',
-      href: relative(this.filename, this.book.meta.cover),
+      href: relative(page.filename, book.meta.cover),
       type: type,
       title: 'Cover Image'
     });
     links.push({
       rel: 'cover',
-      href: relative(this.filename, 'cover.html'),
-      type: ((_ref = this.book._state) != null ? _ref.htmltype : void 0) || "application/xhtml+xml",
+      href: relative(page.filename, 'cover.html'),
+      type: ((_ref = book._state) != null ? _ref.htmltype : void 0) || "application/xhtml+xml",
       title: 'Cover Page'
     });
   }
-  if (this.book) {
+  if (book) {
     links.push({
       rel: 'contents',
-      href: relative(this.filename, 'index.html'),
-      type: ((_ref1 = this.book._state) != null ? _ref1.htmltype : void 0) || "application/xhtml+xml",
+      href: relative(page.filename, 'index.html'),
+      type: ((_ref1 = book._state) != null ? _ref1.htmltype : void 0) || "application/xhtml+xml",
       title: 'Table of Contents'
     });
   }
   return links;
+};
+
+bookLinks = function() {
+  return pagelinks(this, this);
+};
+
+chapterLinks = function() {
+  return pagelinks(this, this.book);
 };
 
 extendChapter = function(Chapter) {
@@ -189,9 +164,13 @@ extendChapter = function(Chapter) {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    context = this.context;
     fn = this.filename;
-    zip.addFile(templates.chapters(context()), {
+    if (!this.assets) {
+      context = this.context();
+    } else {
+      context = this;
+    }
+    zip.addFile(templates.chapters(context), {
       name: fn
     }, deferred.resolve);
     return promise;
@@ -258,7 +237,7 @@ extendBook = function(Book) {
     enumerable: true
   });
   Object.defineProperty(Book.prototype, 'links', {
-    get: links
+    get: bookLinks
   });
   chapterTask = function(chapter, zip) {
     return function() {
@@ -266,13 +245,14 @@ extendBook = function(Book) {
     };
   };
   Book.prototype.addChaptersToZip = function(zip) {
-    var chapter, tasks, _i, _len, _ref;
+    var chapter, context, tasks, _i, _len, _ref;
 
     tasks = [];
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       chapter = _ref[_i];
-      tasks.push(chapterTask(chapter, zip));
+      context = chapter.context(this);
+      tasks.push(chapterTask(context, zip));
     }
     return sequence(tasks);
   };
@@ -340,8 +320,9 @@ addTemplateTask = function(template, book, zip, name, store) {
 };
 
 toEpub = function(out, options) {
-  var final, zip;
+  var book, final, zip;
 
+  book = Object.create(this);
   zip = zipStream.createZip({
     level: 1
   });
@@ -355,14 +336,26 @@ toEpub = function(out, options) {
     zip.finalize(deferred.resolve);
     return promise;
   };
-  return renderEpub(this, out, options, zip).then(final);
+  return renderEpub(book, out, options, zip).then(final);
 };
 
 renderEpub = function(book, out, options, zip) {
-  var tasks;
+  var chapterIndex, navPoint, tasks;
 
   book._state = {};
   book._state.htmltype = "application/xhtml+xml";
+  book._navPoint = 0;
+  book._chapterIndex = 0;
+  navPoint = function() {
+    book._navPoint++;
+    return book._navPoint;
+  };
+  chapterIndex = function() {
+    book._chapterIndex++;
+    return book._chapterIndex;
+  };
+  handlebars.registerHelper('navPoint', navPoint);
+  handlebars.registerHelper('chapterIndex', chapterIndex);
   if (options != null ? options.templates : void 0) {
     loadTemplates(options.templates + '**/*.hbs');
   }

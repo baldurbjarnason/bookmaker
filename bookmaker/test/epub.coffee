@@ -102,14 +102,14 @@ describe 'EpubChapter',
         it 'generates the html nav li entry for epub',
           () ->
             testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].navList.should.equal('<li class="tocitem htmlexample" id="toc-htmlexample"><a href="htmlexample.html">HTML</a>\n</li>\n')
+            testbook.chapters[0].navList.should.equal('<li class="tocitem htmlexample" id="toc-htmlexample"><a href="htmlexample.html\" rel=\"chapter">HTML</a>\n</li>\n')
     describe '#epubNCX',
       () ->
         it 'generates the xml NCX entry for epub',
           () ->
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].epubNCX.should.equal('''
-<navPoint id="navPoint-1" playOrder="1">
+<navPoint id="navPoint-" playOrder="">
   <navLabel>
       <text>HTML</text>
   </navLabel>
@@ -204,12 +204,12 @@ describe 'EpubBook',
       () ->
         it 'Renders the nav li html for epub',
           () ->
-            testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\">Markdown</a>\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\">HTML</a>\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\">XHTML</a>\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\">Template</a>\n</li>\n")
+            testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\" rel=\"chapter\">Markdown</a>\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\" rel=\"chapter\">HTML</a>\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\" rel=\"chapter\">XHTML</a>\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\" rel=\"chapter\">Template</a>\n</li>\n")
     describe '#epubNCX',
       () ->
         it 'Renders the ncx xml for epub',
           () ->
-            testbook.epubNCX.should.equal("<navPoint id=\"navPoint-1\" playOrder=\"1\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-2\" playOrder=\"2\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-3\" playOrder=\"3\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-4\" playOrder=\"4\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
+            testbook.epubNCX.should.equal("<navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
     describe '#addChaptersToZip',
       () ->
         it 'Adds all chapters to zip (chapters.zip)',

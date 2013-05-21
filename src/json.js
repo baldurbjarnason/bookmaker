@@ -1,17 +1,7 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, bookmaker, ensuredir, extend, extendAssets, extendBook, extendChapter, filter, fs, mkdirp, nodefn, path, relative, sequence, url, whenjs, write, _;
+var ensuredir, extend, extendAssets, extendBook, extendChapter, filter, fs, handlebars, loadTemplates, mkdirp, nodefn, path, relative, sequence, temp, templates, url, whenjs, write, _;
 
 fs = require('fs');
-
-bookmaker = require('./index');
-
-Assets = bookmaker.Assets;
-
-Chapter = bookmaker.Chapter;
-
-Book = bookmaker.Book;
-
-SubOutline = bookmaker.SubOutline;
 
 whenjs = require('when');
 
@@ -28,6 +18,14 @@ nodefn = require("when/node/function");
 mkdirp = require('mkdirp');
 
 url = require('url');
+
+handlebars = require('handlebars');
+
+temp = require('./templates');
+
+templates = temp.templates;
+
+loadTemplates = temp.loadTemplates;
 
 ensuredir = function(directory) {
   var deferred, promise;
@@ -86,7 +84,7 @@ relative = function(current, target) {
 
 extendChapter = function(Chapter) {
   Chapter.prototype.toHal = function() {
-    var banned, hal, href, selfindex, selfpath, subChapter, subChapters, tocpath, urlgen, _i, _len, _ref, _ref1, _ref2, _ref3;
+    var banned, hal, href, htmlpath, selfindex, selfpath, subChapter, subChapters, tocpath, urlgen, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
 
     banned = ['links', 'book', 'meta', 'filename', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this));
     hal = _.omit(this, banned);
@@ -106,14 +104,21 @@ extendChapter = function(Chapter) {
         type: "application/hal+json"
       }
     };
-    if (((_ref1 = this.book.assets) != null ? _ref1.css : void 0) && !this.book.meta.specifiedCss) {
+    if ((_ref1 = this.book._state) != null ? _ref1.htmlAndJson : void 0) {
+      htmlpath = ((_ref2 = this.book._state) != null ? _ref2.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('html') : path.basename(this.formatPath('html'));
+      hal._links.alternate = {
+        href: htmlpath,
+        type: this.book._state.htmltype
+      };
+    }
+    if (((_ref3 = this.book.assets) != null ? _ref3.css : void 0) && !this.book.meta.specifiedCss) {
       hal._links.stylesheets = (function() {
-        var _i, _len, _ref2, _results;
+        var _i, _len, _ref4, _results;
 
-        _ref2 = this.book.assets.css;
+        _ref4 = this.book.assets.css;
         _results = [];
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          href = _ref2[_i];
+        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+          href = _ref4[_i];
           _results.push({
             href: urlgen(this.filename, href),
             type: "text/css"
@@ -123,12 +128,12 @@ extendChapter = function(Chapter) {
       }).call(this);
     } else if (this.css) {
       hal._links.stylesheets = (function() {
-        var _i, _len, _ref2, _results;
+        var _i, _len, _ref4, _results;
 
-        _ref2 = this.css;
+        _ref4 = this.css;
         _results = [];
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          href = _ref2[_i];
+        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+          href = _ref4[_i];
           _results.push({
             href: urlgen(this.filename, href),
             type: "text/css"
@@ -137,14 +142,14 @@ extendChapter = function(Chapter) {
         return _results;
       }).call(this);
     }
-    if (((_ref2 = this.book.assets) != null ? _ref2.js : void 0) && !this.book.meta.specifiedJs) {
+    if (((_ref4 = this.book.assets) != null ? _ref4.js : void 0) && !this.book.meta.specifiedJs) {
       hal._links.javascript = (function() {
-        var _i, _len, _ref3, _results;
+        var _i, _len, _ref5, _results;
 
-        _ref3 = this.book.assets.js;
+        _ref5 = this.book.assets.js;
         _results = [];
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          href = _ref3[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          href = _ref5[_i];
           _results.push({
             href: urlgen(this.filename, href),
             type: "application/javascript"
@@ -154,12 +159,12 @@ extendChapter = function(Chapter) {
       }).call(this);
     } else if (this.js) {
       hal._links.javascript = (function() {
-        var _i, _len, _ref3, _results;
+        var _i, _len, _ref5, _results;
 
-        _ref3 = this.js;
+        _ref5 = this.js;
         _results = [];
-        for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-          href = _ref3[_i];
+        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+          href = _ref5[_i];
           _results.push({
             href: urlgen(this.filename, href),
             type: "application/javascript"
@@ -185,9 +190,9 @@ extendChapter = function(Chapter) {
     }
     if (this.subChapters) {
       subChapters = [];
-      _ref3 = this.subChapters.chapters;
-      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-        subChapter = _ref3[_i];
+      _ref5 = this.subChapters.chapters;
+      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
+        subChapter = _ref5[_i];
         subChapters.push(subChapter);
       }
       hal._embedded.chapters = subChapters;
@@ -209,23 +214,28 @@ extendAssets = function(Assets) {
 
 extendBook = function(Book) {
   Book.prototype.uri = function(current, target) {
-    if (this._state.baseurl) {
-      return url.resolve(this.baseurl, target);
+    var _ref;
+
+    if ((_ref = this._state) != null ? _ref.baseurl : void 0) {
+      return url.resolve(this._state.baseurl, target);
     } else {
       return this.relative(current, target);
     }
   };
   Book.prototype.toHal = function(options) {
-    var chapter, covertype, hal, href, image, selfpath, stylesheet, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3;
+    var chapter, covertype, hal, href, image, selfpath, stylesheet, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3, _ref4;
 
-    this._state = {};
     hal = {};
     _.extend(hal, this.meta);
+    if (!this._state) {
+      this._state = {};
+    }
     if (options != null ? options.baseurl : void 0) {
       selfpath = options.baseurl + 'index.json';
       this._state.baseurl = options.baseurl;
     } else if (this.baseurl) {
       this._state.baseurl = this.baseurl;
+      selfpath = options.baseurl + 'index.json';
     } else {
       selfpath = 'index.json';
     }
@@ -235,7 +245,8 @@ extendBook = function(Book) {
     hal._links.self = {
       href: selfpath,
       type: "application/hal+json",
-      hreflang: this.meta.lang
+      hreflang: this.meta.lang,
+      title: this.title
     };
     if (path.extname(this.meta.cover) === '.jpg') {
       covertype = 'image/jpeg';
@@ -259,18 +270,26 @@ extendBook = function(Book) {
         type: "application/hal+json"
       };
     }
+    if ((_ref = this._state) != null ? _ref.htmlAndJson : void 0) {
+      hal._links.alternate = {
+        href: this.uri('index.json', 'index.html'),
+        type: this._state.htmltype,
+        title: "HTML Table of Contents"
+      };
+    }
     if (!(options != null ? options.embedChapters : void 0)) {
       hal._links.chapters = (function() {
-        var _i, _len, _ref, _results;
+        var _i, _len, _ref1, _results;
 
-        _ref = this.chapters;
+        _ref1 = this.chapters;
         _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          chapter = _ref[_i];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          chapter = _ref1[_i];
           _results.push({
             href: this.uri('index.json', chapter.formatPath('json')),
             type: "application/hal+json",
-            hreflang: this.meta.lang
+            hreflang: this.meta.lang,
+            title: chapter.title
           });
         }
         return _results;
@@ -279,45 +298,45 @@ extendBook = function(Book) {
       hal._links.chapters = this.chapters;
     }
     hal._links.images = [];
-    _ref = this.assets.png;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      image = _ref[_i];
+    _ref1 = this.assets.png;
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      image = _ref1[_i];
       hal._links.images.push({
         href: this.uri('index.json', image),
         type: "image/png"
       });
     }
-    _ref1 = this.assets.jpg;
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      image = _ref1[_j];
+    _ref2 = this.assets.jpg;
+    for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
+      image = _ref2[_j];
       hal._links.images.push({
         href: this.uri('index.json', image),
         type: "image/jpeg"
       });
     }
-    _ref2 = this.assets.gif;
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      image = _ref2[_k];
+    _ref3 = this.assets.gif;
+    for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
+      image = _ref3[_k];
       hal._links.images.push({
         href: this.uri('index.json', image),
         type: "image/gif"
       });
     }
-    _ref3 = this.assets.svg;
-    for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
-      image = _ref3[_l];
+    _ref4 = this.assets.svg;
+    for (_l = 0, _len3 = _ref4.length; _l < _len3; _l++) {
+      image = _ref4[_l];
       hal._links.images.push({
         href: this.uri('index.json', image),
         type: "image/svg+xml"
       });
     }
     hal._links.stylesheets = (function() {
-      var _len4, _m, _ref4, _results;
+      var _len4, _m, _ref5, _results;
 
-      _ref4 = this.assets.css;
+      _ref5 = this.assets.css;
       _results = [];
-      for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-        stylesheet = _ref4[_m];
+      for (_m = 0, _len4 = _ref5.length; _m < _len4; _m++) {
+        stylesheet = _ref5[_m];
         _results.push({
           href: this.uri('index.json', stylesheet),
           type: "text/css"
@@ -326,12 +345,12 @@ extendBook = function(Book) {
       return _results;
     }).call(this);
     hal._links.javascript = (function() {
-      var _len4, _m, _ref4, _results;
+      var _len4, _m, _ref5, _results;
 
-      _ref4 = this.assets.js;
+      _ref5 = this.assets.js;
       _results = [];
-      for (_m = 0, _len4 = _ref4.length; _m < _len4; _m++) {
-        href = _ref4[_m];
+      for (_m = 0, _len4 = _ref5.length; _m < _len4; _m++) {
+        href = _ref5[_m];
         _results.push({
           href: this.uri('index.json', href),
           type: "application/javascript"
@@ -352,12 +371,8 @@ extendBook = function(Book) {
     return JSON.stringify(hal, filter, 2);
   };
   Book.prototype.toJsonFiles = function(directory, options) {
-    var chapter, hal, json, report, tasks, _i, _len, _ref;
+    var chapter, hal, json, tasks, _i, _len, _ref;
 
-    report = function(thing) {
-      return console.log(thing);
-    };
-    sequence(tasks);
     hal = this.toHal(options);
     hal.assetsPath = this.assets.assetsPath;
     json = JSON.stringify(hal, filter, 2);
@@ -368,14 +383,86 @@ extendBook = function(Book) {
       directory = directory || process.cwd();
     }
     tasks.push(ensuredir(directory + 'chapters/'));
-    tasks.push(this.assets.copy(directory + hal.assetsPath));
+    if (!(options != null ? options.noAssets : void 0)) {
+      tasks.push(this.assets.copy(directory + hal.assetsPath));
+    }
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       chapter = _ref[_i];
-      tasks.push(write(directory + chapter.formatPath('json'), chapter.toJSON(), 'utf8'));
+      tasks.push(write(directory + chapter.formatPath('json'), chapter.context(this).toJSON(), 'utf8'));
     }
     tasks.push(write(directory + 'index.json', json, 'utf8'));
     return whenjs.all(tasks);
+  };
+  Book.prototype.toHtmlFiles = function(directory, options) {
+    var book, chapter, context, jsonpath, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
+
+    book = Object.create(this);
+    if (!book._state) {
+      book._state = {};
+    }
+    book._state.htmltype = "text/html";
+    handlebars.registerHelper('relative', this.uri.bind(book));
+    book.filename = 'index.html';
+    if (options != null ? options.baseurl : void 0) {
+      selfpath = options.baseurl + 'index.html';
+      book._state.baseurl = options.baseurl;
+    } else if (this.baseurl) {
+      book._state.baseurl = this.baseurl;
+    } else {
+      selfpath = 'index.html';
+    }
+    if ((_ref = book._state) != null ? _ref.htmlAndJson : void 0) {
+      if (!book._links) {
+        book._links = {};
+      }
+      book._links.alternate = {
+        href: book.uri('index.html', 'index.json'),
+        type: "application/hal+json",
+        title: "JSON Table of Contents"
+      };
+    }
+    tasks = [];
+    if (directory) {
+      tasks.push(ensuredir(directory));
+    } else {
+      directory = directory || process.cwd();
+    }
+    tasks.push(ensuredir(directory + 'chapters/'));
+    if (!(options != null ? options.noAssets : void 0)) {
+      tasks.push(book.assets.copy(directory + book.assets.assetsPath));
+    }
+    tasks.push(write(directory + 'index.html', templates.htmlindex(book), 'utf8'));
+    tasks.push(write(directory + 'cover.html', templates.htmlcover(book), 'utf8'));
+    _ref1 = book.chapters;
+    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+      chapter = _ref1[_i];
+      context = chapter.context(book);
+      if ((_ref2 = book._state) != null ? _ref2.htmlAndJson : void 0) {
+        jsonpath = ((_ref3 = book._state) != null ? _ref3.baseurl : void 0) ? book.uri(context.filename, context.formatPath('json')) : path.basename(context.formatPath('json'));
+        if (!context._links) {
+          context._links = {};
+        }
+        context._links.alternate = {
+          href: jsonpath,
+          type: "application/hal+json"
+        };
+      }
+      tasks.push(write(directory + chapter.filename, templates.htmlchapter(context), 'utf8'));
+    }
+    return whenjs.all(tasks);
+  };
+  Book.prototype.toHtmlAndJsonFiles = function(directory, options) {
+    var book;
+
+    book = Object.create(this);
+    book._state = {};
+    book._state.htmlAndJson = true;
+    book._state.htmltype = "text/html";
+    return book.toHtmlFiles(directory, options).then(function() {
+      options.noAssets = true;
+      return book.toJsonFiles(directory, options);
+    });
   };
   return Book;
 };

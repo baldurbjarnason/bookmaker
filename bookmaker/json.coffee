@@ -1,11 +1,6 @@
 'use strict'
 
 fs = require('fs')
-bookmaker = require './index'
-Assets = bookmaker.Assets
-Chapter = bookmaker.Chapter
-Book = bookmaker.Book
-SubOutline = bookmaker.SubOutline
 whenjs = require('when')
 _ = require 'underscore'
 path = require 'path'
@@ -14,6 +9,10 @@ fs = require 'fs'
 nodefn = require("when/node/function")
 mkdirp = require('mkdirp')
 url = require 'url'
+handlebars = require('handlebars')
+temp = require './templates'
+templates = temp.templates
+loadTemplates = temp.loadTemplates
 
 ensuredir = (directory) ->
   deferred = whenjs.defer()
@@ -71,6 +70,16 @@ extendChapter = (Chapter) ->
       toc: { href: tocpath, name: 'TOC-JSON', type: "application/hal+json" },
       self: { href: selfpath, type: "application/hal+json" }
     }
+    if @book._state?.htmlAndJson
+      htmlpath =
+        if @book._state?.baseurl
+          @book._state.baseurl + @formatPath('html')
+        else
+          path.basename @formatPath('html')
+      hal._links.alternate = {
+        href: htmlpath
+        type: @book._state.htmltype
+      }
     if @book.assets?.css and !@book.meta.specifiedCss
       hal._links.stylesheets = for href in @book.assets.css
         { href: urlgen(@filename, href), type: "text/css" }
@@ -105,25 +114,26 @@ extendAssets = (Assets) ->
   return Assets
 extendBook = (Book) ->
   Book.prototype.uri = (current, target) ->
-    if @_state.baseurl
-      return url.resolve(@baseurl, target)
+    if @_state?.baseurl
+      return url.resolve(@_state.baseurl, target)
     else
       return @relative(current, target)
   Book.prototype.toHal = (options) ->
-    @_state = {}
     # banned = ['chapters', '_chapterIndex', '_navPoint', '_globalCounter', 'docIdCount', 'root', 'meta', 'assets', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
     hal = {}
     _.extend hal, @meta
+    @_state = {} unless @_state
     if options?.baseurl
       selfpath = options.baseurl + 'index.json'
       @_state.baseurl = options.baseurl
     else if @baseurl
       @_state.baseurl = @baseurl
+      selfpath = options.baseurl + 'index.json'
     else
       selfpath = 'index.json'
     unless hal._links
       hal._links = {}
-    hal._links.self = { href: selfpath, type: "application/hal+json", hreflang: @meta.lang }
+    hal._links.self = { href: selfpath, type: "application/hal+json", hreflang: @meta.lang, title: @title }
     if path.extname(@meta.cover) is '.jpg'
       covertype = 'image/jpeg'
     if path.extname(@meta.cover) is '.png'
@@ -140,9 +150,15 @@ extendBook = (Book) ->
         href: @uri 'index.json', @meta.start.formatPath('json')
         type: "application/hal+json"
       }
+    if @_state?.htmlAndJson
+      hal._links.alternate = {
+        href: @uri 'index.json', 'index.html'
+        type: @_state.htmltype
+        title: "HTML Table of Contents"
+      }
     if !options?.embedChapters
       hal._links.chapters = for chapter in @chapters
-        { href: @uri('index.json', chapter.formatPath('json')), type: "application/hal+json", hreflang: @meta.lang  }
+        { href: @uri('index.json', chapter.formatPath('json')), type: "application/hal+json", hreflang: @meta.lang, title: chapter.title  }
     else
       hal._links.chapters = @chapters
     hal._links.images = []
@@ -167,8 +183,6 @@ extendBook = (Book) ->
     hal = @toHal(options)
     return JSON.stringify hal, filter, 2
   Book.prototype.toJsonFiles = (directory, options) ->
-    report = (thing) -> console.log(thing)
-    sequence(tasks)
     hal = @toHal(options)
     hal.assetsPath = @assets.assetsPath
     json = JSON.stringify hal, filter, 2
@@ -178,11 +192,65 @@ extendBook = (Book) ->
     else
       directory = directory || process.cwd()
     tasks.push ensuredir directory + 'chapters/'
-    tasks.push(@assets.copy(directory + hal.assetsPath))
+    unless options?.noAssets
+      tasks.push(@assets.copy(directory + hal.assetsPath))
     for chapter in @chapters
-      tasks.push(write(directory + chapter.formatPath('json'), chapter.toJSON(), 'utf8'))
+      tasks.push(write(directory + chapter.formatPath('json'), chapter.context(this).toJSON(), 'utf8'))
     tasks.push write(directory + 'index.json', json, 'utf8')
     whenjs.all tasks
+  Book.prototype.toHtmlFiles = (directory, options) ->
+    book = Object.create this
+    book._state = {} unless book._state
+    book._state.htmltype = "text/html"
+    handlebars.registerHelper 'relative', @uri.bind(book)
+    book.filename = 'index.html'
+    if options?.baseurl
+      selfpath = options.baseurl + 'index.html'
+      book._state.baseurl = options.baseurl
+    else if @baseurl
+      book._state.baseurl = @baseurl
+    else
+      selfpath = 'index.html'
+    if book._state?.htmlAndJson
+      book._links = {} unless book._links
+      book._links.alternate = {
+        href: book.uri 'index.html', 'index.json'
+        type: "application/hal+json"
+        title: "JSON Table of Contents"
+      }
+    tasks = []
+    if directory
+      tasks.push ensuredir directory
+    else
+      directory = directory || process.cwd()
+    tasks.push ensuredir directory + 'chapters/'
+    unless options?.noAssets
+      tasks.push(book.assets.copy(directory + book.assets.assetsPath))
+    tasks.push(write(directory + 'index.html', templates.htmlindex(book), 'utf8'))
+    tasks.push(write(directory + 'cover.html', templates.htmlcover(book), 'utf8'))
+    for chapter in book.chapters
+      context = chapter.context(book)
+      if book._state?.htmlAndJson
+        jsonpath =
+          if book._state?.baseurl
+            book.uri context.filename, context.formatPath('json')
+          else
+            path.basename context.formatPath('json')
+        context._links = {} unless context._links
+        context._links.alternate = {
+          href: jsonpath
+          type: "application/hal+json"
+        }
+      tasks.push(write(directory + chapter.filename, templates.htmlchapter(context), 'utf8'))
+    whenjs.all tasks
+  Book.prototype.toHtmlAndJsonFiles = (directory, options) ->
+    book = Object.create this
+    book._state = {}
+    book._state.htmlAndJson = true
+    book._state.htmltype = "text/html"
+    book.toHtmlFiles(directory, options).then(() ->
+      options.noAssets = true
+      book.toJsonFiles(directory, options))
   return Book
 
 

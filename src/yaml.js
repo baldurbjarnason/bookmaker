@@ -51,7 +51,7 @@ chaptergen = function(chapter) {
   } else {
     titlecounter += 1;
     title = titlecounter;
-    filename = 'doc' + titlecounter + '.html';
+    filename = 'chapters/' + 'doc' + titlecounter + '.html';
   }
   return retur({
     title: title,

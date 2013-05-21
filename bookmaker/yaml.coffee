@@ -31,7 +31,7 @@ chaptergen = (chapter) ->
   else
     titlecounter += 1
     title = titlecounter
-    filename = 'doc' + titlecounter + '.html'
+    filename = 'chapters/' + 'doc' + titlecounter + '.html'
   retur {
     title: title
     filename: filename

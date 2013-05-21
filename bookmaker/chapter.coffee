@@ -13,15 +13,18 @@ path = require 'path'
 class Chapter
   constructor: (doc) ->
     _.extend this, doc
-  context: () =>
-    @meta = @book.meta unless @meta
-    @assets = @book.assets unless @assets
-    @chapters = @book.chapters unless @chapters
-    if @meta.specifiedJs and @js
-      @scripted = true
-    else if @assets?.js
-      @scripted = true
-    return this
+  context: (book) =>
+    book = book || @book
+    chapter = Object.create this
+    chapter.book = book
+    chapter.meta = book.meta unless @meta
+    chapter.assets = book.assets unless @assets
+    chapter.chapters = book.chapters unless @chapters
+    if book.meta.specifiedJs and @js
+      chapter.scripted = true
+    else if book.assets?.js
+      chapter.scripted = true
+    return chapter
   formatPath: (type) ->
     newpath = path.dirname(@filename) + "/" + path.basename(@filename, path.extname(@filename)) + '.' + type
     return newpath
