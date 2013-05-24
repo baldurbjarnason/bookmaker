@@ -11,6 +11,7 @@ zipStream = require('zipstream-contentment')
 fs = require 'fs'
 whenjs = require('when')
 callbacks = require 'when/callbacks'
+exec = require('child_process').exec
 
 testoutline = {
   id: 'titlepage',
@@ -225,10 +226,19 @@ describe 'EpubBook',
       () ->
         it 'Renders the book to epub',
           (done) ->
+            this.timeout(10000)
             out = fs.createWriteStream('test/files/test.epub')
             testbook.toEpub(out).then((thing) ->
-              console.log(thing)
-              done()
+              console.log thing
+              checkReport = (error, stdout, stderr) =>
+                if error
+                  done error
+                if stderr
+                  done stderr
+                if stdout
+                  console.log stdout
+                  done()
+              exec('epubcheck test/files/test.epub', checkReport)
             , undefined, (notice) -> console.log notice)
 
 

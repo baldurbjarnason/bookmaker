@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, callbacks, chai, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, SubOutline, callbacks, chai, exec, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
 
 chai = require('chai');
 
@@ -22,6 +22,8 @@ fs = require('fs');
 whenjs = require('when');
 
 callbacks = require('when/callbacks');
+
+exec = require('child_process').exec;
 
 testoutline = {
   id: 'titlepage',
@@ -273,10 +275,26 @@ describe('EpubBook', function() {
     return it('Renders the book to epub', function(done) {
       var out;
 
+      this.timeout(10000);
       out = fs.createWriteStream('test/files/test.epub');
       return testbook.toEpub(out).then(function(thing) {
+        var checkReport,
+          _this = this;
+
         console.log(thing);
-        return done();
+        checkReport = function(error, stdout, stderr) {
+          if (error) {
+            done(error);
+          }
+          if (stderr) {
+            done(stderr);
+          }
+          if (stdout) {
+            console.log(stdout);
+            return done();
+          }
+        };
+        return exec('epubcheck test/files/test.epub', checkReport);
       }, void 0, function(notice) {
         return console.log(notice);
       });
