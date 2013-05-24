@@ -54,7 +54,7 @@ Book = (function() {
       chapter.filename = 'chapters/' + chapter.id + '.html';
     }
     if (chapter.subChapters) {
-      chapter.subChapters = new SubOutline(chapter.subChapters, this);
+      chapter.subChapters = new this.constructor.SubOutline(chapter.subChapters, this);
     }
     return this.chapters.push(chapter);
   };
@@ -105,7 +105,7 @@ SubOutline = (function(_super) {
       entry = sub[_i];
       chapter = new Chapter(entry);
       if (entry.subChapters) {
-        chapter.subChapters = new SubOutline(entry.subChapters, this.book);
+        chapter.subChapters = new this.constructor(entry.subChapters, this.book);
       }
       this.addChapter(chapter, this.book);
     }

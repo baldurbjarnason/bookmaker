@@ -3,13 +3,11 @@
 fs = require('fs')
 path = require('path')
 yaml = require('js-yaml')
+utilities = require './utilities'
 
-extend = (Chapter, Book, Assets, SubOutline) ->
-  Book.loadBookDir = (directory, Chap, Ass, Sub) ->
-    Chapter = Chap || Chapter
-    Assets = Ass || Assets
-    SubOutline = Sub || SubOutline
-    loadFile= (filename, book) ->
+class LoaderMixin
+  @loadBookDir = (directory) ->
+    loadFile = (filename, book) ->
       file = fs.readFileSync(path.resolve(directory, 'chapters', filename), 'utf8')
       docs = []
       yaml.safeLoadAll file, (doc) ->
@@ -19,7 +17,7 @@ extend = (Chapter, Book, Assets, SubOutline) ->
       doc.type = path.extname(filename).replace(".","")
       basepath = path.basename filename, path.extname filename
       doc.filename = 'chapters/' + basepath + '.html'
-      book.addChapter(new Chapter(doc))
+      book.addChapter(new @Chapter(doc))
     loadTxt = (booktxt, book) ->
       suboutline = []
       builtIns =  {
@@ -46,7 +44,7 @@ extend = (Chapter, Book, Assets, SubOutline) ->
       indentregex =  /^[ \t]+/
       for filename in list
         if builtIns[filename]
-          book.addChapter(new Chapter(builtIns[filename]))
+          book.addChapter(new @Chapter(builtIns[filename]))
         else if (filename[0] is '#') or (filename.match(emptyline))
           # Do nothing
         else if filename.match(indentregex)
@@ -58,7 +56,7 @@ extend = (Chapter, Book, Assets, SubOutline) ->
         else
           loadFile(filename, book)
           if index
-            subparent.subChapters =  new SubOutline(suboutline, this)
+            subparent.subChapters =  new @SubOutline(suboutline, this)
             index = false
             suboutline = []
         return
@@ -70,9 +68,9 @@ extend = (Chapter, Book, Assets, SubOutline) ->
     else
       return
     if meta.assetsPath
-      assets = new Assets(directory, meta.assetsPath)
+      assets = new @Assets(directory, meta.assetsPath)
     else
-      assets = new Assets(directory, 'assets/')
+      assets = new @Assets(directory, 'assets/')
     NewBook = this
     book = new NewBook(meta, assets)
     if fs.existsSync directory + 'book.txt'
@@ -82,7 +80,10 @@ extend = (Chapter, Book, Assets, SubOutline) ->
     loadTxt(booktxt, book)
     return book
 
+extend (Book) ->
+  utilities.mixin Book, LoaderMixin
 
 module.exports = {
   extend: extend
+  LoaderMixin: LoaderMixin
 }

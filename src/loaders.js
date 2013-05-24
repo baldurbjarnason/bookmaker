@@ -1,5 +1,5 @@
 'use strict';
-var extend, fs, path, yaml;
+var LoaderMixin, fs, path, utilities, yaml;
 
 fs = require('fs');
 
@@ -7,13 +7,14 @@ path = require('path');
 
 yaml = require('js-yaml');
 
-extend = function(Chapter, Book, Assets, SubOutline) {
-  return Book.loadBookDir = function(directory, Chap, Ass, Sub) {
+utilities = require('./utilities');
+
+LoaderMixin = (function() {
+  function LoaderMixin() {}
+
+  LoaderMixin.loadBookDir = function(directory) {
     var NewBook, assets, book, booktxt, loadFile, loadTxt, meta;
 
-    Chapter = Chap || Chapter;
-    Assets = Ass || Assets;
-    SubOutline = Sub || SubOutline;
     loadFile = function(filename, book) {
       var basepath, doc, docs, file;
 
@@ -29,7 +30,7 @@ extend = function(Chapter, Book, Assets, SubOutline) {
       doc.type = path.extname(filename).replace(".", "");
       basepath = path.basename(filename, path.extname(filename));
       doc.filename = 'chapters/' + basepath + '.html';
-      return book.addChapter(new Chapter(doc));
+      return book.addChapter(new this.Chapter(doc));
     };
     loadTxt = function(booktxt, book) {
       var builtIns, emptyline, filename, indentregex, index, list, suboutline, subparent, _i, _len;
@@ -60,7 +61,7 @@ extend = function(Chapter, Book, Assets, SubOutline) {
       for (_i = 0, _len = list.length; _i < _len; _i++) {
         filename = list[_i];
         if (builtIns[filename]) {
-          book.addChapter(new Chapter(builtIns[filename]));
+          book.addChapter(new this.Chapter(builtIns[filename]));
         } else if ((filename[0] === '#') || (filename.match(emptyline))) {
 
         } else if (filename.match(indentregex)) {
@@ -73,7 +74,7 @@ extend = function(Chapter, Book, Assets, SubOutline) {
         } else {
           loadFile(filename, book);
           if (index) {
-            subparent.subChapters = new SubOutline(suboutline, this);
+            subparent.subChapters = new this.SubOutline(suboutline, this);
             index = false;
             suboutline = [];
           }
@@ -90,9 +91,9 @@ extend = function(Chapter, Book, Assets, SubOutline) {
       return;
     }
     if (meta.assetsPath) {
-      assets = new Assets(directory, meta.assetsPath);
+      assets = new this.Assets(directory, meta.assetsPath);
     } else {
-      assets = new Assets(directory, 'assets/');
+      assets = new this.Assets(directory, 'assets/');
     }
     NewBook = this;
     book = new NewBook(meta, assets);
@@ -104,8 +105,16 @@ extend = function(Chapter, Book, Assets, SubOutline) {
     loadTxt(booktxt, book);
     return book;
   };
-};
+
+  return LoaderMixin;
+
+})();
+
+extend(function(Book) {
+  return utilities.mixin(Book, LoaderMixin);
+});
 
 module.exports = {
-  extend: extend
+  extend: extend,
+  LoaderMixin: LoaderMixin
 };

@@ -117,7 +117,7 @@ mixin = function() {
     donator = DonatingClass[_i];
     donate(donator);
   }
-  return donate = function(DonatingClass) {
+  donate = function(DonatingClass) {
     var key, value, _ref, _results;
 
     _ref = DonatingClass.prototype;
@@ -138,6 +138,7 @@ mixin = function() {
     }
     return _results;
   };
+  return ReceivingClass;
 };
 
 module.exports = {

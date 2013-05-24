@@ -41,7 +41,7 @@ class Book
     unless chapter.filename
       chapter.filename = 'chapters/' + chapter.id + '.html'
     if chapter.subChapters
-      chapter.subChapters = new SubOutline(chapter.subChapters, this)
+      chapter.subChapters = new @constructor.SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
 
 dateProcess = (date) ->
@@ -72,7 +72,7 @@ class SubOutline extends Book
     for entry in sub
       chapter = new Chapter(entry)
       if entry.subChapters
-        chapter.subChapters = new SubOutline(entry.subChapters, @book)
+        chapter.subChapters = new @constructor(entry.subChapters, @book)
       @addChapter(chapter, @book)
     docId: ->
       id = @book.docId()

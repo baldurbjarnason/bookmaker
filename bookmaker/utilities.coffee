@@ -68,6 +68,7 @@ mixin = (ReceivingClass, DonatingClasses...) ->
     for key, value of DonatingClass
       unless ReceivingClass.hasOwnProperty(key)
         ReceivingClass[key] = DonatingClass[key]
+  return ReceivingClass
 
 
 module.exports = {
