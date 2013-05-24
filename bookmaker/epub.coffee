@@ -15,12 +15,8 @@ _ = require 'underscore'
 temp = require './templates'
 templates = temp.templates
 loadTemplates = temp.loadTemplates
+utilities = require './utilities'
 
-
-
-# Each of these needs epubManifest, epubNCX, navList, html, epubSpine
-# Book needs a chapter getter that is a flat list of all chapters including those in suboutline and a htmltocref
-# Or an everyChapter(callback) method that runs once for every chapter with callback(chapter)
 # landmarksOPF -> returns all guide reference for the OPF
 # landmarksHTML -> returns all landmarks for index nav.
 # Labels are chapters that lack a filename and generate no spine, ncx, or manifest entries.
@@ -58,70 +54,16 @@ for own tempname, template of chapterTemplates
 for tempname, template of bookTemplates
   bookTemplates[tempname] = handlebars.compile template
 
-# templates = {}
-# loadTemplates = (searchpath) ->
-#   newtemplates = glob.sync(searchpath)
-#   for temppath in newtemplates
-#     name = path.basename temppath, path.extname temppath
-#     template = fs.readFileSync temppath, 'utf8'
-#     templates[name] = handlebars.compile template
-# loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
-# loadTemplates('templates/**/*.hbs')
+relative = utilities.relative
 
-relative = (current, target) ->
-  absolutecurrent = path.dirname path.resolve("/", current)
-  absolutetarget = path.resolve("/", target)
-  relativetarget = path.relative(absolutecurrent, absolutetarget)
-  return relativetarget
+pagelinks = utilities.pageLinks
 
-pagelinks = (page, book) ->
-  links = for key, value of page._links
-    link = {}
-    link.rel = key
-    _.extend link, value
-  if book.meta.cover
-    if path.extname(book.meta.cover) is '.jpg'
-      type = 'image/jpeg'
-    if path.extname(book.meta.cover) is '.png'
-      type = 'image/png'
-    if path.extname(book.meta.cover) is '.svg'
-      type = 'image/svg+xml'
-    links.push({ rel: 'cover', href: relative(page.filename, book.meta.cover), type: type, title: 'Cover Image'})
-    links.push({ rel: 'cover', href: relative(page.filename, 'cover.html'), type: book._state?.htmltype || "application/xhtml+xml", title: 'Cover Page'})
-  if book
-    links.push({ rel: 'contents', href: relative(page.filename, 'index.html'), type: book._state?.htmltype || "application/xhtml+xml", title: 'Table of Contents'})
-  return links
 
 bookLinks = () ->
   pagelinks(this, this)
 
 chapterLinks = () ->
   pagelinks(this, @book)
-  # links = for key, value of @_links
-  #   do (key, value) ->
-  #     link = {}
-  #     _.extend link, value
-  #     link.rel = key
-  #     return link
-  # if @book.meta.cover
-  #   if path.extname(@book.meta.cover) is '.jpg'
-  #     type = 'image/jpeg'
-  #   if path.extname(@book.meta.cover) is '.png'
-  #     type = 'image/png'
-  #   if path.extname(@book.meta.cover) is '.svg'
-  #     type = 'image/svg+xml'
-  #   links.push({ rel: 'cover', href: relative(@filename, @book.meta.cover), type: type, title: 'Cover Image'})
-  #   links.push({ rel: 'cover', href: relative(@filename, 'cover.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Cover Page'})
-  # if @book
-  #   links.push({ rel: 'contents', href: relative(@filename, 'index.html'), type: @book._state?.htmltype || "application/xhtml+xml", title: 'Table of Contents'})
-  # return links
-  # selfindex = @book.chapters.indexOf(this)
-  # if selfindex isnt -1
-  #   if selfindex isnt 0
-  #     links.push({ rel: 'prev', href: relative(@filename, @book.chapters[selfindex - 1].filename), type: type, title: 'Previous Chapter'})
-  #   if selfindex isnt @book.chapters.length - 1
-  #     links.push({ rel: 'next', href: relative(@filename, @book.chapters[selfindex - 1].filename), type: type, title: 'Next Chapter'})
-
 
 extendChapter = (Chapter) ->
   Object.defineProperty Chapter.prototype, 'epubManifest', {

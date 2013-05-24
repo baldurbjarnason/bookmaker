@@ -1,39 +1,19 @@
 'use strict'
 
-fs = require('fs')
 whenjs = require('when')
 _ = require 'underscore'
 path = require 'path'
 sequence = require('when/sequence')
-fs = require 'fs'
 nodefn = require("when/node/function")
-mkdirp = require('mkdirp')
 url = require 'url'
 handlebars = require('handlebars')
 temp = require './templates'
 templates = temp.templates
 loadTemplates = temp.loadTemplates
+utilities = require './utilities'
 
-ensuredir = (directory) ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
-  mkdirp(directory, (err) ->
-    if err
-      deferred.reject(err)
-    else
-      deferred.resolve())
-  return promise
-
-
-write = (filename, data) ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
-  fs.writeFile(filename, data, (err) ->
-    if err
-      deferred.reject(err)
-    else
-      deferred.resolve())
-  return promise
+ensuredir = utilities.ensuredir
+write = utilities.write
 
 extend = (Chapter, Book, Assets) ->
   extendChapter(Chapter)

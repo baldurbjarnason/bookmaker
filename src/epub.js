@@ -1,5 +1,5 @@
 'use strict';
-var addTask, addTemplateTask, bookLinks, bookTemplates, callbacks, chapterLinks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, pagelinks, path, relative, renderEpub, sequence, temp, template, templates, tempname, toEpub, whenjs, zipStream, _,
+var addTask, addTemplateTask, bookLinks, bookTemplates, callbacks, chapterLinks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, pagelinks, path, relative, renderEpub, sequence, temp, template, templates, tempname, toEpub, utilities, whenjs, zipStream, _,
   __hasProp = {}.hasOwnProperty;
 
 zipStream = require('zipstream-contentment');
@@ -30,6 +30,8 @@ templates = temp.templates;
 
 loadTemplates = temp.loadTemplates;
 
+utilities = require('./utilities');
+
 chapterTemplates = {
   manifest: '{{#if this.nomanifest }}\n{{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\n{{ subChapters.epubManifest }}{{/if}}{{/if}}',
   spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\n{{ subChapters.epubSpine }}{{/if}}',
@@ -55,64 +57,9 @@ for (tempname in bookTemplates) {
   bookTemplates[tempname] = handlebars.compile(template);
 }
 
-relative = function(current, target) {
-  var absolutecurrent, absolutetarget, relativetarget;
+relative = utilities.relative;
 
-  absolutecurrent = path.dirname(path.resolve("/", current));
-  absolutetarget = path.resolve("/", target);
-  relativetarget = path.relative(absolutecurrent, absolutetarget);
-  return relativetarget;
-};
-
-pagelinks = function(page, book) {
-  var key, link, links, type, value, _ref, _ref1;
-
-  links = (function() {
-    var _ref, _results;
-
-    _ref = page._links;
-    _results = [];
-    for (key in _ref) {
-      value = _ref[key];
-      link = {};
-      link.rel = key;
-      _results.push(_.extend(link, value));
-    }
-    return _results;
-  })();
-  if (book.meta.cover) {
-    if (path.extname(book.meta.cover) === '.jpg') {
-      type = 'image/jpeg';
-    }
-    if (path.extname(book.meta.cover) === '.png') {
-      type = 'image/png';
-    }
-    if (path.extname(book.meta.cover) === '.svg') {
-      type = 'image/svg+xml';
-    }
-    links.push({
-      rel: 'cover',
-      href: relative(page.filename, book.meta.cover),
-      type: type,
-      title: 'Cover Image'
-    });
-    links.push({
-      rel: 'cover',
-      href: relative(page.filename, 'cover.html'),
-      type: ((_ref = book._state) != null ? _ref.htmltype : void 0) || "application/xhtml+xml",
-      title: 'Cover Page'
-    });
-  }
-  if (book) {
-    links.push({
-      rel: 'contents',
-      href: relative(page.filename, 'index.html'),
-      type: ((_ref1 = book._state) != null ? _ref1.htmltype : void 0) || "application/xhtml+xml",
-      title: 'Table of Contents'
-    });
-  }
-  return links;
-};
+pagelinks = utilities.pageLinks;
 
 bookLinks = function() {
   return pagelinks(this, this);

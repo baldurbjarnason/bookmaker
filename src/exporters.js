@@ -1,7 +1,5 @@
 'use strict';
-var ensuredir, extend, extendAssets, extendBook, extendChapter, filter, fs, handlebars, loadTemplates, mkdirp, nodefn, path, relative, sequence, temp, templates, url, whenjs, write, _;
-
-fs = require('fs');
+var ensuredir, extend, extendAssets, extendBook, extendChapter, filter, handlebars, loadTemplates, nodefn, path, relative, sequence, temp, templates, url, utilities, whenjs, write, _;
 
 whenjs = require('when');
 
@@ -11,11 +9,7 @@ path = require('path');
 
 sequence = require('when/sequence');
 
-fs = require('fs');
-
 nodefn = require("when/node/function");
-
-mkdirp = require('mkdirp');
 
 url = require('url');
 
@@ -27,35 +21,11 @@ templates = temp.templates;
 
 loadTemplates = temp.loadTemplates;
 
-ensuredir = function(directory) {
-  var deferred, promise;
+utilities = require('./utilities');
 
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  mkdirp(directory, function(err) {
-    if (err) {
-      return deferred.reject(err);
-    } else {
-      return deferred.resolve();
-    }
-  });
-  return promise;
-};
+ensuredir = utilities.ensuredir;
 
-write = function(filename, data) {
-  var deferred, promise;
-
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  fs.writeFile(filename, data, function(err) {
-    if (err) {
-      return deferred.reject(err);
-    } else {
-      return deferred.resolve();
-    }
-  });
-  return promise;
-};
+write = utilities.write;
 
 extend = function(Chapter, Book, Assets) {
   extendChapter(Chapter);
