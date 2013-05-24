@@ -43,20 +43,6 @@ class Book
     if chapter.subChapters
       chapter.subChapters = new SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
-  # context: () ->
-  #   context = {
-  #     meta: @meta,
-  #     assets: @assets,
-  #     chapters: @chapters
-  #   }
-  #   return context
-
-
-  # everyChapter: (callback) ->
-  #   for chapter in @chapters
-  #     callback(chapter)
-  #     if chapter.subChapters
-  #       chapter.subChapters.everyChapter(callback)
 
 dateProcess = (date) ->
   pad = (n) ->

@@ -27,7 +27,7 @@ titlecounter = 0;
 
 titlere = new RegExp('^# (.+)', 'm');
 
-stripre = new RegExp('\W', 'g');
+stripre = new RegExp('\\W', 'g');
 
 titlegen = function(chapter) {
   var title;
@@ -53,12 +53,12 @@ chaptergen = function(chapter) {
     title = titlecounter;
     filename = 'chapters/' + 'doc' + titlecounter + '.html';
   }
-  return retur({
+  return {
     title: title,
     filename: filename,
     type: 'md',
     body: chapter
-  });
+  };
 };
 
 arrayToBook = function(docs, assets) {

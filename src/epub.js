@@ -31,14 +31,9 @@ templates = temp.templates;
 loadTemplates = temp.loadTemplates;
 
 chapterTemplates = {
-  manifest: '{{#if this.nomanifest }}\
-    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\
-    {{ subChapters.epubManifest }}{{/if}}{{/if}}',
-  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\
-    {{ subChapters.epubSpine }}{{/if}}',
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\
-{{ subChapters.navList }}\
-</li>\n',
+  manifest: '{{#if this.nomanifest }}\n{{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\n{{ subChapters.epubManifest }}{{/if}}{{/if}}',
+  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\n{{ subChapters.epubSpine }}{{/if}}',
+  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\n{{ subChapters.navList }}\n</li>\n',
   ncx: '{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">\n  <navLabel>\n      <text>{{ title }}</text>\n  </navLabel>\n  <content src="{{ filename }}"></content>\n{{ subChapters.epubNCX }}</navPoint>{{else}}\n {{ subChapters.epubNCX }}\n{{/if}}'
 };
 
@@ -70,7 +65,7 @@ relative = function(current, target) {
 };
 
 pagelinks = function(page, book) {
-  var key, links, type, value, _ref, _ref1;
+  var key, link, links, type, value, _ref, _ref1;
 
   links = (function() {
     var _ref, _results;
@@ -79,14 +74,9 @@ pagelinks = function(page, book) {
     _results = [];
     for (key in _ref) {
       value = _ref[key];
-      _results.push((function(key, value) {
-        var link;
-
-        link = {};
-        _.extend(link, value);
-        link.rel = key;
-        return link;
-      })(key, value));
+      link = {};
+      link.rel = key;
+      _results.push(_.extend(link, value));
     }
     return _results;
   })();
@@ -279,7 +269,7 @@ extendBook = function(Book) {
     get: function() {
       var prefix, prefre;
 
-      prefre = new RegExp("\/", "g");
+      prefre = new RegExp("\\/", "g");
       this._globalCounter++;
       prefix = this.assets.assetsPath.replace(prefre, "");
       return prefix + this._globalCounter;

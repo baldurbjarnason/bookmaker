@@ -14,7 +14,7 @@ sequence = require('when/sequence')
 
 titlecounter = 0
 titlere = new RegExp('^# (.+)', 'm')
-stripre = new RegExp('\W', 'g')
+stripre = new RegExp('\\W', 'g')
 titlegen = (chapter) ->
   title = titlere.exec(chapter)[1]
   if title
@@ -32,7 +32,7 @@ chaptergen = (chapter) ->
     titlecounter += 1
     title = titlecounter
     filename = 'chapters/' + 'doc' + titlecounter + '.html'
-  retur {
+  return {
     title: title
     filename: filename
     type: 'md'

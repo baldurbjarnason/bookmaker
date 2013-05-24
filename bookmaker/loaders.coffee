@@ -12,7 +12,7 @@ extend = (Chapter, Book, Assets, SubOutline) ->
     loadFile= (filename, book) ->
       file = fs.readFileSync(path.resolve(directory, 'chapters', filename), 'utf8')
       docs = []
-      yaml.safeLoadAll mainfile, (doc) ->
+      yaml.safeLoadAll file, (doc) ->
         docs.push(doc)
       doc = docs[0]
       doc.body = docs[1] if docs[1]?
@@ -58,7 +58,7 @@ extend = (Chapter, Book, Assets, SubOutline) ->
         else
           loadFile(filename, book)
           if index
-            subparent.subChapters =  new SubOutline(subOutline, this)
+            subparent.subChapters =  new SubOutline(suboutline, this)
             index = false
             suboutline = []
         return
@@ -73,7 +73,8 @@ extend = (Chapter, Book, Assets, SubOutline) ->
       assets = new Assets(directory, meta.assetsPath)
     else
       assets = new Assets(directory, 'assets/')
-    book = new this(meta, assets)
+    NewBook = this
+    book = new NewBook(meta, assets)
     if fs.existsSync directory + 'book.txt'
       booktxt = fs.readFileSync directory + 'book.txt', 'utf8'
     else

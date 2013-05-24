@@ -93,16 +93,17 @@ extendChapter = function(Chapter) {
     urlgen = this.book.uri.bind(this.book) || relative;
     tocpath = path.relative(path.resolve("/", path.dirname(this.filename)), "/index.json");
     selfpath = ((_ref = this.book._state) != null ? _ref.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('json') : path.basename(this.formatPath('json'));
-    hal._links = {
-      toc: {
-        href: tocpath,
-        name: 'TOC-JSON',
-        type: "application/hal+json"
-      },
-      self: {
-        href: selfpath,
-        type: "application/hal+json"
-      }
+    if (!hal._links) {
+      hal._links = {};
+    }
+    hal._links.toc = {
+      href: tocpath,
+      name: 'TOC-JSON',
+      type: "application/hal+json"
+    };
+    hal._links.self = {
+      href: selfpath,
+      type: "application/hal+json"
     };
     if ((_ref1 = this.book._state) != null ? _ref1.htmlAndJson : void 0) {
       htmlpath = ((_ref2 = this.book._state) != null ? _ref2.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('html') : path.basename(this.formatPath('html'));
@@ -371,7 +372,7 @@ extendBook = function(Book) {
     return JSON.stringify(hal, filter, 2);
   };
   Book.prototype.toJsonFiles = function(directory, options) {
-    var chapter, hal, json, tasks, _i, _len, _ref;
+    var chapter, context, hal, json, selfindex, tasks, _i, _len, _ref;
 
     hal = this.toHal(options);
     hal.assetsPath = this.assets.assetsPath;
@@ -389,13 +390,35 @@ extendBook = function(Book) {
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       chapter = _ref[_i];
-      tasks.push(write(directory + chapter.formatPath('json'), chapter.context(this).toJSON(), 'utf8'));
+      selfindex = this.chapters.indexOf(chapter);
+      context = chapter.context(this);
+      if (selfindex !== -1) {
+        if (selfindex !== 0) {
+          if (!context._links) {
+            context._links = {};
+          }
+          context._links.prev = {
+            href: this.uri(chapter.filename, this.chapters[selfindex - 1].formatPath('json')),
+            type: "application/hal+json"
+          };
+        }
+        if (selfindex !== this.chapters.length - 1) {
+          if (!context._links) {
+            context._links = {};
+          }
+          context._links.next = {
+            href: this.uri(chapter.filename, this.chapters[selfindex + 1].formatPath('json')),
+            type: "application/hal+json"
+          };
+        }
+      }
+      tasks.push(write(directory + chapter.formatPath('json'), context.toJSON(), 'utf8'));
     }
     tasks.push(write(directory + 'index.json', json, 'utf8'));
     return whenjs.all(tasks);
   };
   Book.prototype.toHtmlFiles = function(directory, options) {
-    var book, chapter, context, jsonpath, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
+    var book, chapter, context, jsonpath, selfindex, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
 
     book = Object.create(this);
     if (!book._state) {
@@ -438,11 +461,26 @@ extendBook = function(Book) {
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       chapter = _ref1[_i];
       context = chapter.context(book);
+      selfindex = book.chapters.indexOf(chapter);
+      if (!context._links) {
+        context._links = {};
+      }
+      if (selfindex !== -1) {
+        if (selfindex !== 0) {
+          context._links.prev = {
+            href: book.uri(chapter.filename, book.chapters[selfindex - 1].formatPath('html')),
+            type: book._state.htmltype
+          };
+        }
+        if (selfindex !== this.chapters.length - 1) {
+          context._links.next = {
+            href: book.uri(chapter.filename, book.chapters[selfindex + 1].formatPath('html')),
+            type: book._state.htmltype
+          };
+        }
+      }
       if ((_ref2 = book._state) != null ? _ref2.htmlAndJson : void 0) {
         jsonpath = ((_ref3 = book._state) != null ? _ref3.baseurl : void 0) ? book.uri(context.filename, context.formatPath('json')) : path.basename(context.formatPath('json'));
-        if (!context._links) {
-          context._links = {};
-        }
         context._links.alternate = {
           href: jsonpath,
           type: "application/hal+json"

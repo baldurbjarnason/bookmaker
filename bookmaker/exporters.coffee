@@ -66,10 +66,10 @@ extendChapter = (Chapter) ->
         @book._state.baseurl + @formatPath('json')
       else
         path.basename @formatPath('json')
-    hal._links = {
-      toc: { href: tocpath, name: 'TOC-JSON', type: "application/hal+json" },
-      self: { href: selfpath, type: "application/hal+json" }
-    }
+    unless hal._links
+      hal._links = {}
+    hal._links.toc = { href: tocpath, name: 'TOC-JSON', type: "application/hal+json" }
+    hal._links.self = { href: selfpath, type: "application/hal+json" }
     if @book._state?.htmlAndJson
       htmlpath =
         if @book._state?.baseurl
@@ -195,7 +195,16 @@ extendBook = (Book) ->
     unless options?.noAssets
       tasks.push(@assets.copy(directory + hal.assetsPath))
     for chapter in @chapters
-      tasks.push(write(directory + chapter.formatPath('json'), chapter.context(this).toJSON(), 'utf8'))
+      selfindex = @chapters.indexOf(chapter)
+      context = chapter.context(this)
+      if selfindex isnt -1
+        if selfindex isnt 0
+          context._links = {} unless context._links
+          context._links.prev = { href: @uri(chapter.filename, @chapters[selfindex - 1].formatPath('json')), type: "application/hal+json" }
+        if selfindex isnt @chapters.length - 1
+          context._links = {} unless context._links
+          context._links.next = { href: @uri(chapter.filename, @chapters[selfindex + 1].formatPath('json')), type: "application/hal+json" }
+      tasks.push(write(directory + chapter.formatPath('json'), context.toJSON(), 'utf8'))
     tasks.push write(directory + 'index.json', json, 'utf8')
     whenjs.all tasks
   Book.prototype.toHtmlFiles = (directory, options) ->
@@ -230,13 +239,19 @@ extendBook = (Book) ->
     tasks.push(write(directory + 'cover.html', templates.htmlcover(book), 'utf8'))
     for chapter in book.chapters
       context = chapter.context(book)
+      selfindex = book.chapters.indexOf(chapter)
+      context._links = {} unless context._links
+      if selfindex isnt -1
+        if selfindex isnt 0
+          context._links.prev = { href: book.uri(chapter.filename, book.chapters[selfindex - 1].formatPath('html')), type: book._state.htmltype }
+        if selfindex isnt @chapters.length - 1
+          context._links.next = { href: book.uri(chapter.filename, book.chapters[selfindex + 1].formatPath('html')), type: book._state.htmltype }
       if book._state?.htmlAndJson
         jsonpath =
           if book._state?.baseurl
             book.uri context.filename, context.formatPath('json')
           else
             path.basename context.formatPath('json')
-        context._links = {} unless context._links
         context._links.alternate = {
           href: jsonpath
           type: "application/hal+json"

@@ -26,14 +26,14 @@ loadTemplates = temp.loadTemplates
 # Labels are chapters that lack a filename and generate no spine, ncx, or manifest entries.
 
 chapterTemplates = {
-  manifest: '{{#if this.nomanifest }}
+  manifest: '''{{#if this.nomanifest }}
     {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}
-    {{ subChapters.epubManifest }}{{/if}}{{/if}}'
-  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
-    {{ subChapters.epubSpine }}{{/if}}'
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
+    {{ subChapters.epubManifest }}{{/if}}{{/if}}'''
+  spine: '''{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
+    {{ subChapters.epubSpine }}{{/if}}'''
+  nav: '''<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
 {{ subChapters.navList }}
-</li>\n'
+</li>\n'''
   ncx: '''
 {{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">
   <navLabel>
@@ -76,11 +76,9 @@ relative = (current, target) ->
 
 pagelinks = (page, book) ->
   links = for key, value of page._links
-    do (key, value) ->
-      link = {}
-      _.extend link, value
-      link.rel = key
-      return link
+    link = {}
+    link.rel = key
+    _.extend link, value
   if book.meta.cover
     if path.extname(book.meta.cover) is '.jpg'
       type = 'image/jpeg'
@@ -234,7 +232,7 @@ extendBook = (Book) ->
   Book.prototype.toEpub = toEpub
   Object.defineProperty Book.prototype, 'globalCounter', {
     get: ->
-      prefre = new RegExp("\/", "g")
+      prefre = new RegExp("\\/", "g")
       @_globalCounter++
       prefix = @assets.assetsPath.replace(prefre, "")
       return prefix + @_globalCounter

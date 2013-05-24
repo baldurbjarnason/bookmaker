@@ -114,7 +114,7 @@ describe('EpubChapter', function() {
   describe('#navList', function() {
     return it('generates the html nav li entry for epub', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].navList.should.equal('<li class="tocitem htmlexample" id="toc-htmlexample"><a href="htmlexample.html\" rel=\"chapter">HTML</a>\n</li>\n');
+      return testbook.chapters[0].navList.should.equal('<li class="tocitem htmlexample" id="toc-htmlexample"><a href="htmlexample.html\" rel=\"chapter">HTML</a>\n\n\n</li>\n');
     });
   });
   describe('#epubNCX', function() {
@@ -244,7 +244,7 @@ describe('EpubBook', function() {
   });
   describe('#navList', function() {
     return it('Renders the nav li html for epub', function() {
-      return testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\" rel=\"chapter\">Markdown</a>\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\" rel=\"chapter\">HTML</a>\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\" rel=\"chapter\">XHTML</a>\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\" rel=\"chapter\">Template</a>\n</li>\n");
+      return testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\" rel=\"chapter\">Markdown</a>\n\n\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\" rel=\"chapter\">HTML</a>\n\n\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\" rel=\"chapter\">XHTML</a>\n\n\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\" rel=\"chapter\">Template</a>\n\n\n</li>\n");
     });
   });
   describe('#epubNCX', function() {

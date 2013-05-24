@@ -9,7 +9,7 @@ yaml = require('js-yaml');
 
 extend = function(Chapter, Book, Assets, SubOutline) {
   return Book.loadBookDir = function(directory, Chap, Ass, Sub) {
-    var assets, book, booktxt, loadFile, loadTxt, meta;
+    var NewBook, assets, book, booktxt, loadFile, loadTxt, meta;
 
     Chapter = Chap || Chapter;
     Assets = Ass || Assets;
@@ -19,7 +19,7 @@ extend = function(Chapter, Book, Assets, SubOutline) {
 
       file = fs.readFileSync(path.resolve(directory, 'chapters', filename), 'utf8');
       docs = [];
-      yaml.safeLoadAll(mainfile, function(doc) {
+      yaml.safeLoadAll(file, function(doc) {
         return docs.push(doc);
       });
       doc = docs[0];
@@ -73,7 +73,7 @@ extend = function(Chapter, Book, Assets, SubOutline) {
         } else {
           loadFile(filename, book);
           if (index) {
-            subparent.subChapters = new SubOutline(subOutline, this);
+            subparent.subChapters = new SubOutline(suboutline, this);
             index = false;
             suboutline = [];
           }
@@ -94,7 +94,8 @@ extend = function(Chapter, Book, Assets, SubOutline) {
     } else {
       assets = new Assets(directory, 'assets/');
     }
-    book = new this(meta, assets);
+    NewBook = this;
+    book = new NewBook(meta, assets);
     if (fs.existsSync(directory + 'book.txt')) {
       booktxt = fs.readFileSync(directory + 'book.txt', 'utf8');
     } else {
