@@ -55,8 +55,8 @@ for tempname, template of bookTemplates
   bookTemplates[tempname] = handlebars.compile template
 
 relative = utilities.relative
-
 pagelinks = utilities.pageLinks
+addToZip = utilities.addToZip
 
 
 bookLinks = () ->
@@ -91,15 +91,11 @@ extendChapter = (Chapter) ->
   }
 
   Chapter.prototype.addToZip = (zip) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    fn = @filename
     if !@assets
       context = @context()
     else
       context = this
-    zip.addFile(templates.chapters(context), { name: fn }, deferred.resolve)
-    return promise
+    addToZip(zip, @filename, templates.chapters.bind(templates, context))
   return Chapter
 
 extendBook = (Book) ->
@@ -152,14 +148,11 @@ extendBook = (Book) ->
     get: bookLinks
   }
 
-  chapterTask = (chapter, zip) ->
-    return () ->
-      chapter.addToZip(zip)
   Book.prototype.addChaptersToZip = (zip) ->
     tasks = []
     for chapter in @chapters
       context = chapter.context(this)
-      tasks.push(chapterTask(context, zip))
+      tasks.push(context.addToZip.bind(context, zip))
     sequence(tasks)
 
 
@@ -182,33 +175,6 @@ extendBook = (Book) ->
   }
 
   return Book
-
-
-addTask = (file, name, zip, store) ->
-  return () ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    deferred.notify "#{name} written to zip"
-    zip.addFile(file, { name: name, store: store }, deferred.resolve)
-    return promise
-# addFsTask = (path, name, zip, store) ->
-#   return () ->
-#     deferred = whenjs.defer()
-#     promise = deferred.promise
-#     fs.readFile(path, (err, data) ->
-#       if err
-#         deferred.reject
-#       else
-#         deferred.notify "#{name} written to zip"
-#         zip.addFile(data, { name: name, store: store }, deferred.resolve))
-#     return promise
-addTemplateTask = (template, book, zip, name, store) ->
-  return () ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    deferred.notify "#{name} written to zip"
-    zip.addFile(template(book), { name: name, store: store }, deferred.resolve)
-    return promise
 
 toEpub = (out, options) ->
   book = Object.create this
@@ -237,31 +203,29 @@ renderEpub = (book, out, options, zip) ->
   handlebars.registerHelper 'chapterIndex', chapterIndex
   if options?.templates
     loadTemplates(options.templates + '**/*.hbs')
-  # if book.assets.js
-  #   book.scripted = true
   tasks = []
-  tasks.push(addTask("application/epub+zip", 'mimetype', zip, true))
-  tasks.push(addTask('''
+  tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true))
+  tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '''
       <?xml version="1.0" encoding="UTF-8"?>
       <display_options>
         <platform name="*">
           <option name="specified-fonts">true</option>
         </platform>
       </display_options>
-      ''', 'META-INF/com.apple.ibooks.display-options.xml', zip))
-  tasks.push(addTask('''
+      '''))
+  tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '''
     <?xml version="1.0" encoding="UTF-8"?>
       <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
         <rootfiles>
           <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />
         </rootfiles>
       </container>
-      ''', 'META-INF/container.xml', zip))
+      ''', 'META-INF/container.xml'))
   if book.meta.cover
-    tasks.push(addTemplateTask(templates.cover, book, zip, 'cover.html'))
-  tasks.push(addTemplateTask(templates.content, book, zip, 'content.opf'))
-  tasks.push(addTemplateTask(templates.toc, book, zip, 'toc.ncx'))
-  tasks.push(addTemplateTask(templates.nav, book, zip, 'index.html'))
+    tasks.push(addToZip.bind(null, zip, 'cover.html', templates.cover.bind(templates, book)))
+  tasks.push(addToZip.bind(null, zip, 'content.opf', templates.content.bind(templates, book)))
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates.toc.bind(templates, book)))
+  tasks.push(addToZip.bind(null, zip, 'index.html', templates.nav.bind(templates, book)))
   tasks.push(() -> book.addChaptersToZip(zip))
   tasks.push(() -> book.assets.addToZip(zip))
   if book.sharedAssets
@@ -274,23 +238,22 @@ renderEpub = (book, out, options, zip) ->
 
 extendAssets = (Assets) ->
   mangleTask = (item, assets, zip, id) ->
-    return () ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
-      assets.get(item).then((data) ->
-        deferred.notify "Writing mangled #{item} to zip"
-        file = mangler.mangle(data, id)
-        zip.addFile(file, { name: item }, deferred.resolve))
-      return promise
+    deferred = whenjs.defer()
+    promise = deferred.promise
+    assets.get(item).then((data) ->
+      deferred.notify "Writing mangled #{item} to zip"
+      file = mangler.mangle(data, id)
+      zip.addFile(file, { name: item }, deferred.resolve))
+    return promise
 
   Assets.prototype.addMangledFontsToZip = (zip, id) ->
     tasks = []
     for item in this['otf']
-      tasks.push(mangleTask(item, this, zip, id))
+      tasks.push(mangleTask.bind(null, item, this, zip, id))
     for item in this['ttf']
-      tasks.push(mangleTask(item, this, zip, id))
+      tasks.push(mangleTask.bind(null, item, this, zip, id))
     for item in this['woff']
-      tasks.push(mangleTask(item, this, zip, id))
+      tasks.push(mangleTask.bind(null, item, this, zip, id))
     sequence tasks
   Assets.prototype.mangleFonts = (zip, id) ->
     fonts = @ttf.concat(@otf, @woff)

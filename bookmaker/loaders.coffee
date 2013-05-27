@@ -80,7 +80,7 @@ class LoaderMixin
     loadTxt(booktxt, book)
     return book
 
-extend (Book) ->
+extend = (Book) ->
   utilities.mixin Book, LoaderMixin
 
 module.exports = {

@@ -1,5 +1,5 @@
 'use strict';
-var bookLinks, chapterLinks, ensuredir, fs, mixin, mkdirp, pagelinks, path, relative, whenjs, write, _,
+var addToZip, bookLinks, chapterLinks, ensuredir, fs, mixin, mkdirp, pagelinks, path, relative, whenjs, write, _,
   __slice = [].slice;
 
 path = require('path');
@@ -113,10 +113,6 @@ mixin = function() {
   var DonatingClasses, ReceivingClass, donate, donator, _i, _len;
 
   ReceivingClass = arguments[0], DonatingClasses = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-  for (_i = 0, _len = DonatingClass.length; _i < _len; _i++) {
-    donator = DonatingClass[_i];
-    donate(donator);
-  }
   donate = function(DonatingClass) {
     var key, value, _ref, _results;
 
@@ -138,7 +134,30 @@ mixin = function() {
     }
     return _results;
   };
+  for (_i = 0, _len = DonatingClasses.length; _i < _len; _i++) {
+    donator = DonatingClasses[_i];
+    donate(donator);
+  }
   return ReceivingClass;
+};
+
+addToZip = function(zip, fn, file, store) {
+  var deferred, options, promise;
+
+  deferred = whenjs.defer();
+  promise = deferred.promise;
+  options = {
+    name: fn
+  };
+  if (store) {
+    options.store = store;
+  }
+  if (typeof file === 'function') {
+    zip.addFile(file(), options, deferred.resolve);
+  } else {
+    zip.addFile(file, options, deferred.resolve);
+  }
+  return promise;
 };
 
 module.exports = {
@@ -148,5 +167,6 @@ module.exports = {
   chapterLinks: chapterLinks,
   ensuredir: ensuredir,
   write: write,
-  mixin: mixin
+  mixin: mixin,
+  addToZip: addToZip
 };

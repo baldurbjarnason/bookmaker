@@ -59,8 +59,6 @@ write = (filename, data) ->
   return promise
 
 mixin = (ReceivingClass, DonatingClasses...) ->
-  for donator in DonatingClass
-    donate(donator)
   donate = (DonatingClass) ->
     for key, value of DonatingClass.prototype
       unless ReceivingClass.prototype.hasOwnProperty(key)
@@ -68,7 +66,21 @@ mixin = (ReceivingClass, DonatingClasses...) ->
     for key, value of DonatingClass
       unless ReceivingClass.hasOwnProperty(key)
         ReceivingClass[key] = DonatingClass[key]
+  for donator in DonatingClasses
+    donate(donator)
   return ReceivingClass
+
+addToZip = (zip, fn, file, store) ->
+  deferred = whenjs.defer()
+  promise = deferred.promise
+  options = { name: fn }
+  if store
+    options.store = store
+  if typeof file is 'function'
+    zip.addFile(file(), options, deferred.resolve)
+  else
+    zip.addFile(file, options, deferred.resolve)
+  return promise
 
 
 module.exports = {
@@ -79,4 +91,5 @@ module.exports = {
   ensuredir: ensuredir
   write: write
   mixin: mixin
+  addToZip: addToZip
 }

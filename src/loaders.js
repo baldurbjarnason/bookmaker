@@ -1,5 +1,5 @@
 'use strict';
-var LoaderMixin, fs, path, utilities, yaml;
+var LoaderMixin, extend, fs, path, utilities, yaml;
 
 fs = require('fs');
 
@@ -110,9 +110,9 @@ LoaderMixin = (function() {
 
 })();
 
-extend(function(Book) {
+extend = function(Book) {
   return utilities.mixin(Book, LoaderMixin);
-});
+};
 
 module.exports = {
   extend: extend,

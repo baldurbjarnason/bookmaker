@@ -25,7 +25,7 @@ Book = (function() {
     this.meta.version = meta.version || "0.1";
     this.meta.lang = meta.lang || 'en';
     if (!meta.bookId) {
-      this.meta.bookId = require('crypto').randomBytes(16).toString('hex');
+      this.meta.bookId = 'id' + require('crypto').randomBytes(16).toString('hex');
     }
     this._chapterIndex = 0;
     this._navPoint = 0;

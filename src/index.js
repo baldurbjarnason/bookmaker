@@ -12,7 +12,7 @@ require('./epub').extend(Chapter, Book, Assets);
 
 require('./exporters').extend(Chapter, Book, Assets);
 
-require('./loaders').extend(Chapter, Book, Assets, SubOutline);
+require('./loaders').extend(Book);
 
 yaml = require('./yaml');
 
