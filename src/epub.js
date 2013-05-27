@@ -116,26 +116,16 @@ renderEpub = function(book, out, options, zip) {
   tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render.bind(templates, book)));
   tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render.bind(templates, book)));
   tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render.bind(templates, book)));
-  tasks.push(function() {
-    return book.addChaptersToZip(zip, templates['chapter.xhtml']);
-  });
-  tasks.push(function() {
-    return book.assets.addToZip(zip);
-  });
+  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']));
+  tasks.push(book.assets.addToZip.bind(book.assets, zip));
   if (book.sharedAssets) {
-    tasks.push(function() {
-      return book.sharedAssets.addToZip(zip);
-    });
+    tasks.push(book.sharedAssets.addToZip.bind(book.sharedAssets, zip));
   }
   if (options != null ? options.assets : void 0) {
-    tasks.push(function() {
-      return options.assets.addToZip(zip);
-    });
+    tasks.push(options.assets.addToZip.bind(options.assets, zip));
   }
   if ((options != null ? options.obfuscateFonts : void 0) || book.obfuscateFonts) {
-    tasks.push(function() {
-      return book.assets.mangleFonts(zip, book.id);
-    });
+    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.id));
   }
   return sequence(tasks);
 };

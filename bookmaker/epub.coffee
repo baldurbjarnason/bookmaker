@@ -87,14 +87,14 @@ renderEpub = (book, out, options, zip) ->
   tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render.bind(templates, book)))
   tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render.bind(templates, book)))
   tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render.bind(templates, book)))
-  tasks.push(() -> book.addChaptersToZip(zip, templates['chapter.xhtml']))
-  tasks.push(() -> book.assets.addToZip(zip))
+  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']))
+  tasks.push(book.assets.addToZip.bind(book.assets, zip))
   if book.sharedAssets
-    tasks.push(() -> book.sharedAssets.addToZip(zip))
+    tasks.push(book.sharedAssets.addToZip.bind(book.sharedAssets, zip))
   if options?.assets
-    tasks.push(() -> options.assets.addToZip(zip))
+    tasks.push(options.assets.addToZip.bind(options.assets, zip))
   if options?.obfuscateFonts or book.obfuscateFonts
-    tasks.push(() -> book.assets.mangleFonts(zip, book.id))
+    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.id))
   sequence(tasks)
 
 extendAssets = (Assets) ->
