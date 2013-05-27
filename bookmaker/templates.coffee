@@ -1,19 +1,28 @@
 'use strict'
 
-handlebars = require('handlebars')
 path = require('path')
-fs = require 'fs'
-glob = require 'glob'
+swig = require 'swig'
+
+swig.init { allowErrors: true, autoescape: false, root: path.resolve __filename, '../../', 'templates/' }
 
 templates = {}
+
 loadTemplates = (searchpath) ->
-  newtemplates = glob.sync(searchpath)
+  newtemplates = [
+    'chapter.xhtml',
+    'chapter.html',
+    'cover.xhtml',
+    'cover.html',
+    'index.xhtml',
+    'index.html',
+    'chapter.xhtml',
+    'toc.ncx',
+    'content.opf',
+    'encryption.xml']
   for temppath in newtemplates
-    name = path.basename temppath, path.extname temppath
-    template = fs.readFileSync temppath, 'utf8'
-    templates[name] = handlebars.compile template
-loadTemplates(path.resolve __filename, '../../', 'templates/**/*.hbs')
-loadTemplates('templates/**/*.hbs')
+    name = path.basename temppath
+    templates[name] = swig.compileFile temppath
+loadTemplates()
 
 module.exports = {
   templates: templates

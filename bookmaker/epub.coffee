@@ -1,180 +1,48 @@
 'use strict'
 
 zipStream = require('zipstream-contentment')
-handlebars = require('handlebars')
-helpers = require('./lib/hbs.js')
 whenjs = require('when')
+sequence = require('when/sequence')
 callbacks = require 'when/callbacks'
-# templates = require '../lib/templates'
 path = require('path')
 glob = require 'glob'
 fs = require 'fs'
 mangler = require './lib/mangler'
-sequence = require('when/sequence')
 _ = require 'underscore'
 temp = require './templates'
 templates = temp.templates
-loadTemplates = temp.loadTemplates
 utilities = require './utilities'
-
-# landmarksOPF -> returns all guide reference for the OPF
-# landmarksHTML -> returns all landmarks for index nav.
-# Labels are chapters that lack a filename and generate no spine, ncx, or manifest entries.
-
-chapterTemplates = {
-  manifest: '''{{#if this.nomanifest }}
-    {{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}
-    {{ subChapters.epubManifest }}{{/if}}{{/if}}'''
-  spine: '''{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}
-    {{ subChapters.epubSpine }}{{/if}}'''
-  nav: '''<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}
-{{ subChapters.navList }}
-</li>\n'''
-  ncx: '''
-{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">
-  <navLabel>
-      <text>{{ title }}</text>
-  </navLabel>
-  <content src="{{ filename }}"></content>
-{{ subChapters.epubNCX }}</navPoint>{{else}}
- {{ subChapters.epubNCX }}
-{{/if}}'''
-}
-
-bookTemplates = {
-  manifest: '{{#each chapters }}{{{ this.epubManifest }}}{{/each}}'
-  spine: '{{#each chapters }}{{{ this.epubSpine }}}{{/each}}'
-  nav: '{{#each chapters }}{{{ this.navList }}}{{/each}}'
-  ncx: '{{#each chapters }}{{{ this.epubNCX }}}{{/each}}'
-}
-
-for own tempname, template of chapterTemplates
-  chapterTemplates[tempname] = handlebars.compile template
-
-for tempname, template of bookTemplates
-  bookTemplates[tempname] = handlebars.compile template
-
 relative = utilities.relative
 pagelinks = utilities.pageLinks
 addToZip = utilities.addToZip
 
-
-bookLinks = () ->
-  pagelinks(this, this)
-
-chapterLinks = () ->
-  pagelinks(this, @book)
-
-extendChapter = (Chapter) ->
-  Object.defineProperty Chapter.prototype, 'epubManifest', {
-    get: ->
-      manifest = chapterTemplates.manifest(@context())
-      return manifest
-  }
-
-  Object.defineProperty Chapter.prototype, 'links', {
-    get: chapterLinks
-  }
-  Object.defineProperty Chapter.prototype, 'epubSpine', {
-    get: ->
-      chapterTemplates.spine(@context())
-  }
-
-  Object.defineProperty Chapter.prototype, 'navList', {
-    get: ->
-      chapterTemplates.nav(@context())
-  }
-
-  Object.defineProperty Chapter.prototype, 'epubNCX', {
-    get: ->
-      chapterTemplates.ncx(@context())
-  }
-
-  Chapter.prototype.addToZip = (zip) ->
-    if !@assets
-      context = @context()
-    else
-      context = this
-    addToZip(zip, @filename, templates.chapters.bind(templates, context))
-  return Chapter
-
 extendBook = (Book) ->
-  Book.prototype.init = [] unless Book.prototype.init
-  Book.prototype.init.push((book) -> handlebars.registerHelper 'relative', book.relative.bind(book))
-  Book.prototype.init.push((book) -> handlebars.registerHelper 'isCover', book.isCover.bind(book))
-  Book.prototype.relative = relative
-  Book.prototype.isCover = (path) ->
-    if @meta.cover is path
-      return new handlebars.SafeString(' properties="cover-image"')
-    else
-      return ""
-  Object.defineProperty Book.prototype, 'epubManifest', {
-    get: ->
-      bookTemplates.manifest(this)
-    enumerable: true
-  }
-
-  Object.defineProperty Book.prototype, 'epubSpine', {
-    get: ->
-      bookTemplates.spine(this)
-    enumerable: true
-  }
-
-  Object.defineProperty Book.prototype, 'navList', {
-    get: ->
-      bookTemplates.nav(this)
-    enumerable: true
-  }
-
-  Object.defineProperty Book.prototype, 'epubNCX', {
-    get: ->
-      bookTemplates.ncx(this)
-    enumerable: true
-  }
-  Object.defineProperty Book.prototype, 'chapterIndex', {
-    get: ->
-      @_chapterIndex++
-      return @_chapterIndex
-    enumerable: true
-  }
-  Object.defineProperty Book.prototype, 'navPoint', {
-    get: ->
-      @_navPoint++
-      return @_navPoint
-    enumerable: true
-  }
-
-  Object.defineProperty Book.prototype, 'links', {
-    get: bookLinks
-  }
-
-  Book.prototype.addChaptersToZip = (zip) ->
-    tasks = []
-    for chapter in @chapters
-      context = chapter.context(this)
-      tasks.push(context.addToZip.bind(context, zip))
-    sequence(tasks)
-
-
-  Object.defineProperty Book.prototype, 'optToc', {
-    get: ->
-      for doc in @chapters
-        do (doc) ->
-          if doc.toc?
-            return "<reference type='toc' title='Contents' href='#{doc.filename}'></reference>"
-    enumerable: true
-  }
   Book.prototype.toEpub = toEpub
-  Object.defineProperty Book.prototype, 'globalCounter', {
-    get: ->
-      prefre = new RegExp("\\/", "g")
-      @_globalCounter++
-      prefix = @assets.assetsPath.replace(prefre, "")
-      return prefix + @_globalCounter
-    enumerable: true
-  }
-
   return Book
+
+isCover = (path) ->
+  if @meta.cover is path
+    return ' properties="cover-image"'
+  else
+    return ""
+
+chapterProperties = (chapter) ->
+  properties = []
+  if chapter.svg
+    properties.push('svg')
+  if chapter.js or (@assets.js and !@specifiedJs)
+    properties.push('scripted')
+  prop = properties.join(' ')
+  return "properties='#{prop}'"
+
+processLandmarks = (landmarks) ->
+  unless landmarks
+    return
+  for landmark in landmarks
+    if landmark.type is 'bodymatter'
+      landmark.opftype = "text"
+    else
+      landmark.opftype = landmark.type
 
 toEpub = (out, options) ->
   book = Object.create this
@@ -191,18 +59,11 @@ toEpub = (out, options) ->
 renderEpub = (book, out, options, zip) ->
   book._state = {}
   book._state.htmltype = "application/xhtml+xml"
-  book._navPoint = 0
-  book._chapterIndex = 0
-  navPoint = ->
-    book._navPoint++
-    return book._navPoint
-  chapterIndex = ->
-    book._chapterIndex++
-    return book._chapterIndex
-  handlebars.registerHelper 'navPoint', navPoint
-  handlebars.registerHelper 'chapterIndex', chapterIndex
-  if options?.templates
-    loadTemplates(options.templates + '**/*.hbs')
+  book.counter = utilities.countergen()
+  book.meta.landmarks = processLandmarks(book.meta.landmarks)
+  book.isCover = isCover.bind(book)
+  book.links = pagelinks(book, book)
+  book.chapterProperties = chapterProperties.bind(book)
   tasks = []
   tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true))
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '''
@@ -222,11 +83,11 @@ renderEpub = (book, out, options, zip) ->
       </container>
       ''', 'META-INF/container.xml'))
   if book.meta.cover
-    tasks.push(addToZip.bind(null, zip, 'cover.html', templates.cover.bind(templates, book)))
-  tasks.push(addToZip.bind(null, zip, 'content.opf', templates.content.bind(templates, book)))
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates.toc.bind(templates, book)))
-  tasks.push(addToZip.bind(null, zip, 'index.html', templates.nav.bind(templates, book)))
-  tasks.push(() -> book.addChaptersToZip(zip))
+    tasks.push(addToZip.bind(null, zip, 'cover.html', templates['cover.xhtml'].render.bind(templates, book)))
+  tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render.bind(templates, book)))
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render.bind(templates, book)))
+  tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render.bind(templates, book)))
+  tasks.push(() -> book.addChaptersToZip(zip, templates['chapter.xhtml']))
   tasks.push(() -> book.assets.addToZip(zip))
   if book.sharedAssets
     tasks.push(() -> book.sharedAssets.addToZip(zip))
@@ -260,16 +121,14 @@ extendAssets = (Assets) ->
     @addMangledFontsToZip(zip, id).then(()->
       deferred = whenjs.defer()
       promise = deferred.promise
-      zip.addFile(templates.encryption(fonts), { name: 'META-INF/encryption.xml' }, deferred.resolve)
+      zip.addFile(templates['encryption.xml'].render({fonts: fonts }), { name: 'META-INF/encryption.xml' }, deferred.resolve)
       return promise)
   return Assets
 
 module.exports = {
-  extend: (Chapter, Book, Assets) ->
-    extendChapter Chapter
+  extend: (Book, Assets) ->
     extendBook Book
     extendAssets Assets
-  extendChapter: extendChapter
   extendBook: extendBook
   extendAssets: extendAssets
 }

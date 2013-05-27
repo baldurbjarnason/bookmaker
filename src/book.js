@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, dateProcess, handlebars, path,
+var Assets, Book, Chapter, SubOutline, dateProcess, handlebars, path, sequence, utilities, whenjs,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -10,6 +10,12 @@ Assets = require('./assets');
 Chapter = require('./chapter');
 
 path = require('path');
+
+utilities = require('./utilities');
+
+whenjs = require('when');
+
+sequence = require('when/sequence');
 
 Book = (function() {
   function Book(meta, assets, sharedAssets) {
@@ -57,6 +63,21 @@ Book = (function() {
       chapter.subChapters = new this.constructor.SubOutline(chapter.subChapters, this);
     }
     return this.chapters.push(chapter);
+  };
+
+  Book.prototype.relative = utilities.relative;
+
+  Book.prototype.addChaptersToZip = function(zip, template) {
+    var chapter, context, tasks, _i, _len, _ref;
+
+    tasks = [];
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      context = chapter.context(this);
+      tasks.push(context.addToZip.bind(context, zip, template));
+    }
+    return sequence(tasks);
   };
 
   return Book;

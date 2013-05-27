@@ -86,36 +86,6 @@ describe 'EpubChapter',
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum'}, assets)
       testbook.assets.init().then(() -> done())
-    describe '#epubManifest',
-      () ->
-        it 'generates the xml manifest for epub',
-          () ->
-            testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml" properties=\"scripted\"/>\n')
-    describe '#epubSpine',
-      () ->
-        it 'generates the xml spine for epub',
-          () ->
-            testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].epubSpine.should.equal('<itemref idref="htmlexample" linear="yes"></itemref>\n')
-    describe '#navList',
-      () ->
-        it 'generates the html nav li entry for epub',
-          () ->
-            testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].navList.should.equal('<li class="tocitem htmlexample" id="toc-htmlexample"><a href="htmlexample.html\" rel=\"chapter">HTML</a>\n\n\n</li>\n')
-    describe '#epubNCX',
-      () ->
-        it 'generates the xml NCX entry for epub',
-          () ->
-            testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].epubNCX.should.equal('''
-<navPoint id="navPoint-" playOrder="">
-  <navLabel>
-      <text>HTML</text>
-  </navLabel>
-  <content src="htmlexample.html"></content>
-</navPoint>''')
     describe '#addToZip',
       () ->
         it 'Returns a promise to add the chapter to zip (test.zip)',
@@ -126,7 +96,7 @@ describe 'EpubChapter',
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].addToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(562)
+                written.should.equal(557)
                 done()))
 testassets = {}
 describe 'EpubAssets',
@@ -158,14 +128,14 @@ describe 'EpubAssets',
                 done()))
     describe '#mangleFonts',
       () ->
-        it 'Adds all assets to zip',
+        it 'Adds all mangled fonts to zip',
           (done) ->
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/mangledfonts.zip')
             zip.pipe(out)
             testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D").then(() ->
               zip.finalize((written) ->
-                written.should.equal(124664)
+                written.should.equal(124787)
                 done()))
 
 
@@ -191,26 +161,6 @@ describe 'EpubBook',
       testbook.meta.start = testbook.chapters[1]
       testbook.assets.init().then(() ->
         done())
-    describe '#epubManifest',
-      () ->
-        it 'Renders the manifest xml for epub',
-          () ->
-            testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n")
-    describe '#epubSpine',
-      () ->
-        it 'Renders the spine xml for epub',
-          () ->
-            testbook.epubSpine.should.equal("<itemref idref=\"doc1\" linear=\"yes\"></itemref>\n<itemref idref=\"htmlexample\" linear=\"yes\"></itemref>\n<itemref idref=\"doc2\" linear=\"yes\"></itemref>\n<itemref idref=\"doc3\" linear=\"yes\"></itemref>\n")
-    describe '#navList',
-      () ->
-        it 'Renders the nav li html for epub',
-          () ->
-            testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\" rel=\"chapter\">Markdown</a>\n\n\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\" rel=\"chapter\">HTML</a>\n\n\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\" rel=\"chapter\">XHTML</a>\n\n\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\" rel=\"chapter\">Template</a>\n\n\n</li>\n")
-    describe '#epubNCX',
-      () ->
-        it 'Renders the ncx xml for epub',
-          () ->
-            testbook.epubNCX.should.equal("<navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>")
     describe '#addChaptersToZip',
       () ->
         it 'Adds all chapters to zip (chapters.zip)',
@@ -220,7 +170,7 @@ describe 'EpubBook',
             zip.pipe(out)
             testbook.addChaptersToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(2277)
+                written.should.equal(2207)
                 done()))
     describe '#toEpub',
       () ->

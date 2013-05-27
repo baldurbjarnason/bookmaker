@@ -4,7 +4,7 @@ Assets = require './assets'
 Chapter = require './chapter'
 
 
-require('./epub').extend(Chapter, Book, Assets)
+require('./epub').extend(Book, Assets)
 require('./exporters').extend(Chapter, Book, Assets)
 require('./loaders').extend(Book)
 yaml = require './yaml'

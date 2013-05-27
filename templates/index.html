@@ -1,0 +1,36 @@
+{% extends 'index.xhtml' %}
+
+{% block navhead %}<nav id="toc" class="toc h-toc">{% endblock %}
+{% block landmarkhead %}<nav id="landmarks" class="landmarks h-landmarks">{% endblock %}
+{% block content %}
+<h1>{{ meta.title }} – Table of Contents</h1>
+<nav id="toc" class="toc h-toc">
+<ol>
+	{% for item in chapters %}
+	<li class="tocitem {{ item.id }}{% if item.majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}
+	{% if item.subChapters %}
+		{% for item in item.subChapters.chapters %}
+		<li class="tocitem {{ item.id }}{% if majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}</li>
+		{% endfor %}
+		{% endif %}
+	</li>
+	{% endfor %}
+
+</ol>
+</nav>
+
+<nav id="landmarks" class="landmarks h-landmarks">
+  <ol>
+        {% if meta.cover %}<li><a href="cover.html" epub:type="cover">Cover</a></li>{% endif %}
+  	{% for landmark in landmarks %}
+    	<li><a href="{{ landmark.href }}" epub:type="{{ landmark.type }}">{{ landmark.title }}</a></li>
+    {% endfor %}
+</ol> </nav>
+
+{% if meta.copyrightStatement %}
+<p class="copyright">{{ meta.copyrightStatement }}</p>
+{% else %}
+<p class="copyright">Copyright &#xa9; {{ meta.copyrightYear }} {{ meta.author }} {% if meta.author2 %}and {{ meta.author2 }}{% endif %}</p>
+{% endif %}
+
+{% endblock %}

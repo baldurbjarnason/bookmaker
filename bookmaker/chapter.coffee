@@ -9,6 +9,10 @@ _ = require 'underscore'
 handlebars = require('handlebars')
 whenjs = require('when')
 path = require 'path'
+utilities = require './utilities'
+addToZip = utilities.addToZip
+temp = require './templates'
+templates = temp.templates
 
 class Chapter
   constructor: (doc) ->
@@ -20,6 +24,8 @@ class Chapter
     chapter.meta = book.meta unless @meta
     chapter.assets = book.assets unless @assets
     chapter.chapters = book.chapters unless @chapters
+    chapter.relative = utilities.relative
+    chapter.links = utilities.pageLinks chapter, @book
     if book.meta.specifiedJs and @js
       chapter.scripted = true
     else if book.assets?.js
@@ -28,6 +34,14 @@ class Chapter
   formatPath: (type) ->
     newpath = path.dirname(@filename) + "/" + path.basename(@filename, path.extname(@filename)) + '.' + type
     return newpath
+  addToZip: (zip, template) ->
+    unless template
+      template = templates['chapter.xhtml']
+    if !@assets
+      context = @context()
+    else
+      context = this
+    addToZip(zip, @filename, template.render.bind(template, context))
 
 toHtml = ->
   switch @type

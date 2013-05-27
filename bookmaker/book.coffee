@@ -4,6 +4,9 @@ handlebars = require('handlebars')
 Assets = require './assets'
 Chapter = require './chapter'
 path = require 'path'
+utilities = require './utilities'
+whenjs = require('when')
+sequence = require('when/sequence')
 
 class Book
   constructor: (meta, @assets, @sharedAssets) ->
@@ -43,6 +46,13 @@ class Book
     if chapter.subChapters
       chapter.subChapters = new @constructor.SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
+  relative: utilities.relative
+  addChaptersToZip: (zip, template) ->
+    tasks = []
+    for chapter in @chapters
+      context = chapter.context(this)
+      tasks.push(context.addToZip.bind(context, zip, template))
+    sequence(tasks)
 
 dateProcess = (date) ->
   pad = (n) ->

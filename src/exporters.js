@@ -395,7 +395,6 @@ extendBook = function(Book) {
       book._state = {};
     }
     book._state.htmltype = "text/html";
-    handlebars.registerHelper('relative', this.uri.bind(book));
     book.filename = 'index.html';
     if (options != null ? options.baseurl : void 0) {
       selfpath = options.baseurl + 'index.html';
@@ -425,8 +424,8 @@ extendBook = function(Book) {
     if (!(options != null ? options.noAssets : void 0)) {
       tasks.push(book.assets.copy(directory + book.assets.assetsPath));
     }
-    tasks.push(write(directory + 'index.html', templates.htmlindex(book), 'utf8'));
-    tasks.push(write(directory + 'cover.html', templates.htmlcover(book), 'utf8'));
+    tasks.push(write(directory + 'index.html', templates['index.html'].render(book), 'utf8'));
+    tasks.push(write(directory + 'cover.html', templates['cover.html'].render(book), 'utf8'));
     _ref1 = book.chapters;
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       chapter = _ref1[_i];
@@ -456,7 +455,7 @@ extendBook = function(Book) {
           type: "application/hal+json"
         };
       }
-      tasks.push(write(directory + chapter.filename, templates.htmlchapter(context), 'utf8'));
+      tasks.push(write(directory + chapter.filename, templates['chapter.html'].render(context), 'utf8'));
     }
     return whenjs.all(tasks);
   };

@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, handlebars, mdparser, path, processHTML, renderer, rs, toHtml, whenjs, _,
+var $, Assets, Chapter, addToZip, handlebars, mdparser, path, processHTML, renderer, rs, temp, templates, toHtml, utilities, whenjs, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -19,6 +19,14 @@ handlebars = require('handlebars');
 whenjs = require('when');
 
 path = require('path');
+
+utilities = require('./utilities');
+
+addToZip = utilities.addToZip;
+
+temp = require('./templates');
+
+templates = temp.templates;
 
 Chapter = (function() {
   function Chapter(doc) {
@@ -40,6 +48,8 @@ Chapter = (function() {
     if (!this.chapters) {
       chapter.chapters = book.chapters;
     }
+    chapter.relative = utilities.relative;
+    chapter.links = utilities.pageLinks(chapter, this.book);
     if (book.meta.specifiedJs && this.js) {
       chapter.scripted = true;
     } else if ((_ref = book.assets) != null ? _ref.js : void 0) {
@@ -53,6 +63,20 @@ Chapter = (function() {
 
     newpath = path.dirname(this.filename) + "/" + path.basename(this.filename, path.extname(this.filename)) + '.' + type;
     return newpath;
+  };
+
+  Chapter.prototype.addToZip = function(zip, template) {
+    var context;
+
+    if (!template) {
+      template = templates['chapter.xhtml'];
+    }
+    if (!this.assets) {
+      context = this.context();
+    } else {
+      context = this;
+    }
+    return addToZip(zip, this.filename, template.render.bind(template, context));
   };
 
   return Chapter;

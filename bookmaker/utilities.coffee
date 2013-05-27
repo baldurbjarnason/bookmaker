@@ -82,6 +82,14 @@ addToZip = (zip, fn, file, store) ->
     zip.addFile(file, options, deferred.resolve)
   return promise
 
+countergen = () ->
+  _counter = {}
+  return (namespace) ->
+    unless _counter[namespace]
+      _counter[namespace] = 0
+    _counter[namespace]++
+    return _counter[namespace]
+
 
 module.exports = {
   relative: relative
@@ -92,4 +100,5 @@ module.exports = {
   write: write
   mixin: mixin
   addToZip: addToZip
+  countergen: countergen
 }

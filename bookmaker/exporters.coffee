@@ -191,7 +191,6 @@ extendBook = (Book) ->
     book = Object.create this
     book._state = {} unless book._state
     book._state.htmltype = "text/html"
-    handlebars.registerHelper 'relative', @uri.bind(book)
     book.filename = 'index.html'
     if options?.baseurl
       selfpath = options.baseurl + 'index.html'
@@ -215,8 +214,8 @@ extendBook = (Book) ->
     tasks.push ensuredir directory + 'chapters/'
     unless options?.noAssets
       tasks.push(book.assets.copy(directory + book.assets.assetsPath))
-    tasks.push(write(directory + 'index.html', templates.htmlindex(book), 'utf8'))
-    tasks.push(write(directory + 'cover.html', templates.htmlcover(book), 'utf8'))
+    tasks.push(write(directory + 'index.html', templates['index.html'].render(book), 'utf8'))
+    tasks.push(write(directory + 'cover.html', templates['cover.html'].render(book), 'utf8'))
     for chapter in book.chapters
       context = chapter.context(book)
       selfindex = book.chapters.indexOf(chapter)
@@ -236,7 +235,7 @@ extendBook = (Book) ->
           href: jsonpath
           type: "application/hal+json"
         }
-      tasks.push(write(directory + chapter.filename, templates.htmlchapter(context), 'utf8'))
+      tasks.push(write(directory + chapter.filename, templates['chapter.html'].render(context), 'utf8'))
     whenjs.all tasks
   Book.prototype.toHtmlAndJsonFiles = (directory, options) ->
     book = Object.create this

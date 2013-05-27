@@ -101,30 +101,6 @@ describe('EpubChapter', function() {
       return done();
     });
   });
-  describe('#epubManifest', function() {
-    return it('generates the xml manifest for epub', function() {
-      testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].epubManifest.should.equal('<item id="htmlexample" href="htmlexample.html" media-type="application/xhtml+xml" properties=\"scripted\"/>\n');
-    });
-  });
-  describe('#epubSpine', function() {
-    return it('generates the xml spine for epub', function() {
-      testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].epubSpine.should.equal('<itemref idref="htmlexample" linear="yes"></itemref>\n');
-    });
-  });
-  describe('#navList', function() {
-    return it('generates the html nav li entry for epub', function() {
-      testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].navList.should.equal('<li class="tocitem htmlexample" id="toc-htmlexample"><a href="htmlexample.html\" rel=\"chapter">HTML</a>\n\n\n</li>\n');
-    });
-  });
-  describe('#epubNCX', function() {
-    return it('generates the xml NCX entry for epub', function() {
-      testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].epubNCX.should.equal('<navPoint id="navPoint-" playOrder="">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src="htmlexample.html"></content>\n</navPoint>');
-    });
-  });
   return describe('#addToZip', function() {
     return it('Returns a promise to add the chapter to zip (test.zip)', function(done) {
       var out, zip;
@@ -137,7 +113,7 @@ describe('EpubChapter', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
       return testbook.chapters[0].addToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(562);
+          written.should.equal(557);
           return done();
         });
       });
@@ -189,7 +165,7 @@ describe('EpubAssets', function() {
     });
   });
   return describe('#mangleFonts', function() {
-    return it('Adds all assets to zip', function(done) {
+    return it('Adds all mangled fonts to zip', function(done) {
       var out, zip;
 
       zip = zipStream.createZip({
@@ -199,7 +175,7 @@ describe('EpubAssets', function() {
       zip.pipe(out);
       return testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D").then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(124664);
+          written.should.equal(124787);
           return done();
         });
       });
@@ -234,26 +210,6 @@ describe('EpubBook', function() {
       return done();
     });
   });
-  describe('#epubManifest', function() {
-    return it('Renders the manifest xml for epub', function() {
-      return testbook.epubManifest.should.equal("<item id=\"doc1\" href=\"chapters/doc1.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"htmlexample\" href=\"htmlexample.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"doc2\" href=\"chapters/doc2.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n<item id=\"doc3\" href=\"chapters/doc3.html\" media-type=\"application/xhtml+xml\" properties=\"scripted\"/>\n");
-    });
-  });
-  describe('#epubSpine', function() {
-    return it('Renders the spine xml for epub', function() {
-      return testbook.epubSpine.should.equal("<itemref idref=\"doc1\" linear=\"yes\"></itemref>\n<itemref idref=\"htmlexample\" linear=\"yes\"></itemref>\n<itemref idref=\"doc2\" linear=\"yes\"></itemref>\n<itemref idref=\"doc3\" linear=\"yes\"></itemref>\n");
-    });
-  });
-  describe('#navList', function() {
-    return it('Renders the nav li html for epub', function() {
-      return testbook.navList.should.equal("<li class=\"tocitem doc1\" id=\"toc-doc1\"><a href=\"chapters/doc1.html\" rel=\"chapter\">Markdown</a>\n\n\n</li>\n<li class=\"tocitem htmlexample\" id=\"toc-htmlexample\"><a href=\"htmlexample.html\" rel=\"chapter\">HTML</a>\n\n\n</li>\n<li class=\"tocitem doc2\" id=\"toc-doc2\"><a href=\"chapters/doc2.html\" rel=\"chapter\">XHTML</a>\n\n\n</li>\n<li class=\"tocitem doc3\" id=\"toc-doc3\"><a href=\"chapters/doc3.html\" rel=\"chapter\">Template</a>\n\n\n</li>\n");
-    });
-  });
-  describe('#epubNCX', function() {
-    return it('Renders the ncx xml for epub', function() {
-      return testbook.epubNCX.should.equal("<navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>Markdown</text>\n  </navLabel>\n  <content src=\"chapters/doc1.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>HTML</text>\n  </navLabel>\n  <content src=\"htmlexample.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>XHTML</text>\n  </navLabel>\n  <content src=\"chapters/doc2.html\"></content>\n</navPoint><navPoint id=\"navPoint-\" playOrder=\"\">\n  <navLabel>\n      <text>Template</text>\n  </navLabel>\n  <content src=\"chapters/doc3.html\"></content>\n</navPoint>");
-    });
-  });
   describe('#addChaptersToZip', function() {
     return it('Adds all chapters to zip (chapters.zip)', function(done) {
       var out, zip;
@@ -265,7 +221,7 @@ describe('EpubBook', function() {
       zip.pipe(out);
       return testbook.addChaptersToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(2277);
+          written.should.equal(2207);
           return done();
         });
       });

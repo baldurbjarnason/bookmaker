@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-    {{#each fonts}}
+    {% for font in fonts %}
     <enc:EncryptedData>
         <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
         <enc:CipherData>
-            <enc:CipherReference URI="{{ this }}"/>
+            <enc:CipherReference URI="{{ font }}"/>
         </enc:CipherData>
     </enc:EncryptedData>
-    {{/each}}
+    {% endfor %}
 </encryption>
