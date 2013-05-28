@@ -1,0 +1,13 @@
+title: 'The Wonderful Wizard of Oz'
+author: 'L. Frank Baum'
+bookId: "this-is-an-id"
+lang: "en"
+cover: "assets/cover.jpg"
+description: 'foo'
+publisher: 'Bar'
+subject1: 'Foobar'
+version: "1.0"
+date: "15 May 2013"
+copyrightYear: "19watsit"
+modified: "19 May 2013"
+start: "chapters/doc1.html"
