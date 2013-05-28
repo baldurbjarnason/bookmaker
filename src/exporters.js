@@ -62,7 +62,7 @@ extendChapter = function(Chapter) {
     hal.type = 'html';
     urlgen = this.book.uri.bind(this.book) || relative;
     tocpath = path.relative(path.resolve("/", path.dirname(this.filename)), "/index.json");
-    selfpath = ((_ref = this.book._state) != null ? _ref.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('json') : path.basename(this.formatPath('json'));
+    selfpath = ((_ref = this.book._state) != null ? _ref.baseurl : void 0) ? url.resolve(this.book._state.baseurl, this.formatPath('json')) : path.basename(this.formatPath('json'));
     if (!hal._links) {
       hal._links = {};
     }
@@ -76,7 +76,7 @@ extendChapter = function(Chapter) {
       type: "application/hal+json"
     };
     if ((_ref1 = this.book._state) != null ? _ref1.htmlAndJson : void 0) {
-      htmlpath = ((_ref2 = this.book._state) != null ? _ref2.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('html') : path.basename(this.formatPath('html'));
+      htmlpath = ((_ref2 = this.book._state) != null ? _ref2.baseurl : void 0) ? url.resolve(this.book._state.baseurl, this.formatPath('html')) : path.basename(this.formatPath('html'));
       hal._links.alternate = {
         href: htmlpath,
         type: this.book._state.htmltype

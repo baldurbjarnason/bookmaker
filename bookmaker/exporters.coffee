@@ -43,7 +43,7 @@ extendChapter = (Chapter) ->
     tocpath = path.relative(path.resolve("/", path.dirname(@filename)), "/index.json")
     selfpath =
       if @book._state?.baseurl
-        @book._state.baseurl + @formatPath('json')
+        url.resolve @book._state.baseurl, @formatPath('json')
       else
         path.basename @formatPath('json')
     unless hal._links
@@ -53,7 +53,7 @@ extendChapter = (Chapter) ->
     if @book._state?.htmlAndJson
       htmlpath =
         if @book._state?.baseurl
-          @book._state.baseurl + @formatPath('html')
+          url.resolve @book._state.baseurl, @formatPath('html')
         else
           path.basename @formatPath('html')
       hal._links.alternate = {
