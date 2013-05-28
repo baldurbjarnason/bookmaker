@@ -99,6 +99,9 @@ Assets = (function() {
     var task, tasks, type, types, _i, _len;
 
     task = function(type) {
+      if (!this.assetsPath) {
+        this.assetsPath = "";
+      }
       this[type] = glob.sync(this.assetsPath + ("**/*." + type), {
         cwd: this.root
       });

@@ -55,6 +55,8 @@ class Assets
 
   init: () ->
     task = (type) ->
+      unless @assetsPath
+        @assetsPath = ""
       @[type] = glob.sync(@assetsPath + "**/*.#{type}", { cwd: @root })
       return
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
