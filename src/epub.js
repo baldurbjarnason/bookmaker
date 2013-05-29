@@ -51,29 +51,42 @@ chapterProperties = function(chapter) {
   if (chapter.svg) {
     properties.push('svg');
   }
-  if (chapter.js || (this.assets.js && !this.specifiedJs)) {
+  if (chapter.js || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
     properties.push('scripted');
   }
   prop = properties.join(' ');
-  return "properties='" + prop + "'";
+  if (properties.toString() !== "") {
+    return "properties='" + prop + "'";
+  } else {
+    return "";
+  }
 };
 
 processLandmarks = function(landmarks) {
-  var landmark, _i, _len, _results;
+  var landmark;
 
   if (!landmarks) {
     return;
   }
-  _results = [];
-  for (_i = 0, _len = landmarks.length; _i < _len; _i++) {
-    landmark = landmarks[_i];
-    if (landmark.type === 'bodymatter') {
-      _results.push(landmark.opftype = "text");
-    } else {
-      _results.push(landmark.opftype = landmark.type);
+  landmarks = (function() {
+    var _i, _len, _results;
+
+    _results = [];
+    for (_i = 0, _len = landmarks.length; _i < _len; _i++) {
+      landmark = landmarks[_i];
+      _results.push((function(landmark) {
+        if (landmark.type === 'bodymatter') {
+          landmark.opftype = "text";
+        } else {
+          landmark.opftype = landmark.type;
+        }
+        return landmark;
+      })(landmark));
     }
-  }
-  return _results;
+    return _results;
+  })();
+  console.log(landmarks);
+  return landmarks;
 };
 
 toEpub = function(out, options) {

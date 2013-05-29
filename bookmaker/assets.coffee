@@ -8,6 +8,7 @@ pglob = nodefn.lift(glob)
 _ = require 'underscore'
 fs = require 'fs'
 ncp = require('ncp').ncp
+path = require 'path'
 
 # Some way to enable single chapter css and js? Is that even necessary?
 
@@ -16,7 +17,7 @@ class Assets
   get: (filepath) ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    fn = @root + filepath
+    fn = path.resolve(@root, filepath)
     fs.readFile(fn, (err, data) ->
       if err
         deferred.reject
@@ -24,7 +25,7 @@ class Assets
         deferred.resolve(data, filepath))
     return promise
   getStream: (filepath, options) ->
-    fs.createReadStream(@root + filepath, options)
+    fs.createReadStream(path.resolve(@root, filepath), options)
   addItemToZip: (item, zip) ->
     deferred = whenjs.defer()
     promise = deferred.promise
@@ -46,7 +47,7 @@ class Assets
     deferred = whenjs.defer()
     promise = deferred.promise
     deferred.notify "Copying assets"
-    ncp(@root + @assetsPath, directory, (err) ->
+    ncp(path.resolve(@root, @assetsPath), directory, (err) ->
       if err
         deferred.reject err
       else

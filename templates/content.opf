@@ -83,7 +83,7 @@
   </spine>
       <guide>
         {% if meta.cover %}<reference type="cover" title="Cover" href="cover.html"></reference>{% endif %}
-        {% for landmark in landmarks %}
+        {% for landmark in meta.landmarks %}
             <reference type="{{ landmark.opftype }}" title="{{ landmark.title }}" href="{{ landmark.href }}"></reference>
         {% endfor %}
     </guide>

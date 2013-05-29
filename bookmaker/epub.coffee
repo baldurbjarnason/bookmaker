@@ -30,19 +30,26 @@ chapterProperties = (chapter) ->
   properties = []
   if chapter.svg
     properties.push('svg')
-  if chapter.js or (@assets.js and !@specifiedJs)
+  if chapter.js or (@assets.js.toString() isnt "" and !@specifiedJs)
     properties.push('scripted')
   prop = properties.join(' ')
-  return "properties='#{prop}'"
+  if properties.toString() isnt ""
+    return "properties='#{prop}'"
+  else
+    return ""
 
 processLandmarks = (landmarks) ->
   unless landmarks
     return
-  for landmark in landmarks
-    if landmark.type is 'bodymatter'
-      landmark.opftype = "text"
-    else
-      landmark.opftype = landmark.type
+  landmarks = for landmark in landmarks
+    do (landmark)  ->
+      if landmark.type is 'bodymatter'
+        landmark.opftype = "text"
+      else
+        landmark.opftype = landmark.type
+      return landmark
+  console.log landmarks
+  return landmarks
 
 toEpub = (out, options) ->
   book = Object.create this

@@ -96,7 +96,7 @@ describe 'EpubChapter',
             testbook.addChapter(new Chapter(testchapters[1]))
             testbook.chapters[0].addToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(557)
+                written.should.equal(550)
                 done()))
 testassets = {}
 describe 'EpubAssets',
@@ -170,7 +170,7 @@ describe 'EpubBook',
             zip.pipe(out)
             testbook.addChaptersToZip(zip).then(() ->
               zip.finalize((written) ->
-                written.should.equal(2207)
+                written.should.equal(2178)
                 done()))
     describe '#toEpub',
       () ->

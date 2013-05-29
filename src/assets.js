@@ -1,5 +1,5 @@
 'use strict';
-var Assets, fs, glob, ncp, nodefn, pglob, sequence, whenjs, _;
+var Assets, fs, glob, ncp, nodefn, path, pglob, sequence, whenjs, _;
 
 glob = require('glob');
 
@@ -17,6 +17,8 @@ fs = require('fs');
 
 ncp = require('ncp').ncp;
 
+path = require('path');
+
 Assets = (function() {
   function Assets(root, assetsPath) {
     this.root = root;
@@ -28,7 +30,7 @@ Assets = (function() {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    fn = this.root + filepath;
+    fn = path.resolve(this.root, filepath);
     fs.readFile(fn, function(err, data) {
       if (err) {
         return deferred.reject;
@@ -40,7 +42,7 @@ Assets = (function() {
   };
 
   Assets.prototype.getStream = function(filepath, options) {
-    return fs.createReadStream(this.root + filepath, options);
+    return fs.createReadStream(path.resolve(this.root, filepath), options);
   };
 
   Assets.prototype.addItemToZip = function(item, zip) {
@@ -85,7 +87,7 @@ Assets = (function() {
     deferred = whenjs.defer();
     promise = deferred.promise;
     deferred.notify("Copying assets");
-    ncp(this.root + this.assetsPath, directory, function(err) {
+    ncp(path.resolve(this.root, this.assetsPath), directory, function(err) {
       if (err) {
         return deferred.reject(err);
       } else {

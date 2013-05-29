@@ -113,7 +113,7 @@ describe('EpubChapter', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
       return testbook.chapters[0].addToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(557);
+          written.should.equal(550);
           return done();
         });
       });
@@ -221,7 +221,7 @@ describe('EpubBook', function() {
       zip.pipe(out);
       return testbook.addChaptersToZip(zip).then(function() {
         return zip.finalize(function(written) {
-          written.should.equal(2207);
+          written.should.equal(2178);
           return done();
         });
       });

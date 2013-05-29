@@ -58,8 +58,8 @@ class LoaderMixin
             suboutline = []
       return
       return book
-    if fs.existsSync directory + 'meta.yaml'
-      meta = yaml.safeLoad fs.readFileSync directory + 'meta.yaml', 'utf8'
+    if fs.existsSync path.resolve(directory,'meta.yaml')
+      meta = yaml.safeLoad fs.readFileSync path.resolve(directory,'meta.yaml'), 'utf8'
     else if fs.existsSync directory + 'meta.json'
       meta = JSON.parse fs.readFileSync directory + 'meta.json', 'utf8'
     else
@@ -70,8 +70,8 @@ class LoaderMixin
       assets = new Assets(directory, 'assets/')
     NewBook = this
     book = new NewBook(meta, assets)
-    if fs.existsSync directory + 'book.txt'
-      booktxt = fs.readFileSync directory + 'book.txt', 'utf8'
+    if fs.existsSync path.resolve(directory, 'book.txt')
+      booktxt = fs.readFileSync path.resolve(directory, 'book.txt'), 'utf8'
     else
       return
     loadTxt(booktxt, book)
