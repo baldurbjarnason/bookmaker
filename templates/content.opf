@@ -10,7 +10,11 @@
     <dc:language>{{ meta.lang }}</dc:language>    
     <meta property="dcterms:modified">{{ meta.modified.isoDate }}</meta>
     <dc:date>{{ meta.date.isoDate }}</dc:date>
+    {% if meta.rights %}
+    <dc:rights>{{ meta.rights }}</dc:rights>
+    {% else %}
     <dc:rights>Copyright {{ meta.copyrightYear }} {{ meta.author }}{% if meta.author2 %} and {{ meta.author2 }}{% endif %}</dc:rights>
+    {% endif %}
     {% if meta.description %}<dc:description>{{ meta.description }}</dc:description>{% endif %}
     {% if meta.publisher %}<dc:publisher>{{ meta.publisher }}</dc:publisher>{% endif %}
     {% if meta.subject1 %}<dc:subject>{{ meta.subject1 }}</dc:subject>{% endif %}

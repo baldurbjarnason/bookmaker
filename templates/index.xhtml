@@ -2,6 +2,39 @@
 {% block title %}Table of Contents – {{ meta.title }}{% endblock %}
 {% block js %}
 {% endblock %}
+	{% block metadata -%}
+	<meta name="dcterms.title" content="{{ meta.title }}" />
+	<meta name="dcterms.created" content="{{ meta.date.isoDate }}" />
+	<meta name="dcterms.modified" content="{{ meta.modified.isoDate }}" />
+	<meta name="dcterms.creator" content="{{ meta.author }}" />
+	<meta name="author" content="{{ meta.author }}" />
+	{%- if meta.author2 -%}
+	<meta name="dcterms.creator" content="{{ meta.author2 }}" />
+	{%- endif %}
+	{% if meta.description -%}
+	<meta name="dcterms.description" content="{{ meta.description }}" />
+	<meta name="description" content="{{ meta.description }}" />
+	{%- endif %}
+	{% if meta.bookId -%}
+	<meta name="dcterms.identifier" content="{{ meta.bookId }}" />
+	{%- endif %}
+	{% if meta.publisher -%}
+	<meta name="dcterms.publisher" content="{{ meta.publisher }}" />
+	<meta name="publisher" content="{{ meta.publisher }}" />
+	{%- endif %}
+	{% if meta.rights -%}
+	<meta name="dcterms.rights" content="{{ meta.rights }}" />
+	{%- endif %}
+	{%- if meta.subject1 -%}
+	<meta name="dcterms.subject" content="{{ meta.subject1 }}" />
+	{%- endif %}
+	{% if meta.subject2 -%}
+	<meta name="dcterms.subject" content="{{ meta.subject2 }}" />
+	{%- endif %}
+	{% if meta.subject3 -%}
+	<meta name="dcterms.subject" content="{{ meta.subject3 }}" />
+	{%- endif %}
+	{%- endblock %}
 {% block attributes %}class="nav" id="nav"{% endblock %}
 {% block content %}
 <h1>{{ meta.title }} – Table of Contents</h1>
@@ -16,7 +49,6 @@
 		{% endif %}
 	</li>
 	{% endfor %}
-
 </ol>
 </nav>
 

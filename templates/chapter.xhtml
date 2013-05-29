@@ -3,31 +3,24 @@
 {% endblock %}
 <head>
 <title>{% block title %}{{ title }} – {{ meta.title }}{% endblock %}</title>
-
-{% block css %}
-{%if meta.specifiedCss %}{% for x in css %}
+{% block metadata %}
+{% endblock%}
+{%- block css -%}
+{%- if meta.specifiedCss -%}{%- for x in css -%}
 <link href="{{ relative(filename, x) }}" type="text/css" rel="stylesheet" />
-{% endfor %}{% else %}
-{% for x in assets.css %}
+{%- endfor -%}{%- else -%}
+{%- for x in assets.css -%}
 <link href="{{ relative(filename, x) }}" type="text/css" rel="stylesheet" />
-{% endfor %}{% endif %}
-{% endblock %}
-
-{% block js %}
-{%if meta.specifiedJs %}{% for x in js %}
+{%- endfor -%}{% endif %}
+{%- endblock -%}
+{% block js %}{% if meta.specifiedJs -%}{% for x in js -%}
 <script src="{{ relative(filename, x) }}" type="application/javascript"></script>
-{% endfor %}{% else %}
-{% for x in assets.js %}
+{% endfor %}{% else %}{% for x in assets.js -%}
 <script src="{{ relative(filename, x) }}" type="application/javascript"></script>
-{% endfor %}{% endif %}
-{% endblock %}
-
-{% block links %}
-{% for x in links %}
+{% endfor %}{% endif %}{% endblock -%}
+{%- block links -%}{% for x in links %}
 <link href="{{ x.href }}" type="{{ x.type }}" rel="{{ x.rel }}"{% if x.hreflang %} hreflang="{{ x.hreflang }}"{% endif %}{% if this.title %} title="{{ x.title }}"{% endif %} />
-{% endfor %}
-{% endblock %}
-
+{%- endfor %}{% endblock %}
 </head>
 <body {% block attributes %}class="chapterBody {{ id }}" id="{{ id }}"{% endblock %}>
 	{% block content %}
