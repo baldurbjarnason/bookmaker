@@ -2,7 +2,7 @@
 {% block title %}Table of Contents – {{ meta.title }}{% endblock %}
 {% block js %}
 {% endblock %}
-	{% block metadata -%}
+	{% block metadata -%}{% parent %}
 	<meta name="dcterms.title" content="{{ meta.title }}" />
 	<meta name="dcterms.created" content="{{ meta.date.isoDate }}" />
 	<meta name="dcterms.modified" content="{{ meta.modified.isoDate }}" />

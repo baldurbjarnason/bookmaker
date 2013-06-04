@@ -4,6 +4,7 @@
 <head>
 <title>{% block title %}{{ title }} – {{ meta.title }}{% endblock %}</title>
 {% block metadata %}
+<meta charset='utf-8'/> 
 {% endblock%}
 {%- block css -%}
 {%- if meta.specifiedCss -%}{%- for x in css -%}
@@ -22,7 +23,7 @@
 <link href="{{ x.href }}" type="{{ x.type }}" rel="{{ x.rel }}"{% if x.hreflang %} hreflang="{{ x.hreflang }}"{% endif %}{% if this.title %} title="{{ x.title }}"{% endif %} />
 {%- endfor %}{% endblock %}
 </head>
-<body {% block attributes %}class="chapterBody {{ id }}" id="{{ id }}"{% endblock %}>
+<body {% block attributes %}class="chapterBody {{ id }} epub" id="{{ id }}"{% endblock %}>
 	{% block content %}
 		<div class="chapter" id="chapter">{{ html }}</div>
 	{% endblock %}

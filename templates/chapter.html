@@ -1,4 +1,5 @@
 {% extends 'chapter.xhtml' %}
+{% block attributes %}class="chapterBody {{ id }} html" id="{{ id }}"{% endblock %}
 {% block top %}<!DOCTYPE HTML>
 <html lang="{{ meta.lang }}">
 {% endblock %}
