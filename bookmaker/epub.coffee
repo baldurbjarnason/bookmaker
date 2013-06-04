@@ -48,7 +48,6 @@ processLandmarks = (landmarks) ->
       else
         landmark.opftype = landmark.type
       return landmark
-  console.log landmarks
   return landmarks
 
 toEpub = (out, options) ->

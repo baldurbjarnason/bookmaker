@@ -84,16 +84,16 @@ Chapter = (function() {
 })();
 
 toHtml = function() {
-  var bodytemplate;
+  var bodytemplate, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
 
   switch (this.type) {
     case 'md':
-      return processHTML(mdparser.render(this.body));
+      return processHTML(mdparser.render(this.body, (_ref = this.book) != null ? (_ref1 = _ref.meta) != null ? _ref1.smartyPants : void 0 : void 0));
     case 'html':
-      return processHTML(this.body);
+      return processHTML(this.body, (_ref2 = this.book) != null ? (_ref3 = _ref2.meta) != null ? _ref3.smartyPants : void 0 : void 0);
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return processHTML(bodytemplate(this.context()));
+      return processHTML(bodytemplate(this.context(), (_ref4 = this.book) != null ? (_ref5 = _ref4.meta) != null ? _ref5.smartyPants : void 0 : void 0));
     case 'xhtml':
       return this.body;
   }
@@ -104,9 +104,12 @@ Object.defineProperty(Chapter.prototype, 'html', {
   enumerable: true
 });
 
-processHTML = function(html) {
+processHTML = function(html, smartyPants) {
   var addId, counter, elem, elements, nbsp, _counter, _i, _len;
 
+  if (smartyPants === true) {
+    html = rs.smartypantsHtml(html);
+  }
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   _counter = {};
@@ -130,7 +133,7 @@ processHTML = function(html) {
     });
   }
   nbsp = new RegExp('&nbsp;', 'g');
-  return rs.smartypantsHtml($('body').html().replace(nbsp, '&#160;'));
+  return $('body').html().replace(nbsp, '&#160;');
 };
 
 Chapter.prototype.htmlPromise = function() {

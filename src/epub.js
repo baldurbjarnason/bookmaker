@@ -85,7 +85,6 @@ processLandmarks = function(landmarks) {
     }
     return _results;
   })();
-  console.log(landmarks);
   return landmarks;
 };
 

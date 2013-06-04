@@ -206,6 +206,7 @@ extendBook = (Book) ->
         type: "application/hal+json"
         title: "JSON Table of Contents"
       }
+    book.links = utilities.pageLinks(book, book)
     tasks = []
     if directory
       tasks.push ensuredir directory
@@ -235,9 +236,12 @@ extendBook = (Book) ->
           href: jsonpath
           type: "application/hal+json"
         }
+        context.links = utilities.pageLinks context, book
       tasks.push(write(directory + chapter.filename, templates['chapter.html'].render(context), 'utf8'))
     whenjs.all tasks
   Book.prototype.toHtmlAndJsonFiles = (directory, options) ->
+    defaults = { arbitraryDefault: true }
+    options = _.extend defaults, options
     book = Object.create this
     book._state = {}
     book._state.htmlAndJson = true

@@ -46,12 +46,12 @@ class Chapter
 toHtml = ->
   switch @type
     when 'md'
-      processHTML mdparser.render @body
+      processHTML mdparser.render @body, @book?.meta?.smartyPants
     when 'html'
-      processHTML @body
+      processHTML @body, @book?.meta?.smartyPants
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      processHTML bodytemplate(@context())
+      processHTML bodytemplate(@context(), @book?.meta?.smartyPants)
     when 'xhtml'
       @body
 
@@ -59,7 +59,9 @@ Object.defineProperty Chapter.prototype, 'html', {
   get: toHtml
   enumerable: true
 }
-processHTML = (html) ->
+processHTML = (html, smartyPants) ->
+  if smartyPants is true
+    html = rs.smartypantsHtml html
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   _counter = {}
@@ -76,7 +78,7 @@ processHTML = (html) ->
     $(elem).each((index) -> addId(this, elem))
   # Need to properly filter entities here. Or at least look further into the issue.
   nbsp = new RegExp('&nbsp;', 'g')
-  return rs.smartypantsHtml $('body').html().replace(nbsp, '&#160;')
+  return $('body').html().replace(nbsp, '&#160;')
 
 Chapter.prototype.htmlPromise = () ->
   deferred = whenjs.defer()
