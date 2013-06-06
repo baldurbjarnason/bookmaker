@@ -1,5 +1,5 @@
 'use strict';
-var addToZip, callbacks, chapterProperties, extendAssets, extendBook, fs, glob, isCover, mangler, pagelinks, path, processLandmarks, relative, renderEpub, sequence, temp, templates, toEpub, utilities, whenjs, zipStream, _;
+var addToZip, callbacks, chapterProperties, extendAssets, extendBook, fs, glob, isCover, mangler, pageLinks, path, processLandmarks, relative, renderEpub, sequence, temp, templates, toEpub, utilities, whenjs, zipStream, _;
 
 zipStream = require('zipstream-contentment');
 
@@ -27,7 +27,7 @@ utilities = require('./utilities');
 
 relative = utilities.relative;
 
-pagelinks = utilities.pageLinks;
+pageLinks = utilities.pageLinks;
 
 addToZip = utilities.addToZip;
 
@@ -116,7 +116,7 @@ renderEpub = function(book, out, options, zip) {
   book.counter = utilities.countergen();
   book.meta.landmarks = processLandmarks(book.meta.landmarks);
   book.isCover = isCover.bind(book);
-  book.links = pagelinks(book, book);
+  book.links = pageLinks(book, book);
   book.chapterProperties = chapterProperties.bind(book);
   tasks = [];
   tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true));

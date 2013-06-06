@@ -13,7 +13,7 @@ relative = (current, target) ->
   relativetarget = path.relative(absolutecurrent, absolutetarget)
   return relativetarget
 
-pagelinks = (page, book) ->
+pageLinks = (page, book) ->
   links = for key, value of page._links
     link = {}
     link.rel = key
@@ -32,10 +32,10 @@ pagelinks = (page, book) ->
   return links
 
 bookLinks = () ->
-  pagelinks(this, this)
+  pageLinks(this, this)
 
 chapterLinks = () ->
-  pagelinks(this, @book)
+  pageLinks(this, @book)
 
 ensuredir = (directory) ->
   deferred = whenjs.defer()
@@ -93,7 +93,7 @@ countergen = () ->
 
 module.exports = {
   relative: relative
-  pageLinks: pagelinks
+  pageLinks: pageLinks
   bookLinks: bookLinks
   chapterLinks: chapterLinks
   ensuredir: ensuredir

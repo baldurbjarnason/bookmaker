@@ -1,5 +1,5 @@
 'use strict';
-var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, mixin, mkdirp, pagelinks, path, relative, whenjs, write, _,
+var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, mixin, mkdirp, pageLinks, path, relative, whenjs, write, _,
   __slice = [].slice;
 
 path = require('path');
@@ -21,7 +21,7 @@ relative = function(current, target) {
   return relativetarget;
 };
 
-pagelinks = function(page, book) {
+pageLinks = function(page, book) {
   var key, link, links, type, value, _ref, _ref1;
 
   links = (function() {
@@ -72,11 +72,11 @@ pagelinks = function(page, book) {
 };
 
 bookLinks = function() {
-  return pagelinks(this, this);
+  return pageLinks(this, this);
 };
 
 chapterLinks = function() {
-  return pagelinks(this, this.book);
+  return pageLinks(this, this.book);
 };
 
 ensuredir = function(directory) {
@@ -175,7 +175,7 @@ countergen = function() {
 
 module.exports = {
   relative: relative,
-  pageLinks: pagelinks,
+  pageLinks: pageLinks,
   bookLinks: bookLinks,
   chapterLinks: chapterLinks,
   ensuredir: ensuredir,

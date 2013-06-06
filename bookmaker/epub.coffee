@@ -13,7 +13,7 @@ temp = require './templates'
 templates = temp.templates
 utilities = require './utilities'
 relative = utilities.relative
-pagelinks = utilities.pageLinks
+pageLinks = utilities.pageLinks
 addToZip = utilities.addToZip
 
 extendBook = (Book) ->
@@ -68,7 +68,7 @@ renderEpub = (book, out, options, zip) ->
   book.counter = utilities.countergen()
   book.meta.landmarks = processLandmarks(book.meta.landmarks)
   book.isCover = isCover.bind(book)
-  book.links = pagelinks(book, book)
+  book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
   tasks = []
   tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true))
