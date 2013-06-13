@@ -10,7 +10,6 @@ yaml = require './yaml'
 yaml.extend(Book)
 
 Book.Assets = Assets
-Book.SubOutline = SubOutline
 Book.Chapter = Chapter
 
 module.exports = {

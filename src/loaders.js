@@ -61,33 +61,19 @@ LoaderMixin = (function() {
       return book.addChapter(new Chapter(doc));
     };
     loadTxt = function(booktxt, book) {
-      var emptyline, filename, indentregex, index, list, suboutline, subparent, _i, _len;
+      var emptyline, filename, list, _i, _len;
 
-      suboutline = [];
       list = booktxt.trim().split(/\n/);
       emptyline = /^\s$/;
-      indentregex = /^[ \t]+/;
       for (_i = 0, _len = list.length; _i < _len; _i++) {
         filename = list[_i];
         if ((filename[0] === '#') || (filename.match(emptyline))) {
 
-        } else if (filename.match(indentregex)) {
-          if (!index) {
-            subparent = book.chapters[book.chapters.length - 1];
-            index = true;
-          }
-          filename = filename.trim();
-          suboutline.push(filename);
         } else {
+          filename = filename.trim();
           loadFile(filename, book);
-          if (index) {
-            subparent.subChapters = new SubOutline(suboutline, this);
-            index = false;
-            suboutline = [];
-          }
         }
       }
-      return;
       return book;
     };
     if (fs.existsSync(path.resolve(directory, 'meta.yaml'))) {
