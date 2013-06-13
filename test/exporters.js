@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, callbacks, chai, fs, glob, index, should, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, callbacks, chai, fs, glob, index, should, testbook, testchapters, testoutline, whenjs, zipStream;
 
 chai = require('chai');
 
@@ -10,8 +10,6 @@ index = require('../src/index');
 Chapter = index.Chapter;
 
 Book = index.Book;
-
-SubOutline = index.SubOutline;
 
 Assets = index.Assets;
 
@@ -31,36 +29,7 @@ testoutline = {
   title: 'Title Page',
   render: true,
   template: 'title.hbs',
-  majornavitem: true,
-  subChapters: [
-    {
-      id: 'nav',
-      filename: 'index.html',
-      render: false,
-      title: 'Table of Contents',
-      nomanifest: true,
-      majornavitem: true,
-      toc: true
-    }, {
-      id: 'titlepage',
-      filename: 'title.html',
-      title: 'Title Page',
-      render: true,
-      template: 'title.hbs',
-      majornavitem: true
-    }, {
-      id: 'titletoc',
-      filename: 'title.html',
-      title: 'Contents',
-      render: true,
-      template: 'titletoc.hbs',
-      majornavitem: true,
-      toc: true
-    }, {
-      type: 'md',
-      body: '# This is Markdown!'
-    }
-  ]
+  majornavitem: true
 };
 
 testbook = {};

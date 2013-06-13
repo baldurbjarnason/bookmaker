@@ -1,8 +1,6 @@
-var Assets, Book, Chapter, SubOutline, yaml;
+var Assets, Book, Chapter, yaml;
 
 Book = require('./book').Book;
-
-SubOutline = require('./book').SubOutline;
 
 Assets = require('./assets');
 
@@ -20,13 +18,10 @@ yaml.extend(Book);
 
 Book.Assets = Assets;
 
-Book.SubOutline = SubOutline;
-
 Book.Chapter = Chapter;
 
 module.exports = {
   Book: Book,
-  SubOutline: SubOutline,
   Assets: Assets,
   Chapter: Chapter,
   loadYaml: yaml.loadYaml,

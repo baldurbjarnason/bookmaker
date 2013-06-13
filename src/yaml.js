@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, arrayToBook, bookmaker, chapterToYaml, chaptergen, extend, fs, loadYaml, path, sequence, stripre, titlecounter, titlegen, titlere, whenjs, yaml, yamlLoader, yamlWriter, _;
+var Assets, Book, Chapter, arrayToBook, bookmaker, chapterToYaml, chaptergen, extend, fs, loadYaml, path, sequence, stripre, titlecounter, titlegen, titlere, whenjs, yaml, yamlLoader, yamlWriter, _;
 
 fs = require('fs');
 
@@ -12,8 +12,6 @@ Assets = bookmaker.Assets;
 Chapter = bookmaker.Chapter;
 
 Book = bookmaker.Book;
-
-SubOutline = bookmaker.SubOutline;
 
 whenjs = require('when');
 
@@ -73,9 +71,6 @@ arrayToBook = function(docs, assets) {
       chapter = new Chapter(chaptergen(entry));
     } else {
       chapter = new Chapter(entry);
-      if (entry.subChapters) {
-        chapter.subChapters = new SubOutline(entry.subChapters, this);
-      }
     }
     mdBook.addChapter(chapter);
   }
@@ -116,20 +111,12 @@ yamlLoader = function(data, filename, meta, resolver, assets) {
 };
 
 chapterToYaml = function(chapter) {
-  var entry, omitted, subChapter, _i, _len, _ref;
+  var entry, omitted;
 
   entry = {};
   omitted = _.methods(chapter);
   omitted.push('book');
   entry = _.omit(chapter, omitted);
-  if (chapter.subChapters) {
-    entry.subChapters = [];
-    _ref = chapter.subChapters.chapters;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      subChapter = _ref[_i];
-      entry.subChapters.push(chapterToYaml(subChapter));
-    }
-  }
   return entry;
 };
 

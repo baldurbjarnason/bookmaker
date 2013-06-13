@@ -78,11 +78,6 @@ extendChapter = (Chapter) ->
         hal._links.prev = { href: urlgen(@filename, @book.chapters[selfindex - 1].formatPath('json')), type: "application/hal+json" }
       if selfindex isnt @book.chapters.length - 1
         hal._links.next = { href: urlgen(@filename, @book.chapters[selfindex + 1].formatPath('json')), type: "application/hal+json" }
-    if @subChapters
-      subChapters = []
-      for subChapter in @subChapters.chapters
-        subChapters.push(subChapter)
-      hal._embedded.chapters = subChapters
     return hal
   Chapter.prototype.toJSON = () ->
     hal = @toHal()

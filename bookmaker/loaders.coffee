@@ -20,7 +20,6 @@ class LoaderMixin
         return { title: title, body: "# #{title}\n\n" + chapter }
     Chapter = @Chapter
     Book = this
-    SubOutline = @SubOutline
     Assets = @Assets
     loadFile = (filename, book) ->
       if fs.existsSync path.resolve(directory, 'chapters', filename)
@@ -37,26 +36,14 @@ class LoaderMixin
       doc.filename = 'chapters/' + basepath + '.html'
       book.addChapter(new Chapter(doc))
     loadTxt = (booktxt, book) ->
-      suboutline = []
       list = booktxt.trim().split(/\n/)
       emptyline = /^\s$/
-      indentregex =  /^[ \t]+/
       for filename in list
         if (filename[0] is '#') or (filename.match(emptyline))
           # Do nothing
-        else if filename.match(indentregex)
-          unless index
-            subparent = book.chapters[book.chapters.length - 1]
-            index = true
-          filename = filename.trim()
-          suboutline.push(filename)
         else
+          filename = filename.trim()
           loadFile(filename, book)
-          if index
-            subparent.subChapters =  new SubOutline(suboutline, this)
-            index = false
-            suboutline = []
-      return
       return book
     if fs.existsSync path.resolve(directory,'meta.yaml')
       meta = yaml.safeLoad fs.readFileSync path.resolve(directory,'meta.yaml'), 'utf8'

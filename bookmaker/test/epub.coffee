@@ -5,7 +5,6 @@ should = chai.should()
 index = require '../src/index'
 Chapter = index.Chapter
 Book = index.Book
-SubOutline = index.SubOutline
 Assets = index.Assets
 zipStream = require('zipstream-contentment')
 fs = require 'fs'

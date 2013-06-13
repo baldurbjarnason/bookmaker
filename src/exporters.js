@@ -54,7 +54,7 @@ relative = function(current, target) {
 
 extendChapter = function(Chapter) {
   Chapter.prototype.toHal = function() {
-    var banned, hal, href, htmlpath, selfindex, selfpath, subChapter, subChapters, tocpath, urlgen, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+    var banned, hal, href, htmlpath, selfindex, selfpath, tocpath, urlgen, _ref, _ref1, _ref2, _ref3, _ref4;
 
     banned = ['links', 'book', 'meta', 'filename', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this));
     hal = _.omit(this, banned);
@@ -158,15 +158,6 @@ extendChapter = function(Chapter) {
           type: "application/hal+json"
         };
       }
-    }
-    if (this.subChapters) {
-      subChapters = [];
-      _ref5 = this.subChapters.chapters;
-      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-        subChapter = _ref5[_i];
-        subChapters.push(subChapter);
-      }
-      hal._embedded.chapters = subChapters;
     }
     return hal;
   };
