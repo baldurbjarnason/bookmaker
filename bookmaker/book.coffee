@@ -43,8 +43,6 @@ class Book
       chapter.id = @docId()
     unless chapter.filename
       chapter.filename = 'chapters/' + chapter.id + '.html'
-    if chapter.subChapters
-      chapter.subChapters = new @constructor.SubOutline(chapter.subChapters, this)
     @chapters.push(chapter)
   relative: utilities.relative
   addChaptersToZip: (zip, template) ->
@@ -76,19 +74,6 @@ dateProcess = (date) ->
   _meta.isoDate = "#{_meta.dateYear}-#{_meta.dateMonth}-#{_meta.dateDay}T#{_meta.dateHours}:#{_meta.dateMinutes}:#{_meta.dateSeconds}Z"
   return _meta
 
-class SubOutline extends Book
-  constructor: (sub, @book) ->
-    @chapters = []
-    for entry in sub
-      chapter = new Chapter(entry)
-      if entry.subChapters
-        chapter.subChapters = new @constructor(entry.subChapters, @book)
-      @addChapter(chapter, @book)
-    docId: ->
-      id = @book.docId()
-      return id
-
 module.exports = {
   Book: Book
-  SubOutline: SubOutline
 }

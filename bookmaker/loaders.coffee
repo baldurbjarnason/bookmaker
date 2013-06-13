@@ -20,7 +20,6 @@ class LoaderMixin
         return { title: title, body: "# #{title}\n\n" + chapter }
     Chapter = @Chapter
     Book = this
-    SubOutline = @SubOutline
     Assets = @Assets
     loadFile = (filename, book) ->
       if fs.existsSync path.resolve(directory, 'chapters', filename)

@@ -6,7 +6,6 @@ bookmaker = require './index'
 Assets = bookmaker.Assets
 Chapter = bookmaker.Chapter
 Book = bookmaker.Book
-SubOutline = bookmaker.SubOutline
 whenjs = require('when')
 _ = require 'underscore'
 path = require 'path'
@@ -48,8 +47,6 @@ arrayToBook = (docs, assets) ->
       chapter = new Chapter(chaptergen(entry))
     else
       chapter = new Chapter(entry)
-      if entry.subChapters
-        chapter.subChapters = new SubOutline(entry.subChapters, this)
     mdBook.addChapter(chapter)
   return mdBook
 
@@ -82,10 +79,6 @@ chapterToYaml = (chapter) ->
   omitted =  _.methods(chapter)
   omitted.push('book')
   entry = _.omit chapter, omitted
-  if chapter.subChapters
-    entry.subChapters = []
-    for subChapter in chapter.subChapters.chapters
-      entry.subChapters.push(chapterToYaml subChapter)
   return entry
 
 extend = (Book) ->

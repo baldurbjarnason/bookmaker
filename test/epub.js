@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, callbacks, chai, exec, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, callbacks, chai, exec, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
 
 chai = require('chai');
 
@@ -10,8 +10,6 @@ index = require('../src/index');
 Chapter = index.Chapter;
 
 Book = index.Book;
-
-SubOutline = index.SubOutline;
 
 Assets = index.Assets;
 

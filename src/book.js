@@ -1,7 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, dateProcess, handlebars, path, sequence, utilities, whenjs,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+var Assets, Book, Chapter, dateProcess, handlebars, path, sequence, utilities, whenjs;
 
 handlebars = require('handlebars');
 
@@ -59,9 +57,6 @@ Book = (function() {
     if (!chapter.filename) {
       chapter.filename = 'chapters/' + chapter.id + '.html';
     }
-    if (chapter.subChapters) {
-      chapter.subChapters = new this.constructor.SubOutline(chapter.subChapters, this);
-    }
     return this.chapters.push(chapter);
   };
 
@@ -114,37 +109,6 @@ dateProcess = function(date) {
   return _meta;
 };
 
-SubOutline = (function(_super) {
-  __extends(SubOutline, _super);
-
-  function SubOutline(sub, book) {
-    var chapter, entry, _i, _len;
-
-    this.book = book;
-    this.chapters = [];
-    for (_i = 0, _len = sub.length; _i < _len; _i++) {
-      entry = sub[_i];
-      chapter = new Chapter(entry);
-      if (entry.subChapters) {
-        chapter.subChapters = new this.constructor(entry.subChapters, this.book);
-      }
-      this.addChapter(chapter, this.book);
-    }
-    ({
-      docId: function() {
-        var id;
-
-        id = this.book.docId();
-        return id;
-      }
-    });
-  }
-
-  return SubOutline;
-
-})(Book);
-
 module.exports = {
-  Book: Book,
-  SubOutline: SubOutline
+  Book: Book
 };

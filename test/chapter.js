@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, chai, index, should, testbook, testchapters;
+var Assets, Book, Chapter, chai, index, should, testbook, testchapters;
 
 chai = require('chai');
 
@@ -12,8 +12,6 @@ Chapter = index.Chapter;
 Book = index.Book;
 
 Assets = index.Assets;
-
-SubOutline = index.SubOutline;
 
 testbook = {};
 

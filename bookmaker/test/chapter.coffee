@@ -6,7 +6,6 @@ index = require '../src/index'
 Chapter = index.Chapter
 Book = index.Book
 Assets = index.Assets
-SubOutline = index.SubOutline
 
 testbook = {}
 testchapters =  {

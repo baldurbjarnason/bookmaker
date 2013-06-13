@@ -13,7 +13,7 @@ LoaderMixin = (function() {
   function LoaderMixin() {}
 
   LoaderMixin.loadBookDir = function(directory) {
-    var Assets, Book, Chapter, NewBook, SubOutline, assets, book, booktxt, chapter, loadFile, loadTxt, mdchaptergen, meta, stripre, titlecounter, titlere, _i, _len, _ref;
+    var Assets, Book, Chapter, NewBook, assets, book, booktxt, chapter, loadFile, loadTxt, mdchaptergen, meta, stripre, titlecounter, titlere, _i, _len, _ref;
 
     titlecounter = 0;
     titlere = new RegExp('^# (.+)', 'm');
@@ -38,7 +38,6 @@ LoaderMixin = (function() {
     };
     Chapter = this.Chapter;
     Book = this;
-    SubOutline = this.SubOutline;
     Assets = this.Assets;
     loadFile = function(filename, book) {
       var basepath, doc, docs, file, type;

@@ -1,5 +1,4 @@
 Book = require('./book').Book
-SubOutline = require('./book').SubOutline
 Assets = require './assets'
 Chapter = require './chapter'
 
@@ -16,7 +15,6 @@ Book.Chapter = Chapter
 
 module.exports = {
   Book: Book
-  SubOutline: SubOutline
   Assets: Assets
   Chapter: Chapter
   loadYaml: yaml.loadYaml
