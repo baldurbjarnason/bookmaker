@@ -27,9 +27,6 @@ class Book
     @meta.lang = meta.lang || 'en'
     unless meta.bookId
       @meta.bookId = 'id' + require('crypto').randomBytes(16).toString('hex')
-    @_chapterIndex = 0
-    @_navPoint = 0
-    @_globalCounter = 0
     if @init
       for fn in @init
         fn(this)

@@ -31,9 +31,6 @@ Book = (function() {
     if (!meta.bookId) {
       this.meta.bookId = 'id' + require('crypto').randomBytes(16).toString('hex');
     }
-    this._chapterIndex = 0;
-    this._navPoint = 0;
-    this._globalCounter = 0;
     if (this.init) {
       _ref = this.init;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
