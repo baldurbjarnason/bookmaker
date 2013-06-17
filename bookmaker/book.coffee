@@ -1,6 +1,5 @@
 'use strict'
 
-handlebars = require('handlebars')
 Assets = require './assets'
 Chapter = require './chapter'
 path = require 'path'

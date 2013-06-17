@@ -1,7 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, dateProcess, handlebars, path, sequence, utilities, whenjs;
-
-handlebars = require('handlebars');
+var Assets, Book, Chapter, dateProcess, path, sequence, utilities, whenjs;
 
 Assets = require('./assets');
 
