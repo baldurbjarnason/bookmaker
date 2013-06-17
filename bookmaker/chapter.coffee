@@ -11,8 +11,9 @@ whenjs = require('when')
 path = require 'path'
 utilities = require './utilities'
 addToZip = utilities.addToZip
-temp = require './templates'
-templates = temp.templates
+nunjucks = require 'nunjucks'
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
+
 
 class Chapter
   constructor: (doc) ->
@@ -36,7 +37,7 @@ class Chapter
     return newpath
   addToZip: (zip, template) ->
     unless template
-      template = templates['chapter.xhtml']
+      template = env.getTemplate('chapter.xhtml')
     if !@assets
       context = @context()
     else

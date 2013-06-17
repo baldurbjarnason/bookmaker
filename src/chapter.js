@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, handlebars, mdparser, path, processHTML, renderer, rs, temp, templates, toHtml, utilities, whenjs, _,
+var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, processHTML, renderer, rs, toHtml, utilities, whenjs, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -24,9 +24,11 @@ utilities = require('./utilities');
 
 addToZip = utilities.addToZip;
 
-temp = require('./templates');
+nunjucks = require('nunjucks');
 
-templates = temp.templates;
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
 
 Chapter = (function() {
   function Chapter(doc) {
@@ -69,7 +71,7 @@ Chapter = (function() {
     var context;
 
     if (!template) {
-      template = templates['chapter.xhtml'];
+      template = env.getTemplate('chapter.xhtml');
     }
     if (!this.assets) {
       context = this.context();

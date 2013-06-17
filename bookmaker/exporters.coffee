@@ -7,10 +7,11 @@ sequence = require('when/sequence')
 nodefn = require("when/node/function")
 url = require 'url'
 handlebars = require('handlebars')
-temp = require './templates'
-templates = temp.templates
-loadTemplates = temp.loadTemplates
 utilities = require './utilities'
+nunjucks = require 'nunjucks'
+
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
+
 
 ensuredir = utilities.ensuredir
 write = utilities.write
@@ -210,8 +211,8 @@ extendBook = (Book) ->
     tasks.push ensuredir directory + 'chapters/'
     unless options?.noAssets
       tasks.push(book.assets.copy(directory + book.assets.assetsPath))
-    tasks.push(write(directory + 'index.html', templates['index.html'].render(book), 'utf8'))
-    tasks.push(write(directory + 'cover.html', templates['cover.html'].render(book), 'utf8'))
+    tasks.push(write(directory + 'index.html', env.getTemplate('index.html').render(book), 'utf8'))
+    tasks.push(write(directory + 'cover.html', env.getTemplate('cover.html').render(book), 'utf8'))
     for chapter in book.chapters
       context = chapter.context(book)
       selfindex = book.chapters.indexOf(chapter)
@@ -232,7 +233,7 @@ extendBook = (Book) ->
           type: "application/hal+json"
         }
         context.links = utilities.pageLinks context, book
-      tasks.push(write(directory + chapter.filename, templates['chapter.html'].render(context), 'utf8'))
+      tasks.push(write(directory + chapter.filename, env.getTemplate('chapter.html').render(context), 'utf8'))
     whenjs.all tasks
   Book.prototype.toHtmlAndJsonFiles = (directory, options) ->
     defaults = { arbitraryDefault: true }

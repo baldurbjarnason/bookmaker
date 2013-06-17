@@ -1,5 +1,5 @@
 'use strict';
-var addToZip, callbacks, chapterProperties, extendAssets, extendBook, fs, glob, isCover, mangler, pageLinks, path, processLandmarks, relative, renderEpub, sequence, temp, templates, toEpub, utilities, whenjs, zipStream, _;
+var addToZip, callbacks, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, sequence, toEpub, utilities, whenjs, zipStream, _;
 
 zipStream = require('zipstream-contentment');
 
@@ -19,10 +19,6 @@ mangler = require('./lib/mangler');
 
 _ = require('underscore');
 
-temp = require('./templates');
-
-templates = temp.templates;
-
 utilities = require('./utilities');
 
 relative = utilities.relative;
@@ -30,6 +26,14 @@ relative = utilities.relative;
 pageLinks = utilities.pageLinks;
 
 addToZip = utilities.addToZip;
+
+nunjucks = require('nunjucks');
+
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
+
+env.getTemplate('cover.xhtml').render();
 
 extendBook = function(Book) {
   Book.prototype.toEpub = toEpub;
@@ -123,12 +127,12 @@ renderEpub = function(book, out, options, zip) {
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>'));
   tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>', 'META-INF/container.xml'));
   if (book.meta.cover) {
-    tasks.push(addToZip.bind(null, zip, 'cover.html', templates['cover.xhtml'].render.bind(templates, book)));
+    tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)));
   }
-  tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render.bind(templates, book)));
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render.bind(templates, book)));
-  tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render.bind(templates, book)));
-  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']));
+  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)));
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)));
+  tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)));
+  tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')));
   tasks.push(book.assets.addToZip.bind(book.assets, zip));
   if (book.sharedAssets) {
     tasks.push(book.sharedAssets.addToZip.bind(book.sharedAssets, zip));
@@ -191,7 +195,7 @@ extendAssets = function(Assets) {
 
       deferred = whenjs.defer();
       promise = deferred.promise;
-      zip.addFile(templates['encryption.xml'].render({
+      zip.addFile(env.getTemplate('encryption.xml').render({
         fonts: fonts
       }), {
         name: 'META-INF/encryption.xml'

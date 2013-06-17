@@ -9,12 +9,13 @@ glob = require 'glob'
 fs = require 'fs'
 mangler = require './lib/mangler'
 _ = require 'underscore'
-temp = require './templates'
-templates = temp.templates
 utilities = require './utilities'
 relative = utilities.relative
 pageLinks = utilities.pageLinks
 addToZip = utilities.addToZip
+nunjucks = require 'nunjucks'
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
+env.getTemplate('cover.xhtml').render()
 
 extendBook = (Book) ->
   Book.prototype.toEpub = toEpub
@@ -89,11 +90,11 @@ renderEpub = (book, out, options, zip) ->
       </container>
       ''', 'META-INF/container.xml'))
   if book.meta.cover
-    tasks.push(addToZip.bind(null, zip, 'cover.html', templates['cover.xhtml'].render.bind(templates, book)))
-  tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render.bind(templates, book)))
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render.bind(templates, book)))
-  tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render.bind(templates, book)))
-  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']))
+    tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)))
+  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)))
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)))
+  tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)))
+  tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')))
   tasks.push(book.assets.addToZip.bind(book.assets, zip))
   if book.sharedAssets
     tasks.push(book.sharedAssets.addToZip.bind(book.sharedAssets, zip))
@@ -127,7 +128,7 @@ extendAssets = (Assets) ->
     @addMangledFontsToZip(zip, id).then(()->
       deferred = whenjs.defer()
       promise = deferred.promise
-      zip.addFile(templates['encryption.xml'].render({fonts: fonts }), { name: 'META-INF/encryption.xml' }, deferred.resolve)
+      zip.addFile(env.getTemplate('encryption.xml').render({fonts: fonts }), { name: 'META-INF/encryption.xml' }, deferred.resolve)
       return promise)
   return Assets
 

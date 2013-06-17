@@ -1,5 +1,5 @@
 'use strict';
-var ensuredir, extend, extendAssets, extendBook, extendChapter, filter, handlebars, loadTemplates, nodefn, path, relative, sequence, temp, templates, url, utilities, whenjs, write, _;
+var ensuredir, env, extend, extendAssets, extendBook, extendChapter, filter, handlebars, nodefn, nunjucks, path, relative, sequence, url, utilities, whenjs, write, _;
 
 whenjs = require('when');
 
@@ -15,13 +15,13 @@ url = require('url');
 
 handlebars = require('handlebars');
 
-temp = require('./templates');
-
-templates = temp.templates;
-
-loadTemplates = temp.loadTemplates;
-
 utilities = require('./utilities');
+
+nunjucks = require('nunjucks');
+
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
 
 ensuredir = utilities.ensuredir;
 
@@ -416,8 +416,8 @@ extendBook = function(Book) {
     if (!(options != null ? options.noAssets : void 0)) {
       tasks.push(book.assets.copy(directory + book.assets.assetsPath));
     }
-    tasks.push(write(directory + 'index.html', templates['index.html'].render(book), 'utf8'));
-    tasks.push(write(directory + 'cover.html', templates['cover.html'].render(book), 'utf8'));
+    tasks.push(write(directory + 'index.html', env.getTemplate('index.html').render(book), 'utf8'));
+    tasks.push(write(directory + 'cover.html', env.getTemplate('cover.html').render(book), 'utf8'));
     _ref1 = book.chapters;
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       chapter = _ref1[_i];
@@ -448,7 +448,7 @@ extendBook = function(Book) {
         };
         context.links = utilities.pageLinks(context, book);
       }
-      tasks.push(write(directory + chapter.filename, templates['chapter.html'].render(context), 'utf8'));
+      tasks.push(write(directory + chapter.filename, env.getTemplate('chapter.html').render(context), 'utf8'));
     }
     return whenjs.all(tasks);
   };

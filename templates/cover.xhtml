@@ -1,7 +1,7 @@
 {% extends 'chapter.xhtml' %}
 {% block title %}{{ meta.title }}{% endblock %}
 {% block css %}
-  {% parent %}
+  {{ super() }}
 	<style type="text/css">img{ max-width: 100%; }</style>
 {% endblock %}
 {% block js %}

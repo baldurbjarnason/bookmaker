@@ -1,14 +1,12 @@
 'use strict';
-var loadTemplates, path, swig, templates;
+var env, loadTemplates, nunjucks, path, templates;
 
 path = require('path');
 
-swig = require('swig');
+nunjucks = require('nunjucks');
 
-swig.init({
-  allowErrors: true,
-  autoescape: false,
-  root: path.resolve(__filename, '../../', 'templates/')
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
 });
 
 templates = {};
@@ -21,7 +19,7 @@ loadTemplates = function(searchpath) {
   for (_i = 0, _len = newtemplates.length; _i < _len; _i++) {
     temppath = newtemplates[_i];
     name = path.basename(temppath);
-    _results.push(templates[name] = swig.compileFile(temppath));
+    _results.push(templates[name] = env.getTemplate(temppath));
   }
   return _results;
 };
@@ -30,5 +28,6 @@ loadTemplates();
 
 module.exports = {
   templates: templates,
-  loadTemplates: loadTemplates
+  loadTemplates: loadTemplates,
+  env: env
 };

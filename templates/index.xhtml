@@ -2,13 +2,13 @@
 {% block title %}Table of Contents – {{ meta.title }}{% endblock %}
 {% block js %}
 {% endblock %}
-	{% block metadata -%}{% parent %}
+	{% block metadata -%}{{ super() }}
 	<meta name="dcterms.title" content="{{ meta.title }}" />
 	<meta name="dcterms.created" content="{{ meta.date.isoDate }}" />
 	<meta name="dcterms.modified" content="{{ meta.modified.isoDate }}" />
 	<meta name="dcterms.creator" content="{{ meta.author }}" />
 	<meta name="author" content="{{ meta.author }}" />
-	{%- if meta.author2 -%}
+	{% if meta.author2 -%}
 	<meta name="dcterms.creator" content="{{ meta.author2 }}" />
 	{%- endif %}
 	{% if meta.description -%}
