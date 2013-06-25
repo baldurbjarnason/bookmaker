@@ -44,15 +44,15 @@ class Chapter
       context = this
     addToZip(zip, @filename, template.render.bind(template, context))
 
-toHtml = ->
+toHtml = Chapter.prototype.toHtml = ->
   switch @type
     when 'md'
-      processHTML mdparser.render @body, @book?.meta?.smartyPants
+      @processHTML mdparser.render @body, @book?.meta?.smartyPants
     when 'html'
-      processHTML @body, @book?.meta?.smartyPants
+      @processHTML @body, @book?.meta?.smartyPants
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      processHTML bodytemplate(@context(), @book?.meta?.smartyPants)
+      @processHTML bodytemplate(@context(), @book?.meta?.smartyPants)
     when 'xhtml'
       @body
 
@@ -60,7 +60,7 @@ Object.defineProperty Chapter.prototype, 'html', {
   get: toHtml
   enumerable: true
 }
-processHTML = (html, smartyPants) ->
+Chapter.prototype.processHTML = (html, smartyPants) ->
   if smartyPants is true
     html = rs.smartypantsHtml html
   $('body').html(html)
@@ -77,6 +77,30 @@ processHTML = (html, smartyPants) ->
   elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a']
   for elem in elements
     $(elem).each((index) -> addId(this, elem))
+  unless @headings
+    headings = []
+    current = {}
+    _fn = @filename
+    _id = @id
+    $(':header').each((index, elem) ->
+      htag = elem.nodeName.toLowerCase()
+      if 1 < htag[1]
+        current[htag] = { tag: htag, text: elem.textContent, url: _fn + '#' + elem.id, children: [] }
+        parent = 'h' + (htag[1] - 1)
+        if current[parent]
+          current[parent].children.push current[htag]
+      else
+        currentElem = elem.nodeName.toLowerCase()
+        current[currentElem] = {
+          tag: currentElem,
+          text: elem.textContent,
+          id: _id,
+          url: _fn + '#' + elem.id,
+          children: []
+        }
+        headings.push current[currentElem])
+    @headings = headings
+    console.log @headings
   # Need to properly filter entities here. Or at least look further into the issue.
   nbsp = new RegExp('&nbsp;', 'g')
   return $('body').html().replace(nbsp, '&#160;')

@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, processHTML, renderer, rs, toHtml, utilities, whenjs, _,
+var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, utilities, whenjs, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -85,17 +85,17 @@ Chapter = (function() {
 
 })();
 
-toHtml = function() {
+toHtml = Chapter.prototype.toHtml = function() {
   var bodytemplate, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
 
   switch (this.type) {
     case 'md':
-      return processHTML(mdparser.render(this.body, (_ref = this.book) != null ? (_ref1 = _ref.meta) != null ? _ref1.smartyPants : void 0 : void 0));
+      return this.processHTML(mdparser.render(this.body, (_ref = this.book) != null ? (_ref1 = _ref.meta) != null ? _ref1.smartyPants : void 0 : void 0));
     case 'html':
-      return processHTML(this.body, (_ref2 = this.book) != null ? (_ref3 = _ref2.meta) != null ? _ref3.smartyPants : void 0 : void 0);
+      return this.processHTML(this.body, (_ref2 = this.book) != null ? (_ref3 = _ref2.meta) != null ? _ref3.smartyPants : void 0 : void 0);
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return processHTML(bodytemplate(this.context(), (_ref4 = this.book) != null ? (_ref5 = _ref4.meta) != null ? _ref5.smartyPants : void 0 : void 0));
+      return this.processHTML(bodytemplate(this.context(), (_ref4 = this.book) != null ? (_ref5 = _ref4.meta) != null ? _ref5.smartyPants : void 0 : void 0));
     case 'xhtml':
       return this.body;
   }
@@ -106,8 +106,8 @@ Object.defineProperty(Chapter.prototype, 'html', {
   enumerable: true
 });
 
-processHTML = function(html, smartyPants) {
-  var addId, counter, elem, elements, nbsp, _counter, _i, _len;
+Chapter.prototype.processHTML = function(html, smartyPants) {
+  var addId, counter, current, elem, elements, headings, nbsp, _counter, _fn, _i, _id, _len;
 
   if (smartyPants === true) {
     html = rs.smartypantsHtml(html);
@@ -133,6 +133,41 @@ processHTML = function(html, smartyPants) {
     $(elem).each(function(index) {
       return addId(this, elem);
     });
+  }
+  if (!this.headings) {
+    headings = [];
+    current = {};
+    _fn = this.filename;
+    _id = this.id;
+    $(':header').each(function(index, elem) {
+      var currentElem, htag, parent;
+
+      htag = elem.nodeName.toLowerCase();
+      if (1 < htag[1]) {
+        current[htag] = {
+          tag: htag,
+          text: elem.textContent,
+          url: _fn + '#' + elem.id,
+          children: []
+        };
+        parent = 'h' + (htag[1] - 1);
+        if (current[parent]) {
+          return current[parent].children.push(current[htag]);
+        }
+      } else {
+        currentElem = elem.nodeName.toLowerCase();
+        current[currentElem] = {
+          tag: currentElem,
+          text: elem.textContent,
+          id: _id,
+          url: _fn + '#' + elem.id,
+          children: []
+        };
+        return headings.push(current[currentElem]);
+      }
+    });
+    this.headings = headings;
+    console.log(this.headings);
   }
   nbsp = new RegExp('&nbsp;', 'g');
   return $('body').html().replace(nbsp, '&#160;');
