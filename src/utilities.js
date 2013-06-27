@@ -88,6 +88,7 @@ ensuredir = function(directory) {
   promise = deferred.promise;
   mkdirp(directory, function(err) {
     if (err) {
+      log.error(err);
       return deferred.reject(err);
     } else {
       return deferred.resolve();
@@ -103,6 +104,7 @@ write = function(filename, data) {
   promise = deferred.promise;
   fs.writeFile(filename, data, function(err) {
     if (err) {
+      log.error(err);
       return deferred.reject(err);
     } else {
       log.info("" + filename + " written");

@@ -43,6 +43,7 @@ ensuredir = (directory) ->
   promise = deferred.promise
   mkdirp(directory, (err) ->
     if err
+      log.error err
       deferred.reject(err)
     else
       deferred.resolve())
@@ -54,6 +55,7 @@ write = (filename, data) ->
   promise = deferred.promise
   fs.writeFile(filename, data, (err) ->
     if err
+      log.error err
       deferred.reject(err)
     else
       log.info "#{filename} written"
