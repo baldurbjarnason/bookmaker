@@ -21,6 +21,7 @@ class Assets
     fn = path.resolve(@root, filepath)
     fs.readFile(fn, (err, data) ->
       if err
+        log.error err
         deferred.reject
       else
         deferred.resolve(data, filepath))
@@ -53,8 +54,10 @@ class Assets
     deferred.notify "Copying assets"
     ncp(path.resolve(@root, @assetsPath), directory, (err) ->
       if err
+        log.error err
         deferred.reject err
       else
+        log.info "Assets copied to #{directory}"
         deferred.resolve())
     return promise
 

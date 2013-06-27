@@ -35,6 +35,7 @@ Assets = (function() {
     fn = path.resolve(this.root, filepath);
     fs.readFile(fn, function(err, data) {
       if (err) {
+        log.error(err);
         return deferred.reject;
       } else {
         return deferred.resolve(data, filepath);
@@ -95,8 +96,10 @@ Assets = (function() {
     deferred.notify("Copying assets");
     ncp(path.resolve(this.root, this.assetsPath), directory, function(err) {
       if (err) {
+        log.error(err);
         return deferred.reject(err);
       } else {
+        log.info("Assets copied to " + directory);
         return deferred.resolve();
       }
     });
