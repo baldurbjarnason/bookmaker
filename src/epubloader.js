@@ -73,6 +73,8 @@ EpubLoaderMixin = (function() {
           meta.bookId = elem._;
         }
       }
+      meta.specifiedCss = true;
+      meta.specifiedJs = true;
       meta.author = metadata['dc:creator'][0]._;
       meta.title = metadata['dc:title'][0]._;
       if (metadata['dc:creator'][1]) {
@@ -215,12 +217,40 @@ EpubLoaderMixin = (function() {
       deferred = whenjs.defer();
       promise = deferred.promise;
       parseString(xml, function(err, result) {
-        var chapter;
+        var chapter, css, js, link, links, script, scripts, _i, _j, _len, _len1, _links;
 
         chapter = {};
         chapter.title = result.html.head[0].title[0]._;
         chapter.type = 'xhtml';
         chapter.body = bodyre.exec(xml)[1];
+        links = result.html.head[0].link;
+        css = [];
+        _links = {};
+        if (links) {
+          for (_i = 0, _len = links.length; _i < _len; _i++) {
+            link = links[_i];
+            if (link.$.type === 'text/css') {
+              css.push(link.$.href);
+            } else {
+              _links[link.$.rel] = {
+                type: link.$.type,
+                href: link.$.href
+              };
+              if (link.$.hreflang) {
+                _links[link.$.rel].hreflang = link.$.hreflang;
+              }
+            }
+          }
+        }
+        chapter.css = css;
+        scripts = result.html.head[0].scripts;
+        js = [];
+        if (scripts) {
+          for (_j = 0, _len1 = scripts.length; _j < _len1; _j++) {
+            script = scripts[_j];
+            js.push(script.$.src);
+          }
+        }
         preBook.book.addChapter(chapter);
         return deferred.resolve(chapter);
       });

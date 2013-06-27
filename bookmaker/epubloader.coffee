@@ -44,6 +44,8 @@ class EpubLoaderMixin
       for elem in metadata['dc:identifier']
         if elem.$['id'] is uid
           meta.bookId = elem._
+      meta.specifiedCss = true
+      meta.specifiedJs = true
       meta.author = metadata['dc:creator'][0]._
       meta.title = metadata['dc:title'][0]._
       if metadata['dc:creator'][1]
@@ -132,6 +134,23 @@ class EpubLoaderMixin
         chapter.title = result.html.head[0].title[0]._
         chapter.type = 'xhtml'
         chapter.body = bodyre.exec(xml)[1]
+        links = result.html.head[0].link
+        css = []
+        _links = {}
+        if links
+          for link in links
+            if link.$.type is 'text/css'
+              css.push link.$.href
+            else
+              _links[link.$.rel] = { type: link.$.type, href: link.$.href }
+              if link.$.hreflang
+                _links[link.$.rel].hreflang = link.$.hreflang
+        chapter.css = css
+        scripts = result.html.head[0].scripts
+        js = []
+        if scripts
+          for script in scripts
+            js.push script.$.src
         preBook.book.addChapter chapter
         deferred.resolve chapter
       return promise
