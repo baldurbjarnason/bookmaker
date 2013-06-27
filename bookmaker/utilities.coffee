@@ -5,6 +5,7 @@ fs = require 'fs'
 whenjs = require 'when'
 mkdirp = require 'mkdirp'
 _ = require 'underscore'
+log = require('./logger').logger
 
 
 relative = (current, target) ->
@@ -55,6 +56,7 @@ write = (filename, data) ->
     if err
       deferred.reject(err)
     else
+      log.info "#{filename} written"
       deferred.resolve())
   return promise
 
@@ -74,12 +76,15 @@ addToZip = (zip, fn, file, store) ->
   deferred = whenjs.defer()
   promise = deferred.promise
   options = { name: fn }
+  resolver = () ->
+    log.info "#{fn} written to zip"
+    deferred.resolve()
   if store
     options.store = store
   if typeof file is 'function'
-    zip.addFile(file(), options, deferred.resolve)
+    zip.addFile(file(), options, resolver)
   else
-    zip.addFile(file, options, deferred.resolve)
+    zip.addFile(file, options, resolver)
   return promise
 
 countergen = () ->

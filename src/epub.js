@@ -1,5 +1,5 @@
 'use strict';
-var addToZip, callbacks, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, sequence, toEpub, utilities, whenjs, zipStream, _;
+var addToZip, callbacks, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, sequence, toEpub, utilities, whenjs, zipStream, _;
 
 zipStream = require('zipstream-contentment');
 
@@ -26,6 +26,8 @@ relative = utilities.relative;
 pageLinks = utilities.pageLinks;
 
 addToZip = utilities.addToZip;
+
+log = require('./logger').logger;
 
 nunjucks = require('nunjucks');
 
@@ -89,6 +91,7 @@ processLandmarks = function(landmarks) {
     }
     return _results;
   })();
+  log.info('EPUB – Landmarks prepared');
   return landmarks;
 };
 

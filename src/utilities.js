@@ -1,5 +1,5 @@
 'use strict';
-var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, mixin, mkdirp, pageLinks, path, relative, whenjs, write, _,
+var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, log, mixin, mkdirp, pageLinks, path, relative, whenjs, write, _,
   __slice = [].slice;
 
 path = require('path');
@@ -11,6 +11,8 @@ whenjs = require('when');
 mkdirp = require('mkdirp');
 
 _ = require('underscore');
+
+log = require('./logger').logger;
 
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;
@@ -103,6 +105,7 @@ write = function(filename, data) {
     if (err) {
       return deferred.reject(err);
     } else {
+      log.info("" + filename + " written");
       return deferred.resolve();
     }
   });
@@ -142,20 +145,24 @@ mixin = function() {
 };
 
 addToZip = function(zip, fn, file, store) {
-  var deferred, options, promise;
+  var deferred, options, promise, resolver;
 
   deferred = whenjs.defer();
   promise = deferred.promise;
   options = {
     name: fn
   };
+  resolver = function() {
+    log.info("" + fn + " written to zip");
+    return deferred.resolve();
+  };
   if (store) {
     options.store = store;
   }
   if (typeof file === 'function') {
-    zip.addFile(file(), options, deferred.resolve);
+    zip.addFile(file(), options, resolver);
   } else {
-    zip.addFile(file, options, deferred.resolve);
+    zip.addFile(file, options, resolver);
   }
   return promise;
 };

@@ -9,6 +9,7 @@ _ = require 'underscore'
 fs = require 'fs'
 ncp = require('ncp').ncp
 path = require 'path'
+log = require('./logger').logger
 
 # Some way to enable single chapter css and js? Is that even necessary?
 
@@ -30,7 +31,10 @@ class Assets
     deferred = whenjs.defer()
     promise = deferred.promise
     deferred.notify "Writing #{item} to zip"
-    zip.addFile(@getStream(item), { name: item }, deferred.resolve)
+    resolver = () ->
+      log.info "#{item} written to zip"
+      deferred.resolve()
+    zip.addFile(@getStream(item), { name: item }, resolver)
     return promise
   addTypeToZip: (type, zip) ->
     tasks = []

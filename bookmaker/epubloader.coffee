@@ -10,6 +10,7 @@ parseString = parser.parseString
 $ = require 'jquery'
 whenjs = require('when')
 sequence = require('when/sequence')
+log = require('./logger').logger
 
 
 bodyre = new RegExp('<body [^>]*>([\\w|\\W]*)</body>', 'm')
@@ -26,6 +27,8 @@ class EpubLoaderMixin
       deferred = whenjs.defer()
       promise = deferred.promise
       parseString xml, (err, result) ->
+        if err
+          log.error err
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path']
         deferred.resolve rootfile
       return promise
@@ -94,16 +97,19 @@ class EpubLoaderMixin
           landmarks.push { type: type, title: reference.$.title, href: reference.$.href }
       if landmarks.length > 0
         meta.landmarks = landmarks
+      log.info 'EPUB – OPF parsed and worked'
       deferred.resolve xml
 
     processNav = (xml) ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
-      body = bodyre.exec(xml)[1]
-      $('body').html(xml)
-      preBook.outline = $('nav[epub\\:type=toc]').html()
-      deferred.resolve xml
-      return promise
+      if xml
+        deferred = whenjs.defer()
+        promise = deferred.promise
+        body = bodyre.exec(xml)[1]
+        $('body').html(xml)
+        preBook.outline = $('nav[epub\\:type=toc]').html()
+        deferred.resolve xml
+        log.info 'EPUB – Nav parsed and worked'
+        return promise
 
     extractAssetsAndCreateBook = () ->
       deferred = whenjs.defer()
@@ -124,6 +130,7 @@ class EpubLoaderMixin
       assets = new Assets(assetsroot)
       preBook.book = new Book preBook.meta, assets
       deferred.resolve preBook.book
+      log.info 'EPUB – assets extracted'
       return promise
     
     parseChapter = (xml) ->
@@ -162,6 +169,7 @@ class EpubLoaderMixin
       for chapter in preBook.spine
         xml = epub.readAsText(chapter)
         chapters.push parseChapter.bind(null, xml, book)
+      log.info 'EPUB – extracting chapters'
       sequence chapters
 
     opfpath = findOpf epub.readAsText 'META-INF/container.xml'

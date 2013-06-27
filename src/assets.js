@@ -1,5 +1,5 @@
 'use strict';
-var Assets, fs, glob, ncp, nodefn, path, pglob, sequence, whenjs, _;
+var Assets, fs, glob, log, ncp, nodefn, path, pglob, sequence, whenjs, _;
 
 glob = require('glob');
 
@@ -18,6 +18,8 @@ fs = require('fs');
 ncp = require('ncp').ncp;
 
 path = require('path');
+
+log = require('./logger').logger;
 
 Assets = (function() {
   function Assets(root, assetsPath) {
@@ -46,14 +48,18 @@ Assets = (function() {
   };
 
   Assets.prototype.addItemToZip = function(item, zip) {
-    var deferred, promise;
+    var deferred, promise, resolver;
 
     deferred = whenjs.defer();
     promise = deferred.promise;
     deferred.notify("Writing " + item + " to zip");
+    resolver = function() {
+      log.info("" + item + " written to zip");
+      return deferred.resolve();
+    };
     zip.addFile(this.getStream(item), {
       name: item
-    }, deferred.resolve);
+    }, resolver);
     return promise;
   };
 

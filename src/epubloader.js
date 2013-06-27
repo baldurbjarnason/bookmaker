@@ -1,5 +1,5 @@
 'use strict';
-var $, EpubLoaderMixin, Zip, bodyre, extend, fs, parseString, parser, path, sequence, utilities, whenjs, xml2js;
+var $, EpubLoaderMixin, Zip, bodyre, extend, fs, log, parseString, parser, path, sequence, utilities, whenjs, xml2js;
 
 fs = require('fs');
 
@@ -24,6 +24,8 @@ whenjs = require('when');
 
 sequence = require('when/sequence');
 
+log = require('./logger').logger;
+
 bodyre = new RegExp('<body [^>]*>([\\w|\\W]*)</body>', 'm');
 
 EpubLoaderMixin = (function() {
@@ -45,6 +47,9 @@ EpubLoaderMixin = (function() {
       parseString(xml, function(err, result) {
         var rootfile;
 
+        if (err) {
+          log.error(err);
+        }
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path'];
         return deferred.resolve(rootfile);
       });
@@ -162,18 +167,22 @@ EpubLoaderMixin = (function() {
       if (landmarks.length > 0) {
         meta.landmarks = landmarks;
       }
+      log.info('EPUB – OPF parsed and worked');
       return deferred.resolve(xml);
     };
     processNav = function(xml) {
       var body, deferred, promise;
 
-      deferred = whenjs.defer();
-      promise = deferred.promise;
-      body = bodyre.exec(xml)[1];
-      $('body').html(xml);
-      preBook.outline = $('nav[epub\\:type=toc]').html();
-      deferred.resolve(xml);
-      return promise;
+      if (xml) {
+        deferred = whenjs.defer();
+        promise = deferred.promise;
+        body = bodyre.exec(xml)[1];
+        $('body').html(xml);
+        preBook.outline = $('nav[epub\\:type=toc]').html();
+        deferred.resolve(xml);
+        log.info('EPUB – Nav parsed and worked');
+        return promise;
+      }
     };
     extractAssetsAndCreateBook = function() {
       var assets, assetslist, deferred, entry, promise, _i, _len;
@@ -209,6 +218,7 @@ EpubLoaderMixin = (function() {
       assets = new Assets(assetsroot);
       preBook.book = new Book(preBook.meta, assets);
       deferred.resolve(preBook.book);
+      log.info('EPUB – assets extracted');
       return promise;
     };
     parseChapter = function(xml) {
@@ -268,6 +278,7 @@ EpubLoaderMixin = (function() {
         xml = epub.readAsText(chapter);
         chapters.push(parseChapter.bind(null, xml, book));
       }
+      log.info('EPUB – extracting chapters');
       return sequence(chapters);
     };
     opfpath = findOpf(epub.readAsText('META-INF/container.xml'));

@@ -13,6 +13,7 @@ utilities = require './utilities'
 relative = utilities.relative
 pageLinks = utilities.pageLinks
 addToZip = utilities.addToZip
+log = require('./logger').logger
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
 env.getTemplate('cover.xhtml').render()
@@ -49,6 +50,7 @@ processLandmarks = (landmarks) ->
       else
         landmark.opftype = landmark.type
       return landmark
+  log.info 'EPUB – Landmarks prepared'
   return landmarks
 
 toEpub = (out, options) ->
