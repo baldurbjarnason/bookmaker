@@ -12,6 +12,8 @@ require('./exporters').extend(Chapter, Book, Assets);
 
 require('./loaders').extend(Book);
 
+require('./epubloader').extend(Book);
+
 yaml = require('./yaml');
 
 yaml.extend(Book);
