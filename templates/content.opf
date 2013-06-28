@@ -26,6 +26,7 @@
     {% endif %}
     {% if meta.cover %}<meta name="cover" content="bookcover" />{% endif %}
     <meta property="ibooks:specified-fonts">true</meta>
+    <meta property="ibooks:respect-image-size-class">bookmaker-respect</meta>
     <meta property="ibooks:version">{{ meta.version }}</meta>
 </metadata>
   <manifest>

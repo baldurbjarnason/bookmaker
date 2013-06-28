@@ -114,6 +114,7 @@ Chapter.prototype.processHTML = function(html, smartyPants) {
   }
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
+  $('img').addClass('bookmaker-respect');
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {

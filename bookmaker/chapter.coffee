@@ -65,6 +65,7 @@ Chapter.prototype.processHTML = (html, smartyPants) ->
     html = rs.smartypantsHtml html
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
+  $('img').addClass('bookmaker-respect')
   _counter = {}
   counter = (elem) ->
     unless _counter[elem]
