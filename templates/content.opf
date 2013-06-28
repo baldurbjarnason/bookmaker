@@ -24,7 +24,7 @@
     {% if meta.subject3 %}
     <dc:subject>{{ meta.subject3 }}</dc:subject>
     {% endif %}
-    {% if meta.cover %}<meta name="cover" content="bookcover" />{% endif %}
+    {% if meta.cover %}<meta name="cover" content="{{ idGen(meta.cover) }}" />{% endif %}
     <meta property="ibooks:specified-fonts">true</meta>
     <meta property="ibooks:respect-image-size-class">bookmaker-respect</meta>
     <meta property="ibooks:version">{{ meta.version }}</meta>
@@ -32,19 +32,19 @@
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
     {% for item in assets.css %}
-    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="text/css"/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="text/css"/>
     {% endfor %}
     {% for item in assets.jpg %}
-    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) }}/>
     {% endfor %}
     {% for item in assets.png %}
-    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="image/png" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/png" {{ isCover(item) }}/>
     {% endfor %}
     {% for item in assets.gif %}
-    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) }}/>
     {% endfor %}
     {% for item in assets.svg %}
-    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) }}/>
     {% endfor %}
     {% for item in assets.ttf %}
     <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/x-font-ttf"/>

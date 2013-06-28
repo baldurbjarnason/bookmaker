@@ -73,6 +73,7 @@ renderEpub = (book, out, options, zip) ->
   book.isCover = isCover.bind(book)
   book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
+  book.idGen = utilities.idGen
   tasks = []
   tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true))
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '''

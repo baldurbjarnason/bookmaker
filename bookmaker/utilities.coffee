@@ -97,6 +97,10 @@ countergen = () ->
     _counter[namespace]++
     return _counter[namespace]
 
+idre = new RegExp("[^A-Za-z0-9_\\.\\-\\:]", "g")
+idGen = (fn) ->
+  safe = fn.replace idre, ""
+  return "id" + safe
 
 module.exports = {
   relative: relative
@@ -108,4 +112,5 @@ module.exports = {
   mixin: mixin
   addToZip: addToZip
   countergen: countergen
+  idGen: idGen
 }

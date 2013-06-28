@@ -1,5 +1,5 @@
 'use strict';
-var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, log, mixin, mkdirp, pageLinks, path, relative, whenjs, write, _,
+var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, log, mixin, mkdirp, pageLinks, path, relative, whenjs, write, _,
   __slice = [].slice;
 
 path = require('path');
@@ -182,6 +182,15 @@ countergen = function() {
   };
 };
 
+idre = new RegExp("[^A-Za-z0-9_\\.\\-\\:]", "g");
+
+idGen = function(fn) {
+  var safe;
+
+  safe = fn.replace(idre, "");
+  return "id" + safe;
+};
+
 module.exports = {
   relative: relative,
   pageLinks: pageLinks,
@@ -191,5 +200,6 @@ module.exports = {
   write: write,
   mixin: mixin,
   addToZip: addToZip,
-  countergen: countergen
+  countergen: countergen,
+  idGen: idGen
 };
