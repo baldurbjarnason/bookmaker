@@ -17,9 +17,4 @@ module.exports = {
   Book: Book
   Assets: Assets
   Chapter: Chapter
-  loadYaml: yaml.loadYaml
-  toYaml: (book, filename, options) ->
-    book.toYaml(filename, options)
-  toEpub: (book, out, options) ->
-    book.toEpub(out, options)
 }

@@ -25,12 +25,5 @@ Book.Chapter = Chapter;
 module.exports = {
   Book: Book,
   Assets: Assets,
-  Chapter: Chapter,
-  loadYaml: yaml.loadYaml,
-  toYaml: function(book, filename, options) {
-    return book.toYaml(filename, options);
-  },
-  toEpub: function(book, out, options) {
-    return book.toEpub(out, options);
-  }
+  Chapter: Chapter
 };
