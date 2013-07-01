@@ -26,24 +26,26 @@ sequence = require('when/sequence');
 
 log = require('./logger').logger;
 
-bodyre = new RegExp('<body [^>]*>([\\w|\\W]*)</body>', 'm');
+bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig');
 
 EpubLoaderMixin = (function() {
   function EpubLoaderMixin() {}
 
   EpubLoaderMixin.fromEpub = function(epubpath, assetsroot) {
-    var Assets, Book, Chapter, createMetaAndSpine, epub, extractAssetsAndCreateBook, extractChapters, extractOpf, findOpf, opfpath, parseChapter, preBook, processNav, promise;
+    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractOpf, findOpf, opfpath, parseChapter, preBook, processNav, promise;
 
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
     Book = this;
     Assets = this.Assets;
     preBook = {};
+    log.info("Extraction starting");
     findOpf = function(xml) {
       var deferred, promise;
 
       deferred = whenjs.defer();
       promise = deferred.promise;
+      log.info("EPUB – Finding opf file");
       parseString(xml, function(err, result) {
         var rootfile;
 
@@ -51,6 +53,7 @@ EpubLoaderMixin = (function() {
           log.error(err);
         }
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path'];
+        log.info("EPUB – Path to opf file is /" + rootfile);
         return deferred.resolve(rootfile);
       });
       return promise;
@@ -61,6 +64,9 @@ EpubLoaderMixin = (function() {
       deferred = whenjs.defer();
       promise = deferred.promise;
       parseString(xml, function(err, result) {
+        if (err) {
+          log.error(err);
+        }
         return createMetaAndSpine(result, deferred);
       });
       return promise;
@@ -80,21 +86,37 @@ EpubLoaderMixin = (function() {
       }
       meta.specifiedCss = true;
       meta.specifiedJs = true;
-      meta.author = metadata['dc:creator'][0]._;
-      meta.title = metadata['dc:title'][0]._;
+      if (metadata['dc:creator']) {
+        meta.author = metadata['dc:creator'][0]._;
+      }
+      if (metadata['dc:title']) {
+        meta.title = metadata['dc:title'][0]._;
+      }
       if (metadata['dc:creator'][1]) {
         meta.author2 = metadata['dc:creator'][1]._;
       }
-      meta.lang = metadata['dc:language'][0]._;
-      meta.date = metadata['dc:date'][0]._;
-      meta.rights = metadata['dc:rights'][0]._;
-      meta.description = metadata['dc:description'][0]._;
-      meta.publisher = metadata['dc:publisher'][0]._;
-      meta.subject1 = metadata['dc:subject'][0]._;
-      if (metadata['dc:subject'][1]) {
+      if (meta.lang = metadata['dc:language']) {
+        meta.lang = metadata['dc:language'][0]._;
+      }
+      if (metadata['dc:date']) {
+        meta.date = metadata['dc:date'][0]._;
+      }
+      if (metadata['dc:rights']) {
+        meta.rights = metadata['dc:rights'][0]._;
+      }
+      if (metadata['dc:description']) {
+        meta.description = metadata['dc:description'][0]._;
+      }
+      if (metadata['dc:publisher']) {
+        meta.publisher = metadata['dc:publisher'][0]._;
+      }
+      if (metadata['dc:subject']) {
+        meta.subject1 = metadata['dc:subject'][0]._;
+      }
+      if (metadata['dc:subject'] && metadata['dc:subject'][1]) {
         meta.subject2 = metadata['dc:subject'][1]._;
       }
-      if (metadata['dc:subject'][2]) {
+      if (metadata['dc:subject'] && metadata['dc:subject'][2]) {
         meta.subject3 = metadata['dc:subject'][2]._;
       }
       _ref1 = metadata.meta;
@@ -111,6 +133,7 @@ EpubLoaderMixin = (function() {
         }
       }
       manifest = xml["package"].manifest[0];
+      log.info('EPUB – Extracting metadata');
       preBook.spine = (function() {
         var _k, _len2, _ref2, _results;
 
@@ -173,16 +196,14 @@ EpubLoaderMixin = (function() {
     processNav = function(xml) {
       var body, deferred, promise;
 
-      if (xml) {
-        deferred = whenjs.defer();
-        promise = deferred.promise;
-        body = bodyre.exec(xml)[1];
-        $('body').html(xml);
-        preBook.outline = $('nav[epub\\:type=toc]').html();
-        deferred.resolve(xml);
-        log.info('EPUB – Nav parsed and worked');
-        return promise;
-      }
+      deferred = whenjs.defer();
+      promise = deferred.promise;
+      body = xml.split(bodyre)[2];
+      $('body').html(body);
+      preBook.outline = $('nav[epub\\:type=toc]').html();
+      deferred.resolve(xml);
+      log.info('EPUB – Nav parsed and worked');
+      return promise;
     };
     extractAssetsAndCreateBook = function() {
       var assets, assetslist, deferred, entry, promise, _i, _len;
@@ -215,13 +236,13 @@ EpubLoaderMixin = (function() {
         entry = assetslist[_i];
         epub.extractEntryTo(entry, assetsroot, true, true);
       }
-      assets = new Assets(assetsroot);
+      assets = new Assets(assetsroot, '.');
       preBook.book = new Book(preBook.meta, assets);
       deferred.resolve(preBook.book);
       log.info('EPUB – assets extracted');
       return promise;
     };
-    parseChapter = function(xml) {
+    parseChapter = function(xml, chapterpath) {
       var deferred, promise;
 
       deferred = whenjs.defer();
@@ -229,10 +250,15 @@ EpubLoaderMixin = (function() {
       parseString(xml, function(err, result) {
         var chapter, css, js, link, links, script, scripts, _i, _j, _len, _len1, _links;
 
+        log.info("EPUB – Parsing " + chapterpath);
+        if (err) {
+          log.error(err);
+        }
         chapter = {};
         chapter.title = result.html.head[0].title[0]._;
         chapter.type = 'xhtml';
-        chapter.body = bodyre.exec(xml)[1];
+        chapter.body = xml.split(bodyre)[2];
+        chapter.filename = chapterpath;
         links = result.html.head[0].link;
         css = [];
         _links = {};
@@ -261,7 +287,7 @@ EpubLoaderMixin = (function() {
             js.push(script.$.src);
           }
         }
-        preBook.book.addChapter(chapter);
+        preBook.book.addChapter(new Chapter(chapter));
         return deferred.resolve(chapter);
       });
       return promise;
@@ -276,10 +302,13 @@ EpubLoaderMixin = (function() {
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         chapter = _ref[_i];
         xml = epub.readAsText(chapter);
-        chapters.push(parseChapter.bind(null, xml, book));
+        chapters.push(parseChapter.bind(null, xml, chapter));
       }
       log.info('EPUB – extracting chapters');
       return sequence(chapters);
+    };
+    done = function() {
+      return preBook.book;
     };
     opfpath = findOpf(epub.readAsText('META-INF/container.xml'));
     promise = opfpath.then(function(path) {
@@ -291,7 +320,7 @@ EpubLoaderMixin = (function() {
     }).then(function(book) {
       return extractChapters(book);
     }).then(function() {
-      return preBook.book;
+      return done();
     });
     return promise;
   };

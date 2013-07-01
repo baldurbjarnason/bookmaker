@@ -13,7 +13,7 @@ sequence = require('when/sequence')
 log = require('./logger').logger
 
 
-bodyre = new RegExp('<body [^>]*>([\\w|\\W]*)</body>', 'm')
+bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig')
 
 class EpubLoaderMixin
   @fromEpub = (epubpath, assetsroot) ->
@@ -22,14 +22,16 @@ class EpubLoaderMixin
     Book = this
     Assets = @Assets
     preBook = {} # both book state and meta will be attached to this object
-
+    log.info "Extraction starting"
     findOpf = (xml) ->
       deferred = whenjs.defer()
       promise = deferred.promise
+      log.info "EPUB – Finding opf file"
       parseString xml, (err, result) ->
         if err
           log.error err
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path']
+        log.info "EPUB – Path to opf file is /#{rootfile}"
         deferred.resolve rootfile
       return promise
 
@@ -37,6 +39,8 @@ class EpubLoaderMixin
       deferred = whenjs.defer()
       promise = deferred.promise
       parseString xml, (err, result) ->
+        if err
+          log.error err
         createMetaAndSpine result, deferred
       return promise
 
@@ -49,18 +53,22 @@ class EpubLoaderMixin
           meta.bookId = elem._
       meta.specifiedCss = true
       meta.specifiedJs = true
-      meta.author = metadata['dc:creator'][0]._
-      meta.title = metadata['dc:title'][0]._
-      if metadata['dc:creator'][1]
-        meta.author2 = metadata['dc:creator'][1]._
-      meta.lang = metadata['dc:language'][0]._
-      meta.date = metadata['dc:date'][0]._
-      meta.rights = metadata['dc:rights'][0]._
-      meta.description = metadata['dc:description'][0]._
-      meta.publisher = metadata['dc:publisher'][0]._
-      meta.subject1 = metadata['dc:subject'][0]._
-      meta.subject2 = metadata['dc:subject'][1]._ if metadata['dc:subject'][1]
-      meta.subject3 = metadata['dc:subject'][2]._ if metadata['dc:subject'][2]
+      meta.author = metadata['dc:creator'][0]._ if metadata['dc:creator']
+      meta.title = metadata['dc:title'][0]._ if metadata['dc:title']
+      meta.author2 = metadata['dc:creator'][1]._ if metadata['dc:creator'][1]
+      meta.lang = metadata['dc:language'][0]._ if meta.lang = metadata['dc:language']
+      meta.date = metadata['dc:date'][0]._ if metadata['dc:date']
+      if metadata['dc:rights']
+        meta.rights = metadata['dc:rights'][0]._
+      if metadata['dc:description']
+        meta.description = metadata['dc:description'][0]._
+      if metadata['dc:publisher']
+        meta.publisher = metadata['dc:publisher'][0]._
+      meta.subject1 = metadata['dc:subject'][0]._ if metadata['dc:subject']
+      if metadata['dc:subject'] and metadata['dc:subject'][1]
+        meta.subject2 = metadata['dc:subject'][1]._
+      if metadata['dc:subject'] and metadata['dc:subject'][2]
+        meta.subject3 = metadata['dc:subject'][2]._
       for elem in metadata.meta
         if elem.$['property'] is "dcterms:modified"
           meta.modified = elem._
@@ -69,6 +77,7 @@ class EpubLoaderMixin
         if elem.$['property'] is 'ibooks:version'
           meta.version = elem._
       manifest = xml.package.manifest[0]
+      log.info 'EPUB – Extracting metadata'
       preBook.spine = for item in xml.package.spine[0].itemref
         item.$.idref
       for elem in manifest.item
@@ -101,15 +110,14 @@ class EpubLoaderMixin
       deferred.resolve xml
 
     processNav = (xml) ->
-      if xml
-        deferred = whenjs.defer()
-        promise = deferred.promise
-        body = bodyre.exec(xml)[1]
-        $('body').html(xml)
-        preBook.outline = $('nav[epub\\:type=toc]').html()
-        deferred.resolve xml
-        log.info 'EPUB – Nav parsed and worked'
-        return promise
+      deferred = whenjs.defer()
+      promise = deferred.promise
+      body = xml.split(bodyre)[2]
+      $('body').html(body)
+      preBook.outline = $('nav[epub\\:type=toc]').html()
+      deferred.resolve xml
+      log.info 'EPUB – Nav parsed and worked'
+      return promise
 
     extractAssetsAndCreateBook = () ->
       deferred = whenjs.defer()
@@ -127,20 +135,24 @@ class EpubLoaderMixin
           else return true
       for entry in assetslist
         epub.extractEntryTo entry, assetsroot, true, true
-      assets = new Assets(assetsroot)
+      assets = new Assets(assetsroot, '.')
       preBook.book = new Book preBook.meta, assets
       deferred.resolve preBook.book
       log.info 'EPUB – assets extracted'
       return promise
     
-    parseChapter = (xml) ->
+    parseChapter = (xml, chapterpath) ->
       deferred = whenjs.defer()
       promise = deferred.promise
       parseString xml, (err, result) ->
+        log.info "EPUB – Parsing #{chapterpath}"
+        if err
+          log.error err
         chapter = {}
         chapter.title = result.html.head[0].title[0]._
         chapter.type = 'xhtml'
-        chapter.body = bodyre.exec(xml)[1]
+        chapter.body = xml.split(bodyre)[2]
+        chapter.filename = chapterpath
         links = result.html.head[0].link
         css = []
         _links = {}
@@ -158,7 +170,7 @@ class EpubLoaderMixin
         if scripts
           for script in scripts
             js.push script.$.src
-        preBook.book.addChapter chapter
+        preBook.book.addChapter new Chapter(chapter)
         deferred.resolve chapter
       return promise
 
@@ -168,9 +180,11 @@ class EpubLoaderMixin
       chapters = []
       for chapter in preBook.spine
         xml = epub.readAsText(chapter)
-        chapters.push parseChapter.bind(null, xml, book)
+        chapters.push parseChapter.bind(null, xml, chapter)
       log.info 'EPUB – extracting chapters'
       sequence chapters
+    done = () ->
+      return preBook.book
 
     opfpath = findOpf epub.readAsText 'META-INF/container.xml'
     # Extract OPF file and create meta object
@@ -179,7 +193,7 @@ class EpubLoaderMixin
       .then(() -> processNav(epub.readAsText(preBook.navPath)))
       .then(() -> extractAssetsAndCreateBook())
       .then((book) -> extractChapters(book)) # Remember to suppress cover html file and skip nav
-      .then(() -> return preBook.book)
+      .then(() -> done())
     return promise
 
 extend = (Book) ->
