@@ -5,7 +5,7 @@
 
 var bookmaker, done, fs, generate, load, loader, sequence, whenjs;
 
-bookmaker = require('bookmaker');
+bookmaker = require('./src/index');
 
 fs = require('fs');
 
