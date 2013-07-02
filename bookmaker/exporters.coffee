@@ -41,7 +41,6 @@ extendChapter = (Chapter) ->
     hal = _.omit this, banned
     hal.body = @html
     hal.type = 'html'
-    log.info "Setting up links for #{@filename}"
     urlgen = @book.uri.bind(@book) || relative
     tocpath = path.relative(path.resolve("/", path.dirname(@filename)), "/index.json")
     selfpath =

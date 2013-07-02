@@ -62,7 +62,6 @@ extendChapter = function(Chapter) {
     hal = _.omit(this, banned);
     hal.body = this.html;
     hal.type = 'html';
-    log.info("Setting up links for " + this.filename);
     urlgen = this.book.uri.bind(this.book) || relative;
     tocpath = path.relative(path.resolve("/", path.dirname(this.filename)), "/index.json");
     selfpath = ((_ref = this.book._state) != null ? _ref.baseurl : void 0) ? url.resolve(this.book._state.baseurl, this.formatPath('json')) : path.basename(this.formatPath('json'));
