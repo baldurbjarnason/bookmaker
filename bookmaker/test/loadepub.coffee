@@ -39,4 +39,4 @@ describe 'EpubLoader',
             book.chapters[2].body.should.equal('\n\t\n\t\t<div class="chapter" id="chapter"><h1>header</h1><p>Test<br/></p></div>\n\t\n')
             book.chapters[3].title.should.equal('Template – The Wonderful Wizard of Oz')
             book.chapters[3].body.should.equal('\n\t\n\t\t<div class="chapter" id="chapter"><h1 id="h1-1">Template</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p></div>\n\t\n')
-            book.assets.root.should.equal('test/files/epubloader/')
+            book.assets.root.should.equal('test/files/epubloader')
