@@ -32,6 +32,8 @@ class EpubLoaderMixin
           log.error err
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path']
         log.info "EPUB – Path to opf file is /#{rootfile}"
+        preBook.opfpath = rootfile
+        preBook.basedir = path.dirname preBook.opfpath
         deferred.resolve rootfile
       return promise
 
@@ -91,21 +93,22 @@ class EpubLoaderMixin
             meta.cover = elem.$.href
           if props.indexOf('nav') isnt -1
             preBook.navPath = elem.$.href
-      references = xml.package.guide[0].reference
-      landmarks = []
-      for reference in references
-        if reference.$.type is 'text' or reference.$.type is 'start'
-          type = 'bodymatter'
-        else
-          type = reference.$.type
-        if reference.$.type is 'cover'
-          preBook.spine = preBook.spine.filter (path) ->
-            if path isnt reference.$.href
-              return path
-        else
-          landmarks.push { type: type, title: reference.$.title, href: reference.$.href }
-      if landmarks.length > 0
-        meta.landmarks = landmarks
+      if xml.package.guide
+        references = xml.package.guide[0].reference
+        landmarks = []
+        for reference in references
+          if reference.$.type is 'text' or reference.$.type is 'start'
+            type = 'bodymatter'
+          else
+            type = reference.$.type
+          if reference.$.type is 'cover'
+            preBook.spine = preBook.spine.filter (path) ->
+              if path isnt reference.$.href
+                return path
+          else
+            landmarks.push { type: type, title: reference.$.title, href: reference.$.href }
+        if landmarks.length > 0
+          meta.landmarks = landmarks
       log.info 'EPUB – OPF parsed and worked'
       deferred.resolve xml
 
@@ -134,7 +137,9 @@ class EpubLoaderMixin
           when '.xml' then return false
           else return true
       for entry in assetslist
+        log.info "Extracting #{entry.entryName}"
         epub.extractEntryTo entry, assetsroot, true, true
+      assetsroot = path.join(assetsroot, preBook.basedir) if preBook.basedir
       assets = new Assets(assetsroot, '.')
       preBook.book = new Book preBook.meta, assets
       deferred.resolve preBook.book
@@ -144,6 +149,7 @@ class EpubLoaderMixin
     parseChapter = (xml, chapterpath) ->
       deferred = whenjs.defer()
       promise = deferred.promise
+      chapterpath = unescape chapterpath
       parseString xml, (err, result) ->
         log.info "EPUB – Parsing #{chapterpath}"
         if err
@@ -179,7 +185,9 @@ class EpubLoaderMixin
       promise = deferred.promise
       chapters = []
       for chapter in preBook.spine
-        xml = epub.readAsText(chapter)
+        chapterpath = path.join preBook.basedir, chapter
+        chapterpath = unescape chapterpath
+        xml = epub.readAsText(chapterpath)
         chapters.push parseChapter.bind(null, xml, chapter)
       log.info 'EPUB – extracting chapters'
       sequence chapters
