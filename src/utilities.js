@@ -98,10 +98,12 @@ ensuredir = function(directory) {
 };
 
 write = function(filename, data) {
-  var deferred, promise;
+  var container, deferred, promise;
 
   deferred = whenjs.defer();
   promise = deferred.promise;
+  container = path.dirname(filename);
+  mkdirp.sync(container);
   fs.writeFile(filename, data, function(err) {
     if (err) {
       log.error(err);

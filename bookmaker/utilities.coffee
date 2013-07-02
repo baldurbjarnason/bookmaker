@@ -53,6 +53,8 @@ ensuredir = (directory) ->
 write = (filename, data) ->
   deferred = whenjs.defer()
   promise = deferred.promise
+  container = path.dirname(filename)
+  mkdirp.sync container
   fs.writeFile(filename, data, (err) ->
     if err
       log.error err
