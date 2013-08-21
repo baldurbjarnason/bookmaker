@@ -43,7 +43,7 @@ console.log(target);
 generate = function(book) {
   var tasks;
   tasks = [];
-  tasks.push(book.assets.init());
+  tasks.push(book.assets.initSync);
   tasks.push(book.toHtmlAndJsonFiles(target));
   return whenjs.all(tasks);
 };
