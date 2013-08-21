@@ -31,7 +31,6 @@ class Assets
   addItemToZip: (item, zip) ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    deferred.notify "Writing #{item} to zip"
     resolver = () ->
       log.info "#{item} written to zip"
       deferred.resolve()
@@ -65,12 +64,30 @@ class Assets
     task = (type) ->
       unless @assetsPath
         @assetsPath = ""
+      if @assetsPath is "."
+        @assetsPath = ""
       @[type] = glob.sync(@assetsPath + "**/*.#{type}", { cwd: @root })
+      if type is 'jpg'
+        jpegList = glob.sync(@assetsPath + "**/*.jpeg", { cwd: @root })
+        @jpg = @jpg.concat(jpegList)
       return
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
     tasks = []
     for type in types
       tasks.push(task.bind(this, type))
     sequence(tasks).then(() -> return this)
+  initSync: () ->
+    newAssetsPath = @assetsPath
+    unless newAssetsPath
+      newAssetsPath = ""
+    if newAssetsPath is '.'
+      newAssetsPath = ""
+    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
+    tasks = []
+    for type in types
+      @[type] = glob.sync(newAssetsPath + "**/*.#{type}", { cwd: @root })
+    jpeg = glob.sync(newAssetsPath + "**/*.jpeg", { cwd: @root })
+    @jpg = @jpg.concat(jpeg)
+    return
 
 module.exports = Assets

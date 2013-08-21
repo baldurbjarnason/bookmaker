@@ -53,7 +53,6 @@ Assets = (function() {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    deferred.notify("Writing " + item + " to zip");
     resolver = function() {
       log.info("" + item + " written to zip");
       return deferred.resolve();
@@ -110,12 +109,23 @@ Assets = (function() {
     var task, tasks, type, types, _i, _len;
 
     task = function(type) {
+      var jpegList;
+
       if (!this.assetsPath) {
+        this.assetsPath = "";
+      }
+      if (this.assetsPath === ".") {
         this.assetsPath = "";
       }
       this[type] = glob.sync(this.assetsPath + ("**/*." + type), {
         cwd: this.root
       });
+      if (type === 'jpg') {
+        jpegList = glob.sync(this.assetsPath + "**/*.jpeg", {
+          cwd: this.root
+        });
+        this.jpg = this.jpg.concat(jpegList);
+      }
     };
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
     tasks = [];
@@ -126,6 +136,30 @@ Assets = (function() {
     return sequence(tasks).then(function() {
       return this;
     });
+  };
+
+  Assets.prototype.initSync = function() {
+    var jpeg, newAssetsPath, tasks, type, types, _i, _len;
+
+    newAssetsPath = this.assetsPath;
+    if (!newAssetsPath) {
+      newAssetsPath = "";
+    }
+    if (newAssetsPath === '.') {
+      newAssetsPath = "";
+    }
+    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
+    tasks = [];
+    for (_i = 0, _len = types.length; _i < _len; _i++) {
+      type = types[_i];
+      this[type] = glob.sync(newAssetsPath + ("**/*." + type), {
+        cwd: this.root
+      });
+    }
+    jpeg = glob.sync(newAssetsPath + "**/*.jpeg", {
+      cwd: this.root
+    });
+    this.jpg = this.jpg.concat(jpeg);
   };
 
   return Assets;
