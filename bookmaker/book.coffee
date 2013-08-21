@@ -33,13 +33,80 @@ class Book
   docId: () ->
     @docIdCount++
     return "doc" + @docIdCount
-  addChapter: (chapter, bookoverride) ->
+  chapterPrepare: (chapter, bookoverride) ->
     chapter.book = this or bookoverride
     unless chapter.id
       chapter.id = @docId()
     unless chapter.filename
       chapter.filename = 'chapters/' + chapter.id + '.html'
+    return chapter
+  addChapter: (chapter, bookoverride) ->
+    # chapter.book = this or bookoverride
+    # unless chapter.id
+    #   chapter.id = @docId()
+    # unless chapter.filename
+    #   chapter.filename = 'chapters/' + chapter.id + '.html'
+    @chapterPrepare chapter, bookoverride
     @chapters.push(chapter)
+  prependChapter: (chapter, bookoverride) ->
+    @chapterPrepare chapter, bookoverride
+    @chapters.unshift chapter
+  insertBeforeHref: (href, newChapter) ->
+    for chapter in @chapters
+      if chapter.filename is href
+        index = @chapters.indexOf(chapter)
+    unless index is -1
+      @chapters.splice(index, 0, newChapter)
+  findLandmarkHref: (landmark) ->
+    for landmark in @meta.landmarks
+      if landmark.type is 'bodymatter'
+        landmarkHref = landmark.href
+    return landmarkHref
+  updateLandmark: (landmarkType, newLandmark, newTitle) ->
+    for landmark in @meta.landmarks
+      if landmark.type is landmarkType
+        landmark.href = newLandmark
+        if newTitle
+          landmark.title = newTitle
+  appendMain: (chapter, bookoverride) ->
+    @chapterPrepare chapter, bookoverride
+    landmarkHref = findLandmarkHref 'backmatter'
+    if landmarkHref
+      insertBeforeHref landmarkHref, chapters
+    else
+      @addChapter chapter
+  prependMain: (chapter, bookoverride) ->
+    @chapterPrepare chapter, bookoverride
+    landmarkHref = findLandmarkHref 'bodymatter'
+    if landmarkHref
+      insertBeforeHref landmarkHref, chapter
+      updateLandmark 'bodymatter', landmarkHref
+    else
+      @prependChapter chapter
+  appendFront: (chapter, bookoverride) ->
+    @chapterPrepare chapter, bookoverride
+    landmarkHref = findLandmarkHref 'bodymatter'
+    if landmarkHref
+      insertBeforeHref landmarkHref, chapter
+    else
+      @prependChapter chapter
+  prependFront: (chapter, bookoverride) ->
+    @chapterPrepare chapter, bookoverride
+    landmarkHref = findLandmarkHref 'frontmatter'
+    if landmarkHref
+      insertBeforeHref landmarkHref, chapter
+      updateLandmark 'frontmatter', landmarkHref
+    else
+      @prependChapter chapter
+  appendBack: @addChapter
+  prependBack: (chapter, bookoverride) ->
+    @chapterPrepare chapter, bookoverride
+    landmarkHref = findLandmarkHref 'backmatter'
+    if landmarkHref
+      insertBeforeHref landmarkHref, chapter
+      updateLandmark 'backmatter', landmarkHref
+    else
+      @addChapter chapter
   relative: utilities.relative
   addChaptersToZip: (zip, template) ->
     tasks = []

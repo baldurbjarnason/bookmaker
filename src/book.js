@@ -44,7 +44,7 @@ Book = (function() {
     return "doc" + this.docIdCount;
   };
 
-  Book.prototype.addChapter = function(chapter, bookoverride) {
+  Book.prototype.chapterPrepare = function(chapter, bookoverride) {
     chapter.book = this || bookoverride;
     if (!chapter.id) {
       chapter.id = this.docId();
@@ -52,7 +52,131 @@ Book = (function() {
     if (!chapter.filename) {
       chapter.filename = 'chapters/' + chapter.id + '.html';
     }
+    return chapter;
+  };
+
+  Book.prototype.addChapter = function(chapter, bookoverride) {
+    this.chapterPrepare(chapter, bookoverride);
     return this.chapters.push(chapter);
+  };
+
+  Book.prototype.prependChapter = function(chapter, bookoverride) {
+    this.chapterPrepare(chapter, bookoverride);
+    return this.chapters.unshift(chapter);
+  };
+
+  Book.prototype.insertBeforeHref = function(href, newChapter) {
+    var chapter, index, _i, _len, _ref;
+
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      if (chapter.filename === href) {
+        index = this.chapters.indexOf(chapter);
+      }
+    }
+    if (index !== -1) {
+      return this.chapters.splice(index, 0, newChapter);
+    }
+  };
+
+  Book.prototype.findLandmarkHref = function(landmark) {
+    var landmarkHref, _i, _len, _ref;
+
+    _ref = this.meta.landmarks;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      landmark = _ref[_i];
+      if (landmark.type === 'bodymatter') {
+        landmarkHref = landmark.href;
+      }
+    }
+    return landmarkHref;
+  };
+
+  Book.prototype.updateLandmark = function(landmarkType, newLandmark, newTitle) {
+    var landmark, _i, _len, _ref, _results;
+
+    _ref = this.meta.landmarks;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      landmark = _ref[_i];
+      if (landmark.type === landmarkType) {
+        landmark.href = newLandmark;
+        if (newTitle) {
+          _results.push(landmark.title = newTitle);
+        } else {
+          _results.push(void 0);
+        }
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
+  Book.prototype.appendMain = function(chapter, bookoverride) {
+    var landmarkHref;
+
+    this.chapterPrepare(chapter, bookoverride);
+    landmarkHref = findLandmarkHref('backmatter');
+    if (landmarkHref) {
+      return insertBeforeHref(landmarkHref, chapters);
+    } else {
+      return this.addChapter(chapter);
+    }
+  };
+
+  Book.prototype.prependMain = function(chapter, bookoverride) {
+    var landmarkHref;
+
+    this.chapterPrepare(chapter, bookoverride);
+    landmarkHref = findLandmarkHref('bodymatter');
+    if (landmarkHref) {
+      insertBeforeHref(landmarkHref, chapter);
+      return updateLandmark('bodymatter', landmarkHref);
+    } else {
+      return this.prependChapter(chapter);
+    }
+  };
+
+  Book.prototype.appendFront = function(chapter, bookoverride) {
+    var landmarkHref;
+
+    this.chapterPrepare(chapter, bookoverride);
+    landmarkHref = findLandmarkHref('bodymatter');
+    if (landmarkHref) {
+      return insertBeforeHref(landmarkHref, chapter);
+    } else {
+      return this.prependChapter(chapter);
+    }
+  };
+
+  Book.prototype.prependFront = function(chapter, bookoverride) {
+    var landmarkHref;
+
+    this.chapterPrepare(chapter, bookoverride);
+    landmarkHref = findLandmarkHref('frontmatter');
+    if (landmarkHref) {
+      insertBeforeHref(landmarkHref, chapter);
+      return updateLandmark('frontmatter', landmarkHref);
+    } else {
+      return this.prependChapter(chapter);
+    }
+  };
+
+  Book.prototype.appendBack = Book.addChapter;
+
+  Book.prototype.prependBack = function(chapter, bookoverride) {
+    var landmarkHref;
+
+    this.chapterPrepare(chapter, bookoverride);
+    landmarkHref = findLandmarkHref('backmatter');
+    if (landmarkHref) {
+      insertBeforeHref(landmarkHref, chapter);
+      return updateLandmark('backmatter', landmarkHref);
+    } else {
+      return this.addChapter(chapter);
+    }
   };
 
   Book.prototype.relative = utilities.relative;
