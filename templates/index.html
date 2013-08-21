@@ -28,9 +28,9 @@
 <h3>Landmarks</h3>
 <nav id="landmarks" class="landmarks h-landmarks">
   <ol>
-        {% if meta.cover %}<li><a href="cover.html" epub:type="cover">Cover</a></li>{% endif %}
+        {% if meta.cover %}<li><a href="cover.html" rel="cover">Cover</a></li>{% endif %}
   	{% for landmark in meta.landmarks %}
-    	<li><a href="{{ landmark.href }}" epub:type="{{ landmark.type }}">{{ landmark.title }}</a></li>
+    	<li><a href="{{ landmark.href }}" rel="{{ landmark.type }}">{{ landmark.title }}</a></li>
     {% endfor %}
 </ol> </nav>
 
