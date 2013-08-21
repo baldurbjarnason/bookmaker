@@ -54,13 +54,14 @@ processLandmarks = (landmarks) ->
   return landmarks
 
 toEpub = (out, options) ->
+  log.info 'Rendering EPUB'
   book = Object.create this
   zip = zipStream.createZip({ level: 1 })
   zip.pipe(out)
   final = () ->
     deferred = whenjs.defer()
     promise = deferred.promise
-    deferred.notify 'Writing to file...'
+    log.info 'Writing to file...'
     zip.finalize(deferred.resolve)
     return promise
   renderEpub(book, out, options, zip).then(final)

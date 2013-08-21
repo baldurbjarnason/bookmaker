@@ -98,6 +98,7 @@ processLandmarks = function(landmarks) {
 toEpub = function(out, options) {
   var book, final, zip;
 
+  log.info('Rendering EPUB');
   book = Object.create(this);
   zip = zipStream.createZip({
     level: 1
@@ -108,7 +109,7 @@ toEpub = function(out, options) {
 
     deferred = whenjs.defer();
     promise = deferred.promise;
-    deferred.notify('Writing to file...');
+    log.info('Writing to file...');
     zip.finalize(deferred.resolve);
     return promise;
   };
