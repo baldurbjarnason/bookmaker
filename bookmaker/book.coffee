@@ -6,6 +6,7 @@ path = require 'path'
 utilities = require './utilities'
 whenjs = require('when')
 sequence = require('when/sequence')
+$ = require 'jquery'
 
 class Book
   constructor: (meta, @assets, @sharedAssets) ->
@@ -70,43 +71,54 @@ class Book
           landmark.title = newTitle
   appendMain: (chapter, bookoverride) ->
     @chapterPrepare chapter, bookoverride
-    landmarkHref = findLandmarkHref 'backmatter'
+    landmarkHref = @findLandmarkHref 'backmatter'
     if landmarkHref
-      insertBeforeHref landmarkHref, chapters
+      @insertBeforeHref landmarkHref, chapters
+      @prependOutline landmarkHref, chapter
     else
       @addChapter chapter
   prependMain: (chapter, bookoverride) ->
     @chapterPrepare chapter, bookoverride
-    landmarkHref = findLandmarkHref 'bodymatter'
+    landmarkHref = @findLandmarkHref 'bodymatter'
     if landmarkHref
-      insertBeforeHref landmarkHref, chapter
-      updateLandmark 'bodymatter', landmarkHref
+      @insertBeforeHref landmarkHref, chapter
+      @updateLandmark 'bodymatter', landmarkHref
+      @prependOutline landmarkHref, chapter
     else
       @prependChapter chapter
   appendFront: (chapter, bookoverride) ->
     @chapterPrepare chapter, bookoverride
-    landmarkHref = findLandmarkHref 'bodymatter'
+    landmarkHref = @findLandmarkHref 'bodymatter'
     if landmarkHref
-      insertBeforeHref landmarkHref, chapter
+      @insertBeforeHref landmarkHref, chapter
+      @prependOutline landmarkHref, chapter
     else
       @prependChapter chapter
   prependFront: (chapter, bookoverride) ->
     @chapterPrepare chapter, bookoverride
-    landmarkHref = findLandmarkHref 'frontmatter'
+    landmarkHref = @findLandmarkHref 'frontmatter'
     if landmarkHref
-      insertBeforeHref landmarkHref, chapter
-      updateLandmark 'frontmatter', landmarkHref
+      @insertBeforeHref landmarkHref, chapter
+      @updateLandmark 'frontmatter', landmarkHref
+      @prependOutline landmarkHref, chapter
     else
       @prependChapter chapter
   appendBack: @addChapter
   prependBack: (chapter, bookoverride) ->
     @chapterPrepare chapter, bookoverride
-    landmarkHref = findLandmarkHref 'backmatter'
+    landmarkHref = @findLandmarkHref 'backmatter'
     if landmarkHref
-      insertBeforeHref landmarkHref, chapter
-      updateLandmark 'backmatter', landmarkHref
+      @insertBeforeHref landmarkHref, chapter
+      @updateLandmark 'backmatter', landmarkHref
+      @prependOutline landmarkHref, chapter
     else
       @addChapter chapter
+  prependOutline: (href, chapter) ->
+    if @outline
+      $('body').html(@outline)
+      html = "<li id='toc-#{ chapter.id }'><a href='#{ chapter.filename }' rel='chapter'>#{ chapter.title }</a></li>"
+      $("a[href='#{href}']").parent().before(html)
+      @outline = $('body').html()
   relative: utilities.relative
   addChaptersToZip: (zip, template) ->
     tasks = []

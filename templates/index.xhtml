@@ -39,6 +39,9 @@
 {% block content %}
 <h1>{{ meta.title }} – Table of Contents</h1>
 <nav id="toc" class="toc h-toc" epub:type="toc">
+	{% if outline %}
+	{{ outline }}
+	{% else %}
 <ol>
 	{% for item in chapters %}
 	<li class="tocitem {{ item.id }}{% if item.majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}
@@ -50,6 +53,7 @@
 	</li>
 	{% endfor %}
 </ol>
+	{% endif %}
 </nav>
 
 <nav id="landmarks" class="landmarks h-landmarks" epub:type="landmarks">

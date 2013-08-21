@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, dateProcess, path, sequence, utilities, whenjs;
+var $, Assets, Book, Chapter, dateProcess, path, sequence, utilities, whenjs;
 
 Assets = require('./assets');
 
@@ -12,6 +12,8 @@ utilities = require('./utilities');
 whenjs = require('when');
 
 sequence = require('when/sequence');
+
+$ = require('jquery');
 
 Book = (function() {
   function Book(meta, assets, sharedAssets) {
@@ -118,9 +120,10 @@ Book = (function() {
     var landmarkHref;
 
     this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = findLandmarkHref('backmatter');
+    landmarkHref = this.findLandmarkHref('backmatter');
     if (landmarkHref) {
-      return insertBeforeHref(landmarkHref, chapters);
+      this.insertBeforeHref(landmarkHref, chapters);
+      return this.prependOutline(landmarkHref, chapter);
     } else {
       return this.addChapter(chapter);
     }
@@ -130,10 +133,11 @@ Book = (function() {
     var landmarkHref;
 
     this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = findLandmarkHref('bodymatter');
+    landmarkHref = this.findLandmarkHref('bodymatter');
     if (landmarkHref) {
-      insertBeforeHref(landmarkHref, chapter);
-      return updateLandmark('bodymatter', landmarkHref);
+      this.insertBeforeHref(landmarkHref, chapter);
+      this.updateLandmark('bodymatter', landmarkHref);
+      return this.prependOutline(landmarkHref, chapter);
     } else {
       return this.prependChapter(chapter);
     }
@@ -143,9 +147,10 @@ Book = (function() {
     var landmarkHref;
 
     this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = findLandmarkHref('bodymatter');
+    landmarkHref = this.findLandmarkHref('bodymatter');
     if (landmarkHref) {
-      return insertBeforeHref(landmarkHref, chapter);
+      this.insertBeforeHref(landmarkHref, chapter);
+      return this.prependOutline(landmarkHref, chapter);
     } else {
       return this.prependChapter(chapter);
     }
@@ -155,10 +160,11 @@ Book = (function() {
     var landmarkHref;
 
     this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = findLandmarkHref('frontmatter');
+    landmarkHref = this.findLandmarkHref('frontmatter');
     if (landmarkHref) {
-      insertBeforeHref(landmarkHref, chapter);
-      return updateLandmark('frontmatter', landmarkHref);
+      this.insertBeforeHref(landmarkHref, chapter);
+      this.updateLandmark('frontmatter', landmarkHref);
+      return this.prependOutline(landmarkHref, chapter);
     } else {
       return this.prependChapter(chapter);
     }
@@ -170,12 +176,24 @@ Book = (function() {
     var landmarkHref;
 
     this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = findLandmarkHref('backmatter');
+    landmarkHref = this.findLandmarkHref('backmatter');
     if (landmarkHref) {
-      insertBeforeHref(landmarkHref, chapter);
-      return updateLandmark('backmatter', landmarkHref);
+      this.insertBeforeHref(landmarkHref, chapter);
+      this.updateLandmark('backmatter', landmarkHref);
+      return this.prependOutline(landmarkHref, chapter);
     } else {
       return this.addChapter(chapter);
+    }
+  };
+
+  Book.prototype.prependOutline = function(href, chapter) {
+    var html;
+
+    if (this.outline) {
+      $('body').html(this.outline);
+      html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
+      $("a[href='" + href + "']").parent().before(html);
+      return this.outline = $('body').html();
     }
   };
 
