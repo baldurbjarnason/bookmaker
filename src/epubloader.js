@@ -32,7 +32,7 @@ EpubLoaderMixin = (function() {
   function EpubLoaderMixin() {}
 
   EpubLoaderMixin.fromEpub = function(epubpath, assetsroot) {
-    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractOpf, findOpf, opfpath, parseChapter, preBook, processLandmarks, processNav, promise;
+    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, opfpath, parseChapter, preBook, processNav, promise;
 
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
@@ -142,18 +142,12 @@ EpubLoaderMixin = (function() {
         elem = _ref1[_j];
         if (elem.$['property'] === "dcterms:modified") {
           meta.modified = elem._;
-        } else {
-          log.warn("Modified date not set (dcterms:modified)");
         }
         if (elem.$['name'] === 'cover') {
-          preBook.coverId = elem._;
-        } else {
-          log.warn("Cover metadata not set");
+          preBook.coverId = elem.$['content'];
         }
         if (elem.$['property'] === 'ibooks:version') {
           meta.version = elem._;
-        } else {
-          log.warn('iBooks version not set');
         }
       }
       manifest = xml["package"].manifest[0];
@@ -205,11 +199,15 @@ EpubLoaderMixin = (function() {
               }
             });
           } else {
-            landmarks.push({
-              type: type,
-              title: reference.$.title,
-              href: reference.$.href
-            });
+            if (preBook.spine.indexOf(reference.$.href) !== -1) {
+              landmarks.push({
+                type: type,
+                title: reference.$.title,
+                href: reference.$.href
+              });
+            } else {
+              log.warn("Landmark " + type + " isn't in the spine");
+            }
           }
         }
         if (landmarks.length > 0) {
@@ -219,17 +217,21 @@ EpubLoaderMixin = (function() {
       log.info('EPUB – OPF parsed and worked');
       return deferred.resolve(xml);
     };
-    processLandmarks = function(index, element) {
+    extractLandmarks = function(index, element) {
       var href, title, type;
 
       type = $(this).attr('epub:type');
       title = $(this).text();
       href = $(this).attr('href');
-      return preBook.landmarks.push({
-        type: type,
-        title: title,
-        href: href
-      });
+      if (preBook.spine.indexOf(href) !== -1) {
+        return preBook.landmarks.push({
+          type: type,
+          title: title,
+          href: href
+        });
+      } else {
+        return log.warn("Landmark " + type + " isn't in the spine");
+      }
     };
     processNav = function(xml) {
       var body, deferred, promise;
@@ -238,11 +240,13 @@ EpubLoaderMixin = (function() {
       promise = deferred.promise;
       body = xml.split(bodyre)[2];
       $('body').html(body);
+      log.info(preBook.meta.landmarks);
       preBook.landmarks = [];
-      $('nav[epub\\:type=landmarks] a[epub\\:type]').each(processLandmarks);
-      if (preBook.landmarks) {
+      $('nav[epub\\:type=landmarks] a[epub\\:type]').each(extractLandmarks);
+      if (preBook.landmarks.length !== 0) {
         preBook.meta.landmarks = preBook.landmarks;
       }
+      log.info(preBook.meta.landmarks);
       preBook.outline = $('nav[epub\\:type=toc]').html();
       deferred.resolve(xml);
       log.info('EPUB – Nav parsed and worked');

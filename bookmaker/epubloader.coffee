@@ -95,16 +95,10 @@ class EpubLoaderMixin
       for elem in metadata.meta
         if elem.$['property'] is "dcterms:modified"
           meta.modified = elem._
-        else
-          log.warn "Modified date not set (dcterms:modified)"
         if elem.$['name'] is 'cover'
-          preBook.coverId = elem._
-        else
-          log.warn "Cover metadata not set"
+          preBook.coverId = elem.$['content']
         if elem.$['property'] is 'ibooks:version'
           meta.version = elem._
-        else
-          log.warn 'iBooks version not set'
       manifest = xml.package.manifest[0]
       log.info 'EPUB – Extracting metadata'
       preBook.spine = for item in xml.package.spine[0].itemref
@@ -133,17 +127,23 @@ class EpubLoaderMixin
               if path isnt reference.$.href
                 return path
           else
-            landmarks.push { type: type, title: reference.$.title, href: reference.$.href }
+            if preBook.spine.indexOf(reference.$.href) isnt -1
+              landmarks.push { type: type, title: reference.$.title, href: reference.$.href }
+            else
+              log.warn "Landmark #{type} isn't in the spine"
         if landmarks.length > 0
           meta.landmarks = landmarks
       log.info 'EPUB – OPF parsed and worked'
       deferred.resolve xml
 
-    processLandmarks = (index, element) ->
+    extractLandmarks = (index, element) ->
       type = $(this).attr('epub:type')
       title = $(this).text()
       href = $(this).attr('href')
-      preBook.landmarks.push { type: type, title: title, href: href }
+      if preBook.spine.indexOf(href) isnt -1
+        preBook.landmarks.push { type: type, title: title, href: href }
+      else
+        log.warn "Landmark #{type} isn't in the spine"
 
 
     processNav = (xml) ->
@@ -151,10 +151,12 @@ class EpubLoaderMixin
       promise = deferred.promise
       body = xml.split(bodyre)[2]
       $('body').html(body)
+      log.info preBook.meta.landmarks
       preBook.landmarks = []
-      $('nav[epub\\:type=landmarks] a[epub\\:type]').each(processLandmarks)
-      if preBook.landmarks
+      $('nav[epub\\:type=landmarks] a[epub\\:type]').each(extractLandmarks)
+      unless preBook.landmarks.length is 0
         preBook.meta.landmarks = preBook.landmarks
+      log.info preBook.meta.landmarks
       preBook.outline = $('nav[epub\\:type=toc]').html()
       deferred.resolve xml
       log.info 'EPUB – Nav parsed and worked'
