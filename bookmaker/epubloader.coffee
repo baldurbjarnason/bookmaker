@@ -55,18 +55,39 @@ class EpubLoaderMixin
           meta.bookId = elem._
       meta.specifiedCss = true
       meta.specifiedJs = true
-      meta.author = metadata['dc:creator'][0]._ if metadata['dc:creator']
-      meta.title = metadata['dc:title'][0]._ if metadata['dc:title']
+      if metadata['dc:creator']
+        meta.author = metadata['dc:creator'][0]._
+      else
+        log.warn 'Author metadata not set (dc:creator)'
+      if metadata['dc:title']
+        meta.title = metadata['dc:title'][0]._
+      else
+        log.warn 'Title not set (dc:title)'
       meta.author2 = metadata['dc:creator'][1]._ if metadata['dc:creator'][1]
-      meta.lang = metadata['dc:language'][0]._ if meta.lang = metadata['dc:language']
-      meta.date = metadata['dc:date'][0]._ if metadata['dc:date']
+      if meta.lang = metadata['dc:language']
+        meta.lang = metadata['dc:language'][0]._
+      else
+        log.warn 'Language metadata not set (dc:language)'
+      if metadata['dc:date']
+        meta.date = metadata['dc:date'][0]._
+      else
+        log.warn "Date not set (dc:date)"
       if metadata['dc:rights']
         meta.rights = metadata['dc:rights'][0]._
+      else
+        log.warn "Rights metadata not set (dc:rights)"
       if metadata['dc:description']
         meta.description = metadata['dc:description'][0]._
+      else
+        log.warn "Description metadata not set (dc:description)"
       if metadata['dc:publisher']
         meta.publisher = metadata['dc:publisher'][0]._
-      meta.subject1 = metadata['dc:subject'][0]._ if metadata['dc:subject']
+      else
+        log.warn "Publisher metadata not set (dc:publisher)"
+      if metadata['dc:subject']
+        meta.subject1 = metadata['dc:subject'][0]._
+      else
+        log.warn 'Subject not set (dc:subject)'
       if metadata['dc:subject'] and metadata['dc:subject'][1]
         meta.subject2 = metadata['dc:subject'][1]._
       if metadata['dc:subject'] and metadata['dc:subject'][2]
@@ -74,10 +95,16 @@ class EpubLoaderMixin
       for elem in metadata.meta
         if elem.$['property'] is "dcterms:modified"
           meta.modified = elem._
+        else
+          log.warn "Modified date not set (dcterms:modified)"
         if elem.$['name'] is 'cover'
           preBook.coverId = elem._
+        else
+          log.warn "Cover metadata not set"
         if elem.$['property'] is 'ibooks:version'
           meta.version = elem._
+        else
+          log.warn 'iBooks version not set'
       manifest = xml.package.manifest[0]
       log.info 'EPUB – Extracting metadata'
       preBook.spine = for item in xml.package.spine[0].itemref
@@ -112,11 +139,22 @@ class EpubLoaderMixin
       log.info 'EPUB – OPF parsed and worked'
       deferred.resolve xml
 
+    processLandmarks = (index, element) ->
+      type = $(this).attr('epub:type')
+      title = $(this).text()
+      href = $(this).attr('href')
+      preBook.landmarks.push { type: type, title: title, href: href }
+
+
     processNav = (xml) ->
       deferred = whenjs.defer()
       promise = deferred.promise
       body = xml.split(bodyre)[2]
       $('body').html(body)
+      preBook.landmarks = []
+      $('nav[epub\\:type=landmarks] a[epub\\:type]').each(processLandmarks)
+      if preBook.landmarks
+        preBook.meta.landmarks = preBook.landmarks
       preBook.outline = $('nav[epub\\:type=toc]').html()
       deferred.resolve xml
       log.info 'EPUB – Nav parsed and worked'
@@ -142,6 +180,7 @@ class EpubLoaderMixin
       assetsroot = path.join(assetsroot, preBook.basedir) if preBook.basedir
       assets = new Assets(assetsroot, '.')
       preBook.book = new Book preBook.meta, assets
+      preBook.book.outline = preBook.outline
       deferred.resolve preBook.book
       log.info 'EPUB – assets extracted'
       return promise

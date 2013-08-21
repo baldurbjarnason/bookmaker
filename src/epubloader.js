@@ -32,7 +32,7 @@ EpubLoaderMixin = (function() {
   function EpubLoaderMixin() {}
 
   EpubLoaderMixin.fromEpub = function(epubpath, assetsroot) {
-    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractOpf, findOpf, opfpath, parseChapter, preBook, processNav, promise;
+    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractOpf, findOpf, opfpath, parseChapter, preBook, processLandmarks, processNav, promise;
 
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
@@ -90,30 +90,46 @@ EpubLoaderMixin = (function() {
       meta.specifiedJs = true;
       if (metadata['dc:creator']) {
         meta.author = metadata['dc:creator'][0]._;
+      } else {
+        log.warn('Author metadata not set (dc:creator)');
       }
       if (metadata['dc:title']) {
         meta.title = metadata['dc:title'][0]._;
+      } else {
+        log.warn('Title not set (dc:title)');
       }
       if (metadata['dc:creator'][1]) {
         meta.author2 = metadata['dc:creator'][1]._;
       }
       if (meta.lang = metadata['dc:language']) {
         meta.lang = metadata['dc:language'][0]._;
+      } else {
+        log.warn('Language metadata not set (dc:language)');
       }
       if (metadata['dc:date']) {
         meta.date = metadata['dc:date'][0]._;
+      } else {
+        log.warn("Date not set (dc:date)");
       }
       if (metadata['dc:rights']) {
         meta.rights = metadata['dc:rights'][0]._;
+      } else {
+        log.warn("Rights metadata not set (dc:rights)");
       }
       if (metadata['dc:description']) {
         meta.description = metadata['dc:description'][0]._;
+      } else {
+        log.warn("Description metadata not set (dc:description)");
       }
       if (metadata['dc:publisher']) {
         meta.publisher = metadata['dc:publisher'][0]._;
+      } else {
+        log.warn("Publisher metadata not set (dc:publisher)");
       }
       if (metadata['dc:subject']) {
         meta.subject1 = metadata['dc:subject'][0]._;
+      } else {
+        log.warn('Subject not set (dc:subject)');
       }
       if (metadata['dc:subject'] && metadata['dc:subject'][1]) {
         meta.subject2 = metadata['dc:subject'][1]._;
@@ -126,12 +142,18 @@ EpubLoaderMixin = (function() {
         elem = _ref1[_j];
         if (elem.$['property'] === "dcterms:modified") {
           meta.modified = elem._;
+        } else {
+          log.warn("Modified date not set (dcterms:modified)");
         }
         if (elem.$['name'] === 'cover') {
           preBook.coverId = elem._;
+        } else {
+          log.warn("Cover metadata not set");
         }
         if (elem.$['property'] === 'ibooks:version') {
           meta.version = elem._;
+        } else {
+          log.warn('iBooks version not set');
         }
       }
       manifest = xml["package"].manifest[0];
@@ -197,6 +219,18 @@ EpubLoaderMixin = (function() {
       log.info('EPUB – OPF parsed and worked');
       return deferred.resolve(xml);
     };
+    processLandmarks = function(index, element) {
+      var href, title, type;
+
+      type = $(this).attr('epub:type');
+      title = $(this).text();
+      href = $(this).attr('href');
+      return preBook.landmarks.push({
+        type: type,
+        title: title,
+        href: href
+      });
+    };
     processNav = function(xml) {
       var body, deferred, promise;
 
@@ -204,6 +238,11 @@ EpubLoaderMixin = (function() {
       promise = deferred.promise;
       body = xml.split(bodyre)[2];
       $('body').html(body);
+      preBook.landmarks = [];
+      $('nav[epub\\:type=landmarks] a[epub\\:type]').each(processLandmarks);
+      if (preBook.landmarks) {
+        preBook.meta.landmarks = preBook.landmarks;
+      }
       preBook.outline = $('nav[epub\\:type=toc]').html();
       deferred.resolve(xml);
       log.info('EPUB – Nav parsed and worked');
@@ -246,6 +285,7 @@ EpubLoaderMixin = (function() {
       }
       assets = new Assets(assetsroot, '.');
       preBook.book = new Book(preBook.meta, assets);
+      preBook.book.outline = preBook.outline;
       deferred.resolve(preBook.book);
       log.info('EPUB – assets extracted');
       return promise;
