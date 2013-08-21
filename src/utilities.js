@@ -43,6 +43,9 @@ pageLinks = function(page, book) {
     if (path.extname(book.meta.cover) === '.jpg') {
       type = 'image/jpeg';
     }
+    if (path.extname(book.meta.cover) === '.jpeg') {
+      type = 'image/jpeg';
+    }
     if (path.extname(book.meta.cover) === '.png') {
       type = 'image/png';
     }

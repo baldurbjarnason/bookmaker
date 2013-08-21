@@ -22,6 +22,8 @@ pageLinks = (page, book) ->
   if book.meta.cover
     if path.extname(book.meta.cover) is '.jpg'
       type = 'image/jpeg'
+    if path.extname(book.meta.cover) is '.jpeg'
+      type = 'image/jpeg'
     if path.extname(book.meta.cover) is '.png'
       type = 'image/png'
     if path.extname(book.meta.cover) is '.svg'
