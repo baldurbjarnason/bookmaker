@@ -26,7 +26,7 @@ describe 'EpubLoader',
             book.meta.bookId.should.equal('this-is-an-id')
             book.meta.lang.should.equal('en')
             # book.meta.modified.isoDate.should.equal("2013-06-27T01:29:06Z")
-            book.meta.date.isoDate.should.equal("2013-05-14T23:00:00Z")
+            book.meta.date.isoDate.should.equal("2013-05-15T00:00:00Z")
             book.meta.version.should.equal("1.0")
             book.meta.publisher.should.equal("Bar")
             book.meta.subject1.should.equal("Foobar")
