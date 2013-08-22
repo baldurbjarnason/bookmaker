@@ -61,6 +61,35 @@ if (!book.meta.publisher) {
 if (!book.meta.subject1) {
   book.meta.subject1 = 'Placeholder';
 }
+
+var backmatter, landmark, toc, _i, _len;
+
+for (_i = 0, _len = book.meta.landmarks.length; _i < _len; _i++) {
+  landmark = book.meta.landmarks[_i];
+  if (landmark.type === 'backmatter') {
+    backmatter = landmark;
+  } else if (landmark.type === 'toc') {
+    toc = landmark;
+  }
+}
+
+if (!backmatter) {
+  book.meta.landmarks.push({
+    type: 'backmatter',
+    title: 'Backmatter',
+    href: book.chapters[book.chapters.length - 1].filename
+  });
+}
+
+if (!toc) {
+  book.meta.landmarks.push({
+    type: 'toc',
+    title: 'Table of Contents',
+    href: 'placeholder.html'
+  });
+}
+
+
 _ref = book.chapters;
 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
   chapter = _ref[_i];
