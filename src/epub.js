@@ -27,7 +27,7 @@ pageLinks = utilities.pageLinks;
 
 addToZip = utilities.addToZip;
 
-log = require('./logger').logger;
+log = require('./logger').logger();
 
 nunjucks = require('nunjucks');
 

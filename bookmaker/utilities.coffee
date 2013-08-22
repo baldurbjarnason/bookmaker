@@ -5,7 +5,7 @@ fs = require 'fs'
 whenjs = require 'when'
 mkdirp = require 'mkdirp'
 _ = require 'underscore'
-log = require('./logger').logger
+log = require('./logger').logger()
 
 
 relative = (current, target) ->

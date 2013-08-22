@@ -9,7 +9,7 @@ _ = require 'underscore'
 fs = require 'fs'
 ncp = require('ncp').ncp
 path = require 'path'
-log = require('./logger').logger
+log = require('./logger').logger()
 
 # Some way to enable single chapter css and js? Is that even necessary?
 

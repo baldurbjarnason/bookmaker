@@ -19,7 +19,7 @@ utilities = require('./utilities');
 
 nunjucks = require('nunjucks');
 
-log = require('./logger').logger;
+log = require('./logger').logger();
 
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
   autoescape: false

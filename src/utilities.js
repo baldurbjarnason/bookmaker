@@ -12,7 +12,7 @@ mkdirp = require('mkdirp');
 
 _ = require('underscore');
 
-log = require('./logger').logger;
+log = require('./logger').logger();
 
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;

@@ -9,7 +9,7 @@ yaml = require('js-yaml');
 
 utilities = require('./utilities');
 
-log = require('./logger').logger;
+log = require('./logger').logger();
 
 LoaderMixin = (function() {
   function LoaderMixin() {}

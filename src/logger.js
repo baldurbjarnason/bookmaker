@@ -1,10 +1,20 @@
 'use strict';
-var logger, replaceLogger;
+var logger, loggers, replaceLogger;
 
-logger = require('winston');
+loggers = {
+  defaultLogger: require('winston')
+};
 
 replaceLogger = function(newLogger) {
-  return logger = newLogger;
+  return loggers.newLogger = newLogger;
+};
+
+logger = function() {
+  if (loggers.newLogger) {
+    return loggers.newLogger;
+  } else {
+    return loggers.defaultLogger;
+  }
 };
 
 module.exports = {

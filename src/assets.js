@@ -19,7 +19,7 @@ ncp = require('ncp').ncp;
 
 path = require('path');
 
-log = require('./logger').logger;
+log = require('./logger').logger();
 
 Assets = (function() {
   function Assets(root, assetsPath) {

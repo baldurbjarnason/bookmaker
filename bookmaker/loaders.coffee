@@ -4,7 +4,7 @@ fs = require('fs')
 path = require('path')
 yaml = require('js-yaml')
 utilities = require './utilities'
-log = require('./logger').logger
+log = require('./logger').logger()
 
 class LoaderMixin
   @loadBookDir = (directory) ->

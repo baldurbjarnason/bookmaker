@@ -24,7 +24,7 @@ whenjs = require('when');
 
 sequence = require('when/sequence');
 
-log = require('./logger').logger;
+log = require('./logger').logger();
 
 bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig');
 

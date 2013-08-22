@@ -1,9 +1,16 @@
 'use strict'
 
-logger = require('winston')
+loggers = { defaultLogger: require('winston') }
+
 
 replaceLogger = (newLogger) ->
-  logger = newLogger
+  loggers.newLogger = newLogger
+
+logger = () ->
+  if loggers.newLogger
+    return loggers.newLogger
+  else
+    return loggers.defaultLogger
 
 
 module.exports = {

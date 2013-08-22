@@ -13,7 +13,7 @@ utilities = require './utilities'
 relative = utilities.relative
 pageLinks = utilities.pageLinks
 addToZip = utilities.addToZip
-log = require('./logger').logger
+log = require('./logger').logger()
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
 env.getTemplate('cover.xhtml').render()
