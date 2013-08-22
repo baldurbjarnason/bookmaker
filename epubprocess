@@ -3,7 +3,17 @@
 'use strict';
 
 
-var bookmaker, done, fs, generate, load, loader, sequence, whenjs;
+var bookmaker, done, fs, generate, load, loader, sequence, whenjs, log, winston, logger;
+
+logger = require('./src/logger');
+winston = require('winston');
+var newLogger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)({ level: 'warn' }),
+  ]
+});
+logger.replaceLogger(newLogger);
+log = logger.logger();
 
 bookmaker = require('./src/index');
 
