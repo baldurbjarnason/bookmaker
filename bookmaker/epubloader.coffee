@@ -239,7 +239,7 @@ class EpubLoaderMixin
     # Extract OPF file and create meta object
     promise = opfpath
       .then((path) -> extractOpf(epub.readAsText(path)))
-      .then(() -> processNav(epub.readAsText(preBook.navPath)))
+      .then(() -> processNav(epub.readAsText(path.join preBook.basedir, preBook.navPath)))
       .then(() -> extractAssetsAndCreateBook())
       .then((book) -> extractChapters(book)) # Remember to suppress cover html file and skip nav
       .then(() -> done())

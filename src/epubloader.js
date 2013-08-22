@@ -369,7 +369,7 @@ EpubLoaderMixin = (function() {
     promise = opfpath.then(function(path) {
       return extractOpf(epub.readAsText(path));
     }).then(function() {
-      return processNav(epub.readAsText(preBook.navPath));
+      return processNav(epub.readAsText(path.join(preBook.basedir, preBook.navPath)));
     }).then(function() {
       return extractAssetsAndCreateBook();
     }).then(function(book) {
