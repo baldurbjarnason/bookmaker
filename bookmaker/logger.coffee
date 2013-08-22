@@ -1,6 +1,14 @@
 'use strict'
 
-loggers = { defaultLogger: require('winston') }
+winston = require 'winston'
+
+loggers = {}
+
+loggers.defaultLogger = new (winston.Logger)({
+  transports: [
+    new (winston.transports.Console)({ level: 'info', colorize: 'true' }),
+  ]
+})
 
 
 replaceLogger = (newLogger) ->

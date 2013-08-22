@@ -1,9 +1,18 @@
 'use strict';
-var logger, loggers, replaceLogger;
+var logger, loggers, replaceLogger, winston;
 
-loggers = {
-  defaultLogger: require('winston')
-};
+winston = require('winston');
+
+loggers = {};
+
+loggers.defaultLogger = new winston.Logger({
+  transports: [
+    new winston.transports.Console({
+      level: 'info',
+      colorize: 'true'
+    })
+  ]
+});
 
 replaceLogger = function(newLogger) {
   return loggers.newLogger = newLogger;
