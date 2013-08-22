@@ -9,7 +9,7 @@ logger = require('./src/logger');
 winston = require('winston');
 var newLogger = new (winston.Logger)({
   transports: [
-    new (winston.transports.Console)({ level: 'warn' }),
+    new (winston.transports.Console)({ level: 'info', colorize: 'true' }),
   ]
 });
 logger.replaceLogger(newLogger);
@@ -74,31 +74,36 @@ if (!book.meta.subject1) {
 
 var backmatter, landmark, toc, _i, _len;
 
-for (_i = 0, _len = book.meta.landmarks.length; _i < _len; _i++) {
-  landmark = book.meta.landmarks[_i];
-  if (landmark.type === 'backmatter') {
-    backmatter = landmark;
-  } else if (landmark.type === 'toc') {
-    toc = landmark;
+if (book.meta.landmarks) {
+  for (_i = 0, _len = book.meta.landmarks.length; _i < _len; _i++) {
+    landmark = book.meta.landmarks[_i];
+    if (landmark.type === 'backmatter') {
+      backmatter = landmark;
+    } else if (landmark.type === 'toc') {
+      toc = landmark;
+    }
+  }
+} 
+
+if (!backmatter) {
+  if (book.meta.landmarks) {
+    book.meta.landmarks.push({
+      type: 'backmatter',
+      title: 'Backmatter',
+      href: book.chapters[book.chapters.length - 1].filename
+    });
   }
 }
 
-if (!backmatter) {
-  book.meta.landmarks.push({
-    type: 'backmatter',
-    title: 'Backmatter',
-    href: book.chapters[book.chapters.length - 1].filename
-  });
-}
-
 if (!toc) {
-  book.meta.landmarks.push({
-    type: 'toc',
-    title: 'Table of Contents',
-    href: 'placeholder.html'
-  });
+  if (book.meta.landmarks) {
+    book.meta.landmarks.push({
+      type: 'toc',
+      title: 'Table of Contents',
+      href: 'placeholder.html'
+    });
+  }
 }
-
 
 _ref = book.chapters;
 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
