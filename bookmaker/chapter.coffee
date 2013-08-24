@@ -52,7 +52,7 @@ toHtml = Chapter.prototype.toHtml = ->
       @processHTML @body, @book?.meta?.smartyPants
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      @processHTML bodytemplate(@context(), @book?.meta?.smartyPants)
+      @processHTML bodytemplate(@context()), @book?.meta?.smartyPants
     when 'xhtml'
       @body
 

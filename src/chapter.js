@@ -95,7 +95,7 @@ toHtml = Chapter.prototype.toHtml = function() {
       return this.processHTML(this.body, (_ref2 = this.book) != null ? (_ref3 = _ref2.meta) != null ? _ref3.smartyPants : void 0 : void 0);
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return this.processHTML(bodytemplate(this.context(), (_ref4 = this.book) != null ? (_ref5 = _ref4.meta) != null ? _ref5.smartyPants : void 0 : void 0));
+      return this.processHTML(bodytemplate(this.context()), (_ref4 = this.book) != null ? (_ref5 = _ref4.meta) != null ? _ref5.smartyPants : void 0 : void 0);
     case 'xhtml':
       return this.body;
   }
