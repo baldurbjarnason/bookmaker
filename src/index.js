@@ -1,10 +1,12 @@
-var Assets, Book, Chapter;
+var Assets, Book, Chapter, logger;
 
 Book = require('./book').Book;
 
 Assets = require('./assets');
 
 Chapter = require('./chapter');
+
+logger = require('.logger');
 
 require('./epub').extend(Book, Assets);
 
@@ -21,5 +23,6 @@ Book.Chapter = Chapter;
 module.exports = {
   Book: Book,
   Assets: Assets,
-  Chapter: Chapter
+  Chapter: Chapter,
+  logger: logger
 };

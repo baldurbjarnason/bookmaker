@@ -1,6 +1,7 @@
 Book = require('./book').Book
 Assets = require './assets'
 Chapter = require './chapter'
+logger = require '.logger'
 
 
 require('./epub').extend(Book, Assets)
@@ -15,4 +16,5 @@ module.exports = {
   Book: Book
   Assets: Assets
   Chapter: Chapter
+  logger: logger
 }
