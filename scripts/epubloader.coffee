@@ -189,6 +189,10 @@ class EpubLoaderMixin
         chapter = {}
         chapter.title = result.html.head[0].title[0]._
         chapter.type = 'xhtml'
+        svgLinkRE = new RegExp('src="[^"]*\\.svg"')
+        svgEmbedRE = new RegExp('<svg [^>]*>')
+        if svgLinkRE.test(xml) or svgEmbedRE
+          chapter.svg = true
         chapter.body = xml.split(bodyre)[2]
         chapter.filename = chapterpath
         links = result.html.head[0].link
