@@ -312,7 +312,7 @@ EpubLoaderMixin = (function() {
           for (_i = 0, _len = links.length; _i < _len; _i++) {
             link = links[_i];
             if (link.$.type === 'text/css') {
-              css.push(link.$.href);
+              chapter.css.push(link.$.href);
             } else {
               _links[link.$.rel] = {
                 type: link.$.type,

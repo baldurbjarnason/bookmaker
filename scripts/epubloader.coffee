@@ -201,7 +201,7 @@ class EpubLoaderMixin
         if links
           for link in links
             if link.$.type is 'text/css'
-              css.push link.$.href
+              chapter.css.push link.$.href
             else
               _links[link.$.rel] = { type: link.$.type, href: link.$.href }
               if link.$.hreflang
