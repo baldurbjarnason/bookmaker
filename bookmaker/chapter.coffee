@@ -7,7 +7,6 @@ $ = require 'jquery'
 Assets = require './assets'
 _ = require 'underscore'
 handlebars = require('handlebars')
-whenjs = require('when')
 path = require 'path'
 utilities = require './utilities'
 addToZip = utilities.addToZip
@@ -35,14 +34,14 @@ class Chapter
   formatPath: (type) ->
     newpath = path.dirname(@filename) + "/" + path.basename(@filename, path.extname(@filename)) + '.' + type
     return newpath
-  addToZip: (zip, template) ->
+  addToZip: (zip, template, callback) ->
     unless template
       template = env.getTemplate('chapter.xhtml')
     if !@assets
       context = @context()
     else
       context = this
-    addToZip(zip, @filename, template.render.bind(template, context))
+    addToZip(zip, @filename, template.render.bind(template, context), callback)
 
 toHtml = Chapter.prototype.toHtml = ->
   switch @type
@@ -81,12 +80,6 @@ Chapter.prototype.processHTML = (html, smartyPants) ->
   # Need to properly filter entities here. Or at least look further into the issue.
   nbsp = new RegExp('&nbsp;', 'g')
   return $('body').html().replace(nbsp, '&#160;')
-
-Chapter.prototype.htmlPromise = () ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
-  @renderHtml(deferred.resolver)
-  return promise
 
 Chapter.prototype.renderHtml = (resolver) ->
   resolver.resolve(@html)

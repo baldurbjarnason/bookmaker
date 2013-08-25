@@ -1,9 +1,7 @@
 'use strict'
 
 zipStream = require('zipstream-contentment')
-whenjs = require('when')
-sequence = require('when/sequence')
-callbacks = require 'when/callbacks'
+async = require 'async'
 path = require('path')
 glob = require 'glob'
 fs = require 'fs'
@@ -13,6 +11,7 @@ utilities = require './utilities'
 relative = utilities.relative
 pageLinks = utilities.pageLinks
 addToZip = utilities.addToZip
+addStoredToZip = utilities.addStoredToZip
 log = require('./logger').logger()
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
@@ -53,20 +52,20 @@ processLandmarks = (landmarks) ->
   log.info 'EPUB – Landmarks prepared'
   return landmarks
 
-toEpub = (out, options) ->
+toEpub = (out, options, callback) ->
   log.info 'Rendering EPUB'
   book = Object.create this
   zip = zipStream.createZip({ level: 1 })
   zip.pipe(out)
-  final = () ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    log.info 'Writing to file...'
-    zip.finalize(deferred.resolve)
-    return promise
-  renderEpub(book, out, options, zip).then(final)
+  final = (err, result) ->
+    if err
+      callback(err)
+    log.info 'Finishing...'
+    zip.finalize((written) ->
+      callback(null, written))
+  renderEpub(book, out, options, zip, final)
 
-renderEpub = (book, out, options, zip) ->
+renderEpub = (book, out, options, zip, callback) ->
   book._state = {}
   book._state.htmltype = "application/xhtml+xml"
   book.counter = utilities.countergen()
@@ -76,7 +75,7 @@ renderEpub = (book, out, options, zip) ->
   book.chapterProperties = chapterProperties.bind(book)
   book.idGen = utilities.idGen
   tasks = []
-  tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true))
+  tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"))
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '''
       <?xml version="1.0" encoding="UTF-8"?>
       <display_options>
@@ -92,7 +91,7 @@ renderEpub = (book, out, options, zip) ->
           <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />
         </rootfiles>
       </container>
-      ''', 'META-INF/container.xml'))
+      '''))
   if book.meta.cover
     tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)))
   tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)))
@@ -106,19 +105,15 @@ renderEpub = (book, out, options, zip) ->
     tasks.push(options.assets.addToZip.bind(options.assets, zip))
   if options?.obfuscateFonts or book.obfuscateFonts
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.id))
-  sequence(tasks)
+  async.series(tasks, callback)
 
 extendAssets = (Assets) ->
-  mangleTask = (item, assets, zip, id) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    assets.get(item).then((data) ->
-      deferred.notify "Writing mangled #{item} to zip"
+  mangleTask = (item, assets, zip, id, callback) ->
+    assets.get(item, (err, data) ->
       file = mangler.mangle(data, id)
-      zip.addFile(file, { name: item }, deferred.resolve))
-    return promise
+      zip.addFile(file, { name: item }, callback))
 
-  Assets.prototype.addMangledFontsToZip = (zip, id) ->
+  Assets.prototype.addMangledFontsToZip = (zip, id, callback) ->
     tasks = []
     for item in this['otf']
       tasks.push(mangleTask.bind(null, item, this, zip, id))
@@ -126,14 +121,11 @@ extendAssets = (Assets) ->
       tasks.push(mangleTask.bind(null, item, this, zip, id))
     for item in this['woff']
       tasks.push(mangleTask.bind(null, item, this, zip, id))
-    sequence tasks
-  Assets.prototype.mangleFonts = (zip, id) ->
+    async.series tasks, callback
+  Assets.prototype.mangleFonts = (zip, id, callback) ->
     fonts = @ttf.concat(@otf, @woff)
-    @addMangledFontsToZip(zip, id).then(()->
-      deferred = whenjs.defer()
-      promise = deferred.promise
-      zip.addFile(env.getTemplate('encryption.xml').render({fonts: fonts }), { name: 'META-INF/encryption.xml' }, deferred.resolve)
-      return promise)
+    @addMangledFontsToZip(zip, id, ()->
+      zip.addFile(env.getTemplate('encryption.xml').render({fonts: fonts }), { name: 'META-INF/encryption.xml' }, callback))
   return Assets
 
 module.exports = {

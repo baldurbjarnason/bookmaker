@@ -31,7 +31,10 @@ var temppath = path.resolve(os.tmpDir(), 'bm' + require('crypto').randomBytes(4)
 var args = process.argv.splice(2);
 var tempdir = fs.mkdirSync(temppath);
 var rimraf = require('rimraf');
-done = function() {
+done = function(err) {
+  if (err) {
+    console.log(err)
+  }
   console.log('Cleaning up.');
   rimraf(temppath, function(err) {
     if (err) {
@@ -44,7 +47,7 @@ done = function() {
 var target = fs.createWriteStream(args[1]);
 
 
-generate = function(book) {
+generate = function(book, callback) {
   book.assets.initSync();
 var chapter, _i, _len, _ref;
 
@@ -110,18 +113,13 @@ for (_i = 0, _len = _ref.length; _i < _len; _i++) {
   chapter = _ref[_i];
   chapter.type = 'html';
 }
-  book.toEpub(target);
+  book.toEpub(target, null, callback);
 };
 
-load = function(book) {
-  return generate(book).then(function() {done()});
+load = function(err, book) {
+  generate(book, done);
 };
 
 
 // loader = bookmaker.Book.fromEpub(args[0], temppath);
-loader = bookmaker.Book.fromEpub(args[0], 'tempassets/');
-
-
-loader.then(function(book) {
-  return load(book);
-});
+bookmaker.Book.fromEpub(args[0], 'tempassets/', load);

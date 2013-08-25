@@ -1,5 +1,5 @@
 'use strict';
-var $, EpubLoaderMixin, Zip, bodyre, extend, fs, log, parseString, parser, path, sequence, utilities, whenjs, xml2js;
+var $, EpubLoaderMixin, Zip, async, bodyre, extend, fs, log, parseString, parser, path, utilities, xml2js;
 
 fs = require('fs');
 
@@ -20,9 +20,7 @@ parseString = parser.parseString;
 
 $ = require('jquery');
 
-whenjs = require('when');
-
-sequence = require('when/sequence');
+async = require('async');
 
 log = require('./logger').logger();
 
@@ -31,8 +29,8 @@ bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig');
 EpubLoaderMixin = (function() {
   function EpubLoaderMixin() {}
 
-  EpubLoaderMixin.fromEpub = function(epubpath, assetsroot) {
-    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, opfpath, parseChapter, preBook, processNav, promise;
+  EpubLoaderMixin.fromEpub = function(epubpath, assetsroot, callback) {
+    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, parseChapter, preBook, processNav, tasks;
 
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
@@ -40,40 +38,35 @@ EpubLoaderMixin = (function() {
     Assets = this.Assets;
     preBook = {};
     log.info("Extraction starting");
-    findOpf = function(xml) {
-      var deferred, promise;
+    findOpf = function(callback) {
+      var xml;
 
-      deferred = whenjs.defer();
-      promise = deferred.promise;
+      xml = epub.readAsText('META-INF/container.xml');
       log.info("EPUB – Finding opf file");
-      parseString(xml, function(err, result) {
+      return parseString(xml, function(err, result) {
         var rootfile;
 
         if (err) {
           log.error(err);
+          callback(err);
         }
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path'];
         log.info("EPUB – Path to opf file is /" + rootfile);
         preBook.opfpath = rootfile;
         preBook.basedir = path.dirname(preBook.opfpath);
-        return deferred.resolve(rootfile);
+        return callback(null, rootfile);
       });
-      return promise;
     };
-    extractOpf = function(xml) {
-      var deferred, promise;
-
-      deferred = whenjs.defer();
-      promise = deferred.promise;
-      parseString(xml, function(err, result) {
+    extractOpf = function(callback) {
+      return parseString(epub.readAsText(preBook.opfpath), function(err, result) {
         if (err) {
           log.error(err);
+          callback(err);
         }
-        return createMetaAndSpine(result, deferred);
+        return createMetaAndSpine(result, callback);
       });
-      return promise;
     };
-    createMetaAndSpine = function(xml, deferred) {
+    createMetaAndSpine = function(xml, callback) {
       var elem, item, landmarks, manifest, meta, metadata, props, reference, references, type, uid, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
 
       metadata = xml["package"].metadata[0];
@@ -215,7 +208,7 @@ EpubLoaderMixin = (function() {
         }
       }
       log.info('EPUB – OPF parsed and worked');
-      return deferred.resolve(xml);
+      return callback(null, xml);
     };
     extractLandmarks = function(index, element) {
       var href, title, type;
@@ -233,30 +226,24 @@ EpubLoaderMixin = (function() {
         return log.warn("Landmark " + type + " isn't in the spine");
       }
     };
-    processNav = function(xml) {
-      var body, deferred, promise;
+    processNav = function(callback) {
+      var body, xml;
 
-      deferred = whenjs.defer();
-      promise = deferred.promise;
+      xml = epub.readAsText(path.join(preBook.basedir, preBook.navPath));
       body = xml.split(bodyre)[2];
       $('body').html(body);
-      log.info(preBook.meta.landmarks);
       preBook.landmarks = [];
       $('nav[epub\\:type=landmarks] a[epub\\:type]').each(extractLandmarks);
       if (preBook.landmarks.length !== 0) {
         preBook.meta.landmarks = preBook.landmarks;
       }
-      log.info(preBook.meta.landmarks);
       preBook.outline = $('nav[epub\\:type=toc]').html();
-      deferred.resolve(xml);
       log.info('EPUB – Nav parsed and worked');
-      return promise;
+      return callback(null, xml);
     };
-    extractAssetsAndCreateBook = function() {
-      var assets, assetslist, deferred, entry, promise, _i, _len;
+    extractAssetsAndCreateBook = function(callback) {
+      var assets, assetslist, entry, _i, _len;
 
-      deferred = whenjs.defer();
-      promise = deferred.promise;
       assetslist = epub.getEntries().filter(function(entry) {
         var ext;
 
@@ -290,22 +277,18 @@ EpubLoaderMixin = (function() {
       assets = new Assets(assetsroot, '.');
       preBook.book = new Book(preBook.meta, assets);
       preBook.book.outline = preBook.outline;
-      deferred.resolve(preBook.book);
       log.info('EPUB – assets extracted');
-      return promise;
+      return callback(null, preBook.book);
     };
-    parseChapter = function(xml, chapterpath) {
-      var deferred, promise;
-
-      deferred = whenjs.defer();
-      promise = deferred.promise;
+    parseChapter = function(xml, chapterpath, callback) {
       chapterpath = unescape(chapterpath);
-      parseString(xml, function(err, result) {
+      return parseString(xml, function(err, result) {
         var chapter, css, js, link, links, script, scripts, _i, _j, _len, _len1, _links;
 
         log.info("EPUB – Parsing " + chapterpath);
         if (err) {
           log.error(err);
+          callback(err);
         }
         chapter = {};
         chapter.title = result.html.head[0].title[0]._;
@@ -341,15 +324,12 @@ EpubLoaderMixin = (function() {
           }
         }
         preBook.book.addChapter(new Chapter(chapter));
-        return deferred.resolve(chapter);
+        return callback(null, chapter);
       });
-      return promise;
     };
-    extractChapters = function(book) {
-      var chapter, chapterpath, chapters, deferred, promise, xml, _i, _len, _ref;
+    extractChapters = function(callback) {
+      var chapter, chapterpath, chapters, xml, _i, _len, _ref;
 
-      deferred = whenjs.defer();
-      promise = deferred.promise;
       chapters = [];
       _ref = preBook.spine;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -360,24 +340,13 @@ EpubLoaderMixin = (function() {
         chapters.push(parseChapter.bind(null, xml, chapter));
       }
       log.info('EPUB – extracting chapters');
-      return sequence(chapters);
+      return async.series(chapters, callback);
     };
     done = function() {
-      return preBook.book;
+      return callback(null, preBook.book);
     };
-    opfpath = findOpf(epub.readAsText('META-INF/container.xml'));
-    promise = opfpath.then(function(path) {
-      return extractOpf(epub.readAsText(path));
-    }).then(function() {
-      return processNav(epub.readAsText(path.join(preBook.basedir, preBook.navPath)));
-    }).then(function() {
-      return extractAssetsAndCreateBook();
-    }).then(function(book) {
-      return extractChapters(book);
-    }).then(function() {
-      return done();
-    });
-    return promise;
+    tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, done];
+    return async.series(tasks);
   };
 
   return EpubLoaderMixin;

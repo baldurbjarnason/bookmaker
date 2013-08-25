@@ -1,12 +1,10 @@
 'use strict';
-var addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, log, mixin, mkdirp, pageLinks, path, relative, whenjs, write, _,
+var addStoredToZip, addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, log, mixin, mkdirp, pageLinks, path, relative, write, _,
   __slice = [].slice;
 
 path = require('path');
 
 fs = require('fs');
-
-whenjs = require('when');
 
 mkdirp = require('mkdirp');
 
@@ -84,39 +82,24 @@ chapterLinks = function() {
   return pageLinks(this, this.book);
 };
 
-ensuredir = function(directory) {
-  var deferred, promise;
-
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  mkdirp(directory, function(err) {
-    if (err) {
-      log.error(err);
-      return deferred.reject(err);
-    } else {
-      return deferred.resolve();
-    }
-  });
-  return promise;
+ensuredir = function(directory, callback) {
+  return mkdirp(directory, callback);
 };
 
-write = function(filename, data) {
-  var container, deferred, promise;
+write = function(filename, data, callback) {
+  var container;
 
-  deferred = whenjs.defer();
-  promise = deferred.promise;
   container = path.dirname(filename);
   mkdirp.sync(container);
-  fs.writeFile(filename, data, function(err) {
+  return fs.writeFile(filename, data, function(err) {
     if (err) {
       log.error(err);
-      return deferred.reject(err);
+      return callback(err);
     } else {
       log.info("" + filename + " written");
-      return deferred.resolve();
+      return callback();
     }
   });
-  return promise;
 };
 
 mixin = function() {
@@ -151,27 +134,42 @@ mixin = function() {
   return ReceivingClass;
 };
 
-addToZip = function(zip, fn, file, store) {
-  var deferred, options, promise, resolver;
+addToZip = function(zip, fn, file, callback, store) {
+  var options, resolver;
 
-  deferred = whenjs.defer();
-  promise = deferred.promise;
   options = {
     name: fn
   };
   resolver = function() {
     log.info("" + fn + " written to zip");
-    return deferred.resolve();
+    return callback();
   };
   if (store) {
     options.store = store;
   }
   if (typeof file === 'function') {
-    zip.addFile(file(), options, resolver);
+    return zip.addFile(file(), options, resolver);
   } else {
-    zip.addFile(file, options, resolver);
+    return zip.addFile(file, options, resolver);
   }
-  return promise;
+};
+
+addStoredToZip = function(zip, fn, file, callback) {
+  var options, resolver;
+
+  options = {
+    name: fn
+  };
+  resolver = function() {
+    log.info("" + fn + " written to zip");
+    return callback();
+  };
+  options.store = true;
+  if (typeof file === 'function') {
+    return zip.addFile(file(), options, resolver);
+  } else {
+    return zip.addFile(file, options, resolver);
+  }
 };
 
 countergen = function() {
@@ -205,6 +203,7 @@ module.exports = {
   write: write,
   mixin: mixin,
   addToZip: addToZip,
+  addStoredToZip: addStoredToZip,
   countergen: countergen,
   idGen: idGen
 };

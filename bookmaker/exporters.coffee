@@ -1,9 +1,8 @@
 'use strict'
 
-whenjs = require('when')
+async = require 'async'
 _ = require 'underscore'
 path = require 'path'
-sequence = require('when/sequence')
 nodefn = require("when/node/function")
 url = require 'url'
 handlebars = require('handlebars')
@@ -159,18 +158,18 @@ extendBook = (Book) ->
   Book.prototype.toJSON = (options) ->
     hal = @toHal(options)
     return JSON.stringify hal, filter, 2
-  Book.prototype.toJsonFiles = (directory, options) ->
+  Book.prototype.toJsonFiles = (directory, options, callback) ->
     hal = @toHal(options)
     hal.assetsPath = @assets.assetsPath
     json = JSON.stringify hal, filter, 2
     tasks = []
     if directory
-      tasks.push ensuredir directory
+      tasks.push ensuredir.bind null, directory
     else
       directory = directory || process.cwd()
-    tasks.push ensuredir directory + 'chapters/'
+    tasks.push ensuredir.bind null, directory + 'chapters/'
     unless options?.noAssets
-      tasks.push(@assets.copy(directory + hal.assetsPath))
+      tasks.push(@assets.copy.bind(@assets, directory + hal.assetsPath))
     for chapter in @chapters
       selfindex = @chapters.indexOf(chapter)
       context = chapter.context(this)
@@ -181,10 +180,10 @@ extendBook = (Book) ->
         if selfindex isnt @chapters.length - 1
           context._links = {} unless context._links
           context._links.next = { href: @uri(chapter.filename, @chapters[selfindex + 1].formatPath('json')), type: "application/hal+json" }
-      tasks.push(write(directory + chapter.formatPath('json'), context.toJSON(), 'utf8'))
-    tasks.push write(directory + 'index.json', json, 'utf8')
-    whenjs.all tasks
-  Book.prototype.toHtmlFiles = (directory, options) ->
+      tasks.push(write.bind(null, directory + chapter.formatPath('json'), context.toJSON()))
+    tasks.push write.bind(null, directory + 'index.json', json)
+    async.series tasks, callback
+  Book.prototype.toHtmlFiles = (directory, options, callback) ->
     log.info "Writing HTML files"
     book = Object.create this
     book._state = {} unless book._state
@@ -207,14 +206,14 @@ extendBook = (Book) ->
     book.links = utilities.pageLinks(book, book)
     tasks = []
     if directory
-      tasks.push ensuredir directory
+      tasks.push ensuredir.bind null, directory
     else
       directory = directory || process.cwd()
-    tasks.push ensuredir directory + 'chapters/'
+    tasks.push ensuredir.bind null, directory + 'chapters/'
     unless options?.noAssets
-      tasks.push(book.assets.copy(directory + book.assets.assetsPath))
-    tasks.push(write(directory + 'index.html', env.getTemplate('index.html').render(book), 'utf8'))
-    tasks.push(write(directory + 'cover.html', env.getTemplate('cover.html').render(book), 'utf8'))
+      tasks.push(book.assets.copy.bind(book.assets, directory + book.assets.assetsPath))
+    tasks.push(write.bind(null, directory + 'index.html', env.getTemplate('index.html').render(book)))
+    tasks.push(write.bind(null, directory + 'cover.html', env.getTemplate('cover.html').render(book)))
     for chapter in book.chapters
       log.info "Preparing #{chapter.filename}"
       context = chapter.context(book)
@@ -236,18 +235,20 @@ extendBook = (Book) ->
           type: "application/hal+json"
         }
         context.links = utilities.pageLinks context, book
-      tasks.push(write(directory + chapter.filename, env.getTemplate('chapter.html').render(context), 'utf8'))
-    whenjs.all tasks
-  Book.prototype.toHtmlAndJsonFiles = (directory, options) ->
+      tasks.push(write.bind(null, directory + chapter.filename, env.getTemplate('chapter.html').render(context)))
+    async.series tasks, callback
+  Book.prototype.toHtmlAndJsonFiles = (directory, options, callback) ->
     defaults = { arbitraryDefault: true }
     options = _.extend defaults, options
     book = Object.create this
     book._state = {}
     book._state.htmlAndJson = true
     book._state.htmltype = "text/html"
-    book.toHtmlFiles(directory, options).then(() ->
+    book.toHtmlFiles(directory, options, (err) ->
+      if err
+        callback(err)
       options.noAssets = true
-      book.toJsonFiles(directory, options))
+      book.toJsonFiles(directory, options, callback))
   return Book
 
 

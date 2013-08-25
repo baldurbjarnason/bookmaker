@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, callbacks, chai, exec, fs, index, should, testassets, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, chai, exec, fs, index, should, testassets, testbook, testchapters, testoutline, zipStream;
 
 chai = require('chai');
 
@@ -16,10 +16,6 @@ Assets = index.Assets;
 zipStream = require('zipstream-contentment');
 
 fs = require('fs');
-
-whenjs = require('when');
-
-callbacks = require('when/callbacks');
 
 exec = require('child_process').exec;
 
@@ -95,9 +91,7 @@ describe('EpubChapter', function() {
       title: 'The Wonderful Wizard of Oz',
       author: 'L. Frank Baum'
     }, assets);
-    return testbook.assets.init().then(function() {
-      return done();
-    });
+    return testbook.assets.init(done);
   });
   return describe('#addToZip', function() {
     return it('Returns a promise to add the chapter to zip (test.zip)', function(done) {
@@ -109,7 +103,7 @@ describe('EpubChapter', function() {
       out = fs.createWriteStream('test/files/test.zip');
       zip.pipe(out);
       testbook.addChapter(new Chapter(testchapters[1]));
-      return testbook.chapters[0].addToZip(zip).then(function() {
+      return testbook.chapters[0].addToZip(zip, null, function() {
         return zip.finalize(function(written) {
           written.should.equal(573);
           return done();
@@ -124,9 +118,7 @@ testassets = {};
 describe('EpubAssets', function() {
   beforeEach(function(done) {
     testassets = new index.Assets('test/files/', 'assets/');
-    return testassets.init().then(function() {
-      return done();
-    });
+    return testassets.init(done);
   });
   describe('#addTypeToZip', function() {
     return it('Adds all assets of a type to zip', function(done) {
@@ -137,7 +129,7 @@ describe('EpubAssets', function() {
       });
       out = fs.createWriteStream('test/files/js.zip');
       zip.pipe(out);
-      return testassets.addTypeToZip('js', zip).then(function() {
+      return testassets.addTypeToZip('js', zip, function() {
         return zip.finalize(function(written) {
           written.should.equal(62918);
           return done();
@@ -154,7 +146,7 @@ describe('EpubAssets', function() {
       });
       out = fs.createWriteStream('test/files/assets.zip');
       zip.pipe(out);
-      return testassets.addToZip(zip).then(function() {
+      return testassets.addToZip(zip, function() {
         return zip.finalize(function(written) {
           written.should.equal(386001);
           return done();
@@ -171,7 +163,7 @@ describe('EpubAssets', function() {
       });
       out = fs.createWriteStream('test/files/mangledfonts.zip');
       zip.pipe(out);
-      return testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D").then(function() {
+      return testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D", function() {
         return zip.finalize(function(written) {
           written.should.equal(124787);
           return done();
@@ -204,9 +196,7 @@ describe('EpubBook', function() {
       testbook.addChapter(new Chapter(chap));
     }
     testbook.meta.start = testbook.chapters[1];
-    return testbook.assets.init().then(function() {
-      return done();
-    });
+    return testbook.assets.init(done);
   });
   describe('#addChaptersToZip', function() {
     return it('Adds all chapters to zip (chapters.zip)', function(done) {
@@ -217,7 +207,7 @@ describe('EpubBook', function() {
       });
       out = fs.createWriteStream('test/files/chapters.zip');
       zip.pipe(out);
-      return testbook.addChaptersToZip(zip).then(function() {
+      return testbook.addChaptersToZip(zip, null, function() {
         return zip.finalize(function(written) {
           written.should.equal(2276);
           return done();
@@ -231,10 +221,13 @@ describe('EpubBook', function() {
 
       this.timeout(10000);
       out = fs.createWriteStream('test/files/test.epub');
-      return testbook.toEpub(out).then(function(thing) {
+      return testbook.toEpub(out, null, function(err, thing) {
         var checkReport,
           _this = this;
 
+        if (err) {
+          done(err);
+        }
         console.log(thing);
         checkReport = function(error, stdout, stderr) {
           if (error) {

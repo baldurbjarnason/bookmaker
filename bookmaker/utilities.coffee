@@ -2,7 +2,6 @@
 
 path = require('path')
 fs = require 'fs'
-whenjs = require 'when'
 mkdirp = require 'mkdirp'
 _ = require 'underscore'
 log = require('./logger').logger()
@@ -40,31 +39,20 @@ bookLinks = () ->
 chapterLinks = () ->
   pageLinks(this, @book)
 
-ensuredir = (directory) ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
-  mkdirp(directory, (err) ->
-    if err
-      log.error err
-      deferred.reject(err)
-    else
-      deferred.resolve())
-  return promise
+ensuredir = (directory, callback) ->
+  mkdirp(directory, callback)
 
 
-write = (filename, data) ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
+write = (filename, data, callback) ->
   container = path.dirname(filename)
   mkdirp.sync container
   fs.writeFile(filename, data, (err) ->
     if err
       log.error err
-      deferred.reject(err)
+      callback(err)
     else
       log.info "#{filename} written"
-      deferred.resolve())
-  return promise
+      callback())
 
 mixin = (ReceivingClass, DonatingClasses...) ->
   donate = (DonatingClass) ->
@@ -78,20 +66,28 @@ mixin = (ReceivingClass, DonatingClasses...) ->
     donate(donator)
   return ReceivingClass
 
-addToZip = (zip, fn, file, store) ->
-  deferred = whenjs.defer()
-  promise = deferred.promise
+addToZip = (zip, fn, file, callback, store) ->
   options = { name: fn }
   resolver = () ->
     log.info "#{fn} written to zip"
-    deferred.resolve()
+    callback()
   if store
     options.store = store
   if typeof file is 'function'
     zip.addFile(file(), options, resolver)
   else
     zip.addFile(file, options, resolver)
-  return promise
+
+addStoredToZip = (zip, fn, file, callback) ->
+  options = { name: fn }
+  resolver = () ->
+    log.info "#{fn} written to zip"
+    callback()
+  options.store = true
+  if typeof file is 'function'
+    zip.addFile(file(), options, resolver)
+  else
+    zip.addFile(file, options, resolver)
 
 countergen = () ->
   _counter = {}
@@ -115,6 +111,7 @@ module.exports = {
   write: write
   mixin: mixin
   addToZip: addToZip
+  addStoredToZip: addStoredToZip
   countergen: countergen
   idGen: idGen
 }

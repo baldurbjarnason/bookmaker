@@ -1,13 +1,11 @@
 'use strict';
-var ensuredir, env, extend, extendAssets, extendBook, extendChapter, filter, handlebars, log, nodefn, nunjucks, path, relative, sequence, url, utilities, whenjs, write, _;
+var async, ensuredir, env, extend, extendAssets, extendBook, extendChapter, filter, handlebars, log, nodefn, nunjucks, path, relative, url, utilities, write, _;
 
-whenjs = require('when');
+async = require('async');
 
 _ = require('underscore');
 
 path = require('path');
-
-sequence = require('when/sequence');
 
 nodefn = require("when/node/function");
 
@@ -334,7 +332,7 @@ extendBook = function(Book) {
     hal = this.toHal(options);
     return JSON.stringify(hal, filter, 2);
   };
-  Book.prototype.toJsonFiles = function(directory, options) {
+  Book.prototype.toJsonFiles = function(directory, options, callback) {
     var chapter, context, hal, json, selfindex, tasks, _i, _len, _ref;
 
     hal = this.toHal(options);
@@ -342,13 +340,13 @@ extendBook = function(Book) {
     json = JSON.stringify(hal, filter, 2);
     tasks = [];
     if (directory) {
-      tasks.push(ensuredir(directory));
+      tasks.push(ensuredir.bind(null, directory));
     } else {
       directory = directory || process.cwd();
     }
-    tasks.push(ensuredir(directory + 'chapters/'));
+    tasks.push(ensuredir.bind(null, directory + 'chapters/'));
     if (!(options != null ? options.noAssets : void 0)) {
-      tasks.push(this.assets.copy(directory + hal.assetsPath));
+      tasks.push(this.assets.copy.bind(this.assets, directory + hal.assetsPath));
     }
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -375,12 +373,12 @@ extendBook = function(Book) {
           };
         }
       }
-      tasks.push(write(directory + chapter.formatPath('json'), context.toJSON(), 'utf8'));
+      tasks.push(write.bind(null, directory + chapter.formatPath('json'), context.toJSON()));
     }
-    tasks.push(write(directory + 'index.json', json, 'utf8'));
-    return whenjs.all(tasks);
+    tasks.push(write.bind(null, directory + 'index.json', json));
+    return async.series(tasks, callback);
   };
-  Book.prototype.toHtmlFiles = function(directory, options) {
+  Book.prototype.toHtmlFiles = function(directory, options, callback) {
     var book, chapter, context, jsonpath, selfindex, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
 
     log.info("Writing HTML files");
@@ -411,16 +409,16 @@ extendBook = function(Book) {
     book.links = utilities.pageLinks(book, book);
     tasks = [];
     if (directory) {
-      tasks.push(ensuredir(directory));
+      tasks.push(ensuredir.bind(null, directory));
     } else {
       directory = directory || process.cwd();
     }
-    tasks.push(ensuredir(directory + 'chapters/'));
+    tasks.push(ensuredir.bind(null, directory + 'chapters/'));
     if (!(options != null ? options.noAssets : void 0)) {
-      tasks.push(book.assets.copy(directory + book.assets.assetsPath));
+      tasks.push(book.assets.copy.bind(book.assets, directory + book.assets.assetsPath));
     }
-    tasks.push(write(directory + 'index.html', env.getTemplate('index.html').render(book), 'utf8'));
-    tasks.push(write(directory + 'cover.html', env.getTemplate('cover.html').render(book), 'utf8'));
+    tasks.push(write.bind(null, directory + 'index.html', env.getTemplate('index.html').render(book)));
+    tasks.push(write.bind(null, directory + 'cover.html', env.getTemplate('cover.html').render(book)));
     _ref1 = book.chapters;
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       chapter = _ref1[_i];
@@ -452,11 +450,11 @@ extendBook = function(Book) {
         };
         context.links = utilities.pageLinks(context, book);
       }
-      tasks.push(write(directory + chapter.filename, env.getTemplate('chapter.html').render(context), 'utf8'));
+      tasks.push(write.bind(null, directory + chapter.filename, env.getTemplate('chapter.html').render(context)));
     }
-    return whenjs.all(tasks);
+    return async.series(tasks, callback);
   };
-  Book.prototype.toHtmlAndJsonFiles = function(directory, options) {
+  Book.prototype.toHtmlAndJsonFiles = function(directory, options, callback) {
     var book, defaults;
 
     defaults = {
@@ -467,9 +465,12 @@ extendBook = function(Book) {
     book._state = {};
     book._state.htmlAndJson = true;
     book._state.htmltype = "text/html";
-    return book.toHtmlFiles(directory, options).then(function() {
+    return book.toHtmlFiles(directory, options, function(err) {
+      if (err) {
+        callback(err);
+      }
       options.noAssets = true;
-      return book.toJsonFiles(directory, options);
+      return book.toJsonFiles(directory, options, callback);
     });
   };
   return Book;

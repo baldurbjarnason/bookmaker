@@ -81,9 +81,7 @@ describe('JsonBook', function() {
       testbook.addChapter(new Chapter(chap));
     }
     testbook.meta.start = testbook.chapters[1];
-    return testbook.assets.init().then(function() {
-      return done();
-    });
+    return testbook.assets.init(done);
   });
   describe('#toJSON', function() {
     return it('Renders the book to json', function() {
@@ -114,9 +112,7 @@ describe('JsonBook', function() {
       };
       return testbook.toJsonFiles('test/files/json/', {
         baseurl: 'http://oz.studiotendra.com/book/1/json/'
-      }).then(test, function(thing) {
-        return done(thing);
-      });
+      }, test);
     });
   });
   describe('#toHtmlFiles', function() {
@@ -136,9 +132,7 @@ describe('JsonBook', function() {
       };
       return testbook.toHtmlFiles('test/files/html/', {
         baseurl: 'http://oz.studiotendra.com/book/1/html/'
-      }).then(test, function(thing) {
-        return done(thing);
-      });
+      }, test);
     });
   });
   return describe('#toHtmlandJsonFiles', function() {
@@ -158,9 +152,7 @@ describe('JsonBook', function() {
       };
       return testbook.toHtmlAndJsonFiles('test/files/htmlandjson/', {
         baseurl: 'http://oz.studiotendra.com/book/1/htmlandjson/'
-      }).then(test, function(thing) {
-        return done(thing);
-      });
+      }, test);
     });
   });
 });

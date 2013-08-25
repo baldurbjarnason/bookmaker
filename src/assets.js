@@ -1,15 +1,9 @@
 'use strict';
-var Assets, fs, glob, log, ncp, nodefn, path, pglob, sequence, whenjs, _;
+var Assets, async, fs, glob, log, ncp, path, _;
 
 glob = require('glob');
 
-whenjs = require('when');
-
-sequence = require('when/sequence');
-
-nodefn = require("when/node/function");
-
-pglob = nodefn.lift(glob);
+async = require('async');
 
 _ = require('underscore');
 
@@ -27,43 +21,30 @@ Assets = (function() {
     this.assetsPath = assetsPath;
   }
 
-  Assets.prototype.get = function(filepath) {
-    var deferred, fn, promise;
+  Assets.prototype.get = function(filepath, callback) {
+    var fn;
 
-    deferred = whenjs.defer();
-    promise = deferred.promise;
     fn = path.resolve(this.root, filepath);
-    fs.readFile(fn, function(err, data) {
-      if (err) {
-        log.error(err);
-        return deferred.reject;
-      } else {
-        return deferred.resolve(data, filepath);
-      }
-    });
-    return promise;
+    return fs.readFile(fn, callback);
   };
 
   Assets.prototype.getStream = function(filepath, options) {
     return fs.createReadStream(path.resolve(this.root, filepath), options);
   };
 
-  Assets.prototype.addItemToZip = function(item, zip) {
-    var deferred, promise, resolver;
+  Assets.prototype.addItemToZip = function(item, zip, callback) {
+    var resolver;
 
-    deferred = whenjs.defer();
-    promise = deferred.promise;
     resolver = function() {
       log.info("" + item + " written to zip");
-      return deferred.resolve();
+      return callback();
     };
-    zip.addFile(this.getStream(item), {
+    return zip.addFile(this.getStream(item), {
       name: item
     }, resolver);
-    return promise;
   };
 
-  Assets.prototype.addTypeToZip = function(type, zip) {
+  Assets.prototype.addTypeToZip = function(type, zip, callback) {
     var item, tasks, _i, _len, _ref;
 
     tasks = [];
@@ -72,10 +53,10 @@ Assets = (function() {
       item = _ref[_i];
       tasks.push(this.addItemToZip.bind(this, item, zip));
     }
-    return sequence(tasks);
+    return async.series(tasks, callback);
   };
 
-  Assets.prototype.addToZip = function(zip) {
+  Assets.prototype.addToZip = function(zip, callback) {
     var tasks, type, types, _i, _len;
 
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
@@ -84,31 +65,24 @@ Assets = (function() {
       type = types[_i];
       tasks.push(this.addTypeToZip.bind(this, type, zip));
     }
-    return sequence(tasks);
+    return async.series(tasks, callback);
   };
 
-  Assets.prototype.copy = function(directory) {
-    var deferred, promise;
+  Assets.prototype.copy = function(directory, callback) {
+    var resolver, source;
 
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    deferred.notify("Copying assets");
-    ncp(path.resolve(this.root, this.assetsPath), directory, function(err) {
-      if (err) {
-        log.error(err);
-        return deferred.reject(err);
-      } else {
-        log.info("Assets copied to " + directory);
-        return deferred.resolve();
-      }
-    });
-    return promise;
+    source = path.resolve(this.root, this.assetsPath);
+    resolver = function(err) {
+      log.info("Assets copied");
+      return callback(err);
+    };
+    return ncp(source, directory, resolver);
   };
 
-  Assets.prototype.init = function() {
+  Assets.prototype.init = function(callback) {
     var task, tasks, type, types, _i, _len;
 
-    task = function(type) {
+    task = function(type, callback) {
       var jpegList;
 
       if (!this.assetsPath) {
@@ -126,6 +100,7 @@ Assets = (function() {
         });
         this.jpg = this.jpg.concat(jpegList);
       }
+      return callback();
     };
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
     tasks = [];
@@ -133,9 +108,7 @@ Assets = (function() {
       type = types[_i];
       tasks.push(task.bind(this, type));
     }
-    return sequence(tasks).then(function() {
-      return this;
-    });
+    return async.series(tasks, callback);
   };
 
   Assets.prototype.initSync = function() {

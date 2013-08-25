@@ -1,10 +1,7 @@
 'use strict'
 
 glob = require 'glob'
-whenjs = require('when')
-sequence = require('when/sequence')
-nodefn = require("when/node/function")
-pglob = nodefn.lift(glob)
+async = require 'async'
 _ = require 'underscore'
 fs = require 'fs'
 ncp = require('ncp').ncp
@@ -15,53 +12,36 @@ log = require('./logger').logger()
 
 class Assets
   constructor: (@root, @assetsPath) ->
-  get: (filepath) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
+  get: (filepath, callback) ->
     fn = path.resolve(@root, filepath)
-    fs.readFile(fn, (err, data) ->
-      if err
-        log.error err
-        deferred.reject
-      else
-        deferred.resolve(data, filepath))
-    return promise
+    fs.readFile(fn, callback)
   getStream: (filepath, options) ->
     fs.createReadStream(path.resolve(@root, filepath), options)
-  addItemToZip: (item, zip) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
+  addItemToZip: (item, zip, callback) ->
     resolver = () ->
       log.info "#{item} written to zip"
-      deferred.resolve()
+      callback()
     zip.addFile(@getStream(item), { name: item }, resolver)
-    return promise
-  addTypeToZip: (type, zip) ->
+  addTypeToZip: (type, zip, callback) ->
     tasks = []
     for item in this[type]
       tasks.push(@addItemToZip.bind(this, item, zip))
-    sequence tasks
-  addToZip: (zip) ->
+    async.series tasks, callback
+  addToZip: (zip, callback) ->
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
     tasks = []
     for type in types
       tasks.push(@addTypeToZip.bind(this, type, zip))
-    sequence tasks
-  copy: (directory) ->
-    deferred = whenjs.defer()
-    promise = deferred.promise
-    deferred.notify "Copying assets"
-    ncp(path.resolve(@root, @assetsPath), directory, (err) ->
-      if err
-        log.error err
-        deferred.reject err
-      else
-        log.info "Assets copied to #{directory}"
-        deferred.resolve())
-    return promise
+    async.series tasks, callback
+  copy: (directory, callback) ->
+    source = path.resolve(@root, @assetsPath)
+    resolver = (err) ->
+      log.info "Assets copied"
+      callback(err)
+    ncp(source, directory, resolver)
 
-  init: () ->
-    task = (type) ->
+  init: (callback) ->
+    task = (type, callback) ->
       unless @assetsPath
         @assetsPath = ""
       if @assetsPath is "."
@@ -70,12 +50,12 @@ class Assets
       if type is 'jpg'
         jpegList = glob.sync(@assetsPath + "**/*.jpeg", { cwd: @root })
         @jpg = @jpg.concat(jpegList)
-      return
+      callback()
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
     tasks = []
     for type in types
       tasks.push(task.bind(this, type))
-    sequence(tasks).then(() -> return this)
+    async.series(tasks, callback)
   initSync: () ->
     newAssetsPath = @assetsPath
     unless newAssetsPath

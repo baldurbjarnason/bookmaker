@@ -10,11 +10,10 @@ testbook = {}
 describe 'EpubLoader',
   () ->
     beforeEach (done) ->
-      load = (book) ->
+      load = (err, book) ->
         testbook = book
         done()
-      book = Book.fromEpub('test/files/test.epub', 'test/files/epubloader/')
-      book.then((book) -> load book)
+      book = Book.fromEpub('test/files/test.epub', 'test/files/epubloader/', load)
     describe '#loadEpub',
       () ->
         it 'Loads the book from an epub',
