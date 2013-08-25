@@ -56,6 +56,12 @@
 	{% endif %}
 </nav>
 
+{% if pageList %}
+<nav id="pagelist" class="pagelist" epub:type="page-list">
+	{{ pageList }}
+</nav>
+{% pageList %}
+
 <nav id="landmarks" class="landmarks h-landmarks" epub:type="landmarks">
   <ol>
         {% if meta.cover %}<li><a href="cover.html" epub:type="cover">Cover</a></li>{% endif %}

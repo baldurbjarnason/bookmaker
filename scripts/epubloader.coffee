@@ -153,6 +153,7 @@ class EpubLoaderMixin
       unless preBook.landmarks.length is 0
         preBook.meta.landmarks = preBook.landmarks
       preBook.outline = $('nav[epub\\:type=toc]').html()
+      preBook.pageList = $('nav[epub\\:type=page-list]').html()
       log.info 'EPUB – Nav parsed and worked'
       callback null, xml
 

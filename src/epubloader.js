@@ -242,6 +242,7 @@ EpubLoaderMixin = (function() {
         preBook.meta.landmarks = preBook.landmarks;
       }
       preBook.outline = $('nav[epub\\:type=toc]').html();
+      preBook.pageList = $('nav[epub\\:type=page-list]').html();
       log.info('EPUB – Nav parsed and worked');
       return callback(null, xml);
     };
