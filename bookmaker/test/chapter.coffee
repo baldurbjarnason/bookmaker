@@ -112,17 +112,5 @@ describe 'Chapter',
             testbook.addChapter(new Chapter(testchapters.hbs))
             jsontest = testbook.chapters[0].toJSON()
             jsontest.should.equal("{\n  \"type\": \"html\",\n  \"title\": \"Template\",\n  \"body\": \"<h1 id=\\\"h1-1\\\">Template</h1><p class=\\\"noindent\\\" id=\\\"p-1\\\">Test<br />‘—’“–”&#160;</p>\",\n  \"id\": \"doc1\",\n  \"_links\": {\n    \"toc\": {\n      \"href\": \"../index.json\",\n      \"name\": \"TOC-JSON\",\n      \"type\": \"application/hal+json\"\n    },\n    \"self\": {\n      \"href\": \"doc1.json\",\n      \"type\": \"application/hal+json\"\n    }\n  }\n}")
-    describe '#htmlPromise (html)',
-      () ->
-        it 'should correctly render xhtml body content',
-          (done) ->
-            testchapter = new Chapter(testchapters.html)
-            testchapter.title.should.equal('HTML')
-            testchapter.arbitraryMeta.should.equal('is arbitrary')
-            testchapter.should.be.instanceOf(Chapter)
-            testchapter.htmlPromise().then(
-              (html) ->
-                html.should.equal('<h1 id="h1-1">header</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p>')
-                done())
 
 

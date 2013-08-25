@@ -4,8 +4,7 @@ Assets = require './assets'
 Chapter = require './chapter'
 path = require 'path'
 utilities = require './utilities'
-whenjs = require('when')
-sequence = require('when/sequence')
+async = require 'async'
 $ = require 'jquery'
 
 class Book
@@ -42,11 +41,6 @@ class Book
       chapter.filename = 'chapters/' + chapter.id + '.html'
     return chapter
   addChapter: (chapter, bookoverride) ->
-    # chapter.book = this or bookoverride
-    # unless chapter.id
-    #   chapter.id = @docId()
-    # unless chapter.filename
-    #   chapter.filename = 'chapters/' + chapter.id + '.html'
     @chapterPrepare chapter, bookoverride
     @chapters.push(chapter)
   prependChapter: (chapter, bookoverride) ->
@@ -120,12 +114,12 @@ class Book
       $("a[href='#{href}']").parent().before(html)
       @outline = $('body').html()
   relative: utilities.relative
-  addChaptersToZip: (zip, template) ->
+  addChaptersToZip: (zip, template, callback) ->
     tasks = []
     for chapter in @chapters
       context = chapter.context(this)
       tasks.push(context.addToZip.bind(context, zip, template))
-    sequence(tasks)
+    async.series(tasks, callback)
 
 dateProcess = (date) ->
   pad = (n) ->

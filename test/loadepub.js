@@ -15,14 +15,11 @@ describe('EpubLoader', function() {
   beforeEach(function(done) {
     var book, load;
 
-    load = function(book) {
+    load = function(err, book) {
       testbook = book;
       return done();
     };
-    book = Book.fromEpub('test/files/test.epub', 'test/files/epubloader/');
-    return book.then(function(book) {
-      return load(book);
-    });
+    return book = Book.fromEpub('test/files/test.epub', 'test/files/epubloader/', load);
   });
   return describe('#loadEpub', function() {
     return it('Loads the book from an epub', function() {

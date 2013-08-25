@@ -1,13 +1,9 @@
 'use strict';
-var addToZip, callbacks, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, sequence, toEpub, utilities, whenjs, zipStream, _;
+var addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream, _;
 
 zipStream = require('zipstream-contentment');
 
-whenjs = require('when');
-
-sequence = require('when/sequence');
-
-callbacks = require('when/callbacks');
+async = require('async');
 
 path = require('path');
 
@@ -26,6 +22,8 @@ relative = utilities.relative;
 pageLinks = utilities.pageLinks;
 
 addToZip = utilities.addToZip;
+
+addStoredToZip = utilities.addStoredToZip;
 
 log = require('./logger').logger();
 
@@ -95,7 +93,7 @@ processLandmarks = function(landmarks) {
   return landmarks;
 };
 
-toEpub = function(out, options) {
+toEpub = function(out, options, callback) {
   var book, final, zip;
 
   log.info('Rendering EPUB');
@@ -104,19 +102,19 @@ toEpub = function(out, options) {
     level: 1
   });
   zip.pipe(out);
-  final = function() {
-    var deferred, promise;
-
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    log.info('Writing to file...');
-    zip.finalize(deferred.resolve);
-    return promise;
+  final = function(err, result) {
+    if (err) {
+      callback(err);
+    }
+    log.info('Finishing...');
+    return zip.finalize(function(written) {
+      return callback(null, written);
+    });
   };
-  return renderEpub(book, out, options, zip).then(final);
+  return renderEpub(book, out, options, zip, final);
 };
 
-renderEpub = function(book, out, options, zip) {
+renderEpub = function(book, out, options, zip, callback) {
   var tasks;
 
   book._state = {};
@@ -128,9 +126,9 @@ renderEpub = function(book, out, options, zip) {
   book.chapterProperties = chapterProperties.bind(book);
   book.idGen = utilities.idGen;
   tasks = [];
-  tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true));
+  tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"));
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>'));
-  tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>', 'META-INF/container.xml'));
+  tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>'));
   if (book.meta.cover) {
     tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)));
   }
@@ -148,29 +146,23 @@ renderEpub = function(book, out, options, zip) {
   if ((options != null ? options.obfuscateFonts : void 0) || book.obfuscateFonts) {
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.id));
   }
-  return sequence(tasks);
+  return async.series(tasks, callback);
 };
 
 extendAssets = function(Assets) {
   var mangleTask;
 
-  mangleTask = function(item, assets, zip, id) {
-    var deferred, promise;
-
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    assets.get(item).then(function(data) {
+  mangleTask = function(item, assets, zip, id, callback) {
+    return assets.get(item, function(err, data) {
       var file;
 
-      deferred.notify("Writing mangled " + item + " to zip");
       file = mangler.mangle(data, id);
       return zip.addFile(file, {
         name: item
-      }, deferred.resolve);
+      }, callback);
     });
-    return promise;
   };
-  Assets.prototype.addMangledFontsToZip = function(zip, id) {
+  Assets.prototype.addMangledFontsToZip = function(zip, id, callback) {
     var item, tasks, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
 
     tasks = [];
@@ -189,23 +181,18 @@ extendAssets = function(Assets) {
       item = _ref2[_k];
       tasks.push(mangleTask.bind(null, item, this, zip, id));
     }
-    return sequence(tasks);
+    return async.series(tasks, callback);
   };
-  Assets.prototype.mangleFonts = function(zip, id) {
+  Assets.prototype.mangleFonts = function(zip, id, callback) {
     var fonts;
 
     fonts = this.ttf.concat(this.otf, this.woff);
-    return this.addMangledFontsToZip(zip, id).then(function() {
-      var deferred, promise;
-
-      deferred = whenjs.defer();
-      promise = deferred.promise;
-      zip.addFile(env.getTemplate('encryption.xml').render({
+    return this.addMangledFontsToZip(zip, id, function() {
+      return zip.addFile(env.getTemplate('encryption.xml').render({
         fonts: fonts
       }), {
         name: 'META-INF/encryption.xml'
-      }, deferred.resolve);
-      return promise;
+      }, callback);
     });
   };
   return Assets;

@@ -10,7 +10,7 @@ describe 'Assets',
   () ->
     before (done) ->
       testassets = new Assets('test/files/', 'assets/')
-      testassets.init().then(() -> done())
+      testassets.init(done)
     describe '#png',
       () ->
         it 'should show all pngs',
@@ -50,8 +50,10 @@ describe 'Assets',
     describe '#copy',
       () ->
         it 'should copy the assets folder to a new location',
-          () ->
-            testassets.copy('test/files/assets2/')
+          (done) ->
+            testassets.copy('test/files/assets2/', () ->
             assets1 = glob.sync('assets/*', {cwd: 'test/files/assets/'}).join()
             assets2 = glob.sync('assets2/*', {cwd: 'test/files/assets2/'}).join()
+            console.log assets1, assets2
             assets1.should.equal(assets2)
+            done())

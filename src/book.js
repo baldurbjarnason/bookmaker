@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Book, Chapter, dateProcess, path, sequence, utilities, whenjs;
+var $, Assets, Book, Chapter, async, dateProcess, path, utilities;
 
 Assets = require('./assets');
 
@@ -9,9 +9,7 @@ path = require('path');
 
 utilities = require('./utilities');
 
-whenjs = require('when');
-
-sequence = require('when/sequence');
+async = require('async');
 
 $ = require('jquery');
 
@@ -199,7 +197,7 @@ Book = (function() {
 
   Book.prototype.relative = utilities.relative;
 
-  Book.prototype.addChaptersToZip = function(zip, template) {
+  Book.prototype.addChaptersToZip = function(zip, template, callback) {
     var chapter, context, tasks, _i, _len, _ref;
 
     tasks = [];
@@ -209,7 +207,7 @@ Book = (function() {
       context = chapter.context(this);
       tasks.push(context.addToZip.bind(context, zip, template));
     }
-    return sequence(tasks);
+    return async.series(tasks, callback);
   };
 
   return Book;

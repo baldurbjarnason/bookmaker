@@ -8,45 +8,41 @@ xml2js = require('xml2js')
 parser = new xml2js.Parser({ explicitCharkey: true, explicitArray: true })
 parseString = parser.parseString
 $ = require 'jquery'
-whenjs = require('when')
-sequence = require('when/sequence')
+async = require 'async'
 log = require('./logger').logger()
 
 
 bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig')
 
 class EpubLoaderMixin
-  @fromEpub = (epubpath, assetsroot) ->
+  @fromEpub = (epubpath, assetsroot, callback) ->
     epub = new Zip(epubpath)
     Chapter = @Chapter
     Book = this
     Assets = @Assets
     preBook = {} # both book state and meta will be attached to this object
     log.info "Extraction starting"
-    findOpf = (xml) ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
+    findOpf = (callback) ->
+      xml = epub.readAsText 'META-INF/container.xml'
       log.info "EPUB – Finding opf file"
       parseString xml, (err, result) ->
         if err
           log.error err
+          callback err
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path']
         log.info "EPUB – Path to opf file is /#{rootfile}"
         preBook.opfpath = rootfile
         preBook.basedir = path.dirname preBook.opfpath
-        deferred.resolve rootfile
-      return promise
+        callback null, rootfile
 
-    extractOpf = (xml) ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
-      parseString xml, (err, result) ->
+    extractOpf = (callback) ->
+      parseString epub.readAsText(preBook.opfpath), (err, result) ->
         if err
           log.error err
-        createMetaAndSpine result, deferred
-      return promise
+          callback err
+        createMetaAndSpine result, callback
 
-    createMetaAndSpine = (xml, deferred) ->
+    createMetaAndSpine = (xml, callback) ->
       metadata = xml.package.metadata[0]
       preBook.meta = meta = {}
       uid = xml.package.$['unique-identifier']
@@ -134,7 +130,7 @@ class EpubLoaderMixin
         if landmarks.length > 0
           meta.landmarks = landmarks
       log.info 'EPUB – OPF parsed and worked'
-      deferred.resolve xml
+      callback null, xml
 
     extractLandmarks = (index, element) ->
       type = $(this).attr('epub:type')
@@ -146,25 +142,19 @@ class EpubLoaderMixin
         log.warn "Landmark #{type} isn't in the spine"
 
 
-    processNav = (xml) ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
+    processNav = (callback) ->
+      xml = epub.readAsText(path.join preBook.basedir, preBook.navPath)
       body = xml.split(bodyre)[2]
       $('body').html(body)
-      log.info preBook.meta.landmarks
       preBook.landmarks = []
       $('nav[epub\\:type=landmarks] a[epub\\:type]').each(extractLandmarks)
       unless preBook.landmarks.length is 0
         preBook.meta.landmarks = preBook.landmarks
-      log.info preBook.meta.landmarks
       preBook.outline = $('nav[epub\\:type=toc]').html()
-      deferred.resolve xml
       log.info 'EPUB – Nav parsed and worked'
-      return promise
+      callback null, xml
 
-    extractAssetsAndCreateBook = () ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
+    extractAssetsAndCreateBook = (callback) ->
       assetslist = epub.getEntries().filter (entry) ->
         ext = path.extname entry.entryName
         if entry.entryName is 'mimetype'
@@ -183,18 +173,16 @@ class EpubLoaderMixin
       assets = new Assets(assetsroot, '.')
       preBook.book = new Book preBook.meta, assets
       preBook.book.outline = preBook.outline
-      deferred.resolve preBook.book
       log.info 'EPUB – assets extracted'
-      return promise
+      callback null, preBook.book
     
-    parseChapter = (xml, chapterpath) ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
+    parseChapter = (xml, chapterpath, callback) ->
       chapterpath = unescape chapterpath
       parseString xml, (err, result) ->
         log.info "EPUB – Parsing #{chapterpath}"
         if err
           log.error err
+          callback err
         chapter = {}
         chapter.title = result.html.head[0].title[0]._
         chapter.type = 'xhtml'
@@ -218,12 +206,9 @@ class EpubLoaderMixin
           for script in scripts
             js.push script.$.src
         preBook.book.addChapter new Chapter(chapter)
-        deferred.resolve chapter
-      return promise
+        callback null, chapter
 
-    extractChapters = (book) ->
-      deferred = whenjs.defer()
-      promise = deferred.promise
+    extractChapters = (callback) ->
       chapters = []
       for chapter in preBook.spine
         chapterpath = path.join preBook.basedir, chapter
@@ -231,19 +216,11 @@ class EpubLoaderMixin
         xml = epub.readAsText(chapterpath)
         chapters.push parseChapter.bind(null, xml, chapter)
       log.info 'EPUB – extracting chapters'
-      sequence chapters
+      async.series chapters, callback
     done = () ->
-      return preBook.book
-
-    opfpath = findOpf epub.readAsText 'META-INF/container.xml'
-    # Extract OPF file and create meta object
-    promise = opfpath
-      .then((path) -> extractOpf(epub.readAsText(path)))
-      .then(() -> processNav(epub.readAsText(path.join preBook.basedir, preBook.navPath)))
-      .then(() -> extractAssetsAndCreateBook())
-      .then((book) -> extractChapters(book)) # Remember to suppress cover html file and skip nav
-      .then(() -> done())
-    return promise
+      callback null, preBook.book
+    tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, done]
+    async.series tasks
 
 extend = (Book) ->
   utilities.mixin Book, EpubLoaderMixin

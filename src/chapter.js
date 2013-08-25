@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, utilities, whenjs, _,
+var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, utilities, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -15,8 +15,6 @@ Assets = require('./assets');
 _ = require('underscore');
 
 handlebars = require('handlebars');
-
-whenjs = require('when');
 
 path = require('path');
 
@@ -67,7 +65,7 @@ Chapter = (function() {
     return newpath;
   };
 
-  Chapter.prototype.addToZip = function(zip, template) {
+  Chapter.prototype.addToZip = function(zip, template, callback) {
     var context;
 
     if (!template) {
@@ -78,7 +76,7 @@ Chapter = (function() {
     } else {
       context = this;
     }
-    return addToZip(zip, this.filename, template.render.bind(template, context));
+    return addToZip(zip, this.filename, template.render.bind(template, context), callback);
   };
 
   return Chapter;
@@ -137,15 +135,6 @@ Chapter.prototype.processHTML = function(html, smartyPants) {
   }
   nbsp = new RegExp('&nbsp;', 'g');
   return $('body').html().replace(nbsp, '&#160;');
-};
-
-Chapter.prototype.htmlPromise = function() {
-  var deferred, promise;
-
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  this.renderHtml(deferred.resolver);
-  return promise;
 };
 
 Chapter.prototype.renderHtml = function(resolver) {

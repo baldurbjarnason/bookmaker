@@ -8,8 +8,6 @@ Book = index.Book
 Assets = index.Assets
 zipStream = require('zipstream-contentment')
 fs = require 'fs'
-whenjs = require('when')
-callbacks = require 'when/callbacks'
 exec = require('child_process').exec
 
 testoutline = {
@@ -84,7 +82,7 @@ describe 'EpubChapter',
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum'}, assets)
-      testbook.assets.init().then(() -> done())
+      testbook.assets.init(done)
     describe '#addToZip',
       () ->
         it 'Returns a promise to add the chapter to zip (test.zip)',
@@ -93,7 +91,7 @@ describe 'EpubChapter',
             out = fs.createWriteStream('test/files/test.zip')
             zip.pipe(out)
             testbook.addChapter(new Chapter(testchapters[1]))
-            testbook.chapters[0].addToZip(zip).then(() ->
+            testbook.chapters[0].addToZip(zip, null, () ->
               zip.finalize((written) ->
                 written.should.equal(573)
                 done()))
@@ -102,7 +100,7 @@ describe 'EpubAssets',
   () ->
     beforeEach (done) ->
       testassets = new index.Assets('test/files/', 'assets/')
-      testassets.init().then(() -> done())
+      testassets.init(done)
     describe '#addTypeToZip',
       () ->
         it 'Adds all assets of a type to zip',
@@ -110,7 +108,7 @@ describe 'EpubAssets',
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/js.zip')
             zip.pipe(out)
-            testassets.addTypeToZip('js', zip).then(() ->
+            testassets.addTypeToZip('js', zip, () ->
               zip.finalize((written) ->
                 written.should.equal(62918)
                 done()))
@@ -121,7 +119,7 @@ describe 'EpubAssets',
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/assets.zip')
             zip.pipe(out)
-            testassets.addToZip(zip).then(() ->
+            testassets.addToZip(zip, () ->
               zip.finalize((written) ->
                 written.should.equal(386001)
                 done()))
@@ -132,7 +130,7 @@ describe 'EpubAssets',
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/mangledfonts.zip')
             zip.pipe(out)
-            testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D").then(() ->
+            testassets.mangleFonts(zip, "4FD972A1-EFA8-484F-9AB3-878E817AF30D", () ->
               zip.finalize((written) ->
                 written.should.equal(124787)
                 done()))
@@ -158,8 +156,7 @@ describe 'EpubBook',
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))
       testbook.meta.start = testbook.chapters[1]
-      testbook.assets.init().then(() ->
-        done())
+      testbook.assets.init(done)
     describe '#addChaptersToZip',
       () ->
         it 'Adds all chapters to zip (chapters.zip)',
@@ -167,7 +164,7 @@ describe 'EpubBook',
             zip = zipStream.createZip({ level: 1 })
             out = fs.createWriteStream('test/files/chapters.zip')
             zip.pipe(out)
-            testbook.addChaptersToZip(zip).then(() ->
+            testbook.addChaptersToZip(zip, null, () ->
               zip.finalize((written) ->
                 written.should.equal(2276)
                 done()))
@@ -177,7 +174,9 @@ describe 'EpubBook',
           (done) ->
             this.timeout(10000)
             out = fs.createWriteStream('test/files/test.epub')
-            testbook.toEpub(out).then((thing) ->
+            testbook.toEpub(out, null, (err, thing) ->
+              if err
+                done(err)
               console.log thing
               checkReport = (error, stdout, stderr) =>
                 if error

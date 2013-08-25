@@ -67,8 +67,7 @@ describe 'JsonBook',
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))
       testbook.meta.start = testbook.chapters[1]
-      testbook.assets.init().then(() ->
-        done())
+      testbook.assets.init(done)
     describe '#toJSON',
       () ->
         it 'Renders the book to json',
@@ -87,8 +86,7 @@ describe 'JsonBook',
               testfiles = glob("test/files/json/**/*", (er, files) ->
                 files.join().should.equal("test/files/json/assets,test/files/json/assets/SourceSansPro-Regular.otf,test/files/json/assets/SourceSansPro-Regular.ttf,test/files/json/assets/cover.jpg,test/files/json/assets/jquery.js,test/files/json/assets/jquery2.js,test/files/json/assets/noise.png,test/files/json/assets/style.css,test/files/json/assets/texture.jpg,test/files/json/chapters,test/files/json/chapters/doc1.json,test/files/json/chapters/doc2.json,test/files/json/chapters/doc3.json,test/files/json/htmlexample.json,test/files/json/index.json")
                 done())
-            testbook.toJsonFiles('test/files/json/', { baseurl: 'http://oz.studiotendra.com/book/1/json/'}).then(test, (thing) ->
-              done(thing))
+            testbook.toJsonFiles('test/files/json/', { baseurl: 'http://oz.studiotendra.com/book/1/json/'}, test)
     describe '#toHtmlFiles',
       () ->
         it 'Renders the book to html files',
@@ -99,8 +97,7 @@ describe 'JsonBook',
               testfiles = glob("test/files/html/**/*", (er, files) ->
                 files.join().should.equal("test/files/html/assets,test/files/html/assets/SourceSansPro-Regular.otf,test/files/html/assets/SourceSansPro-Regular.ttf,test/files/html/assets/cover.jpg,test/files/html/assets/jquery.js,test/files/html/assets/jquery2.js,test/files/html/assets/noise.png,test/files/html/assets/style.css,test/files/html/assets/texture.jpg,test/files/html/chapters,test/files/html/chapters/doc1.html,test/files/html/chapters/doc2.html,test/files/html/chapters/doc3.html,test/files/html/cover.html,test/files/html/htmlexample.html,test/files/html/index.html")
                 done())
-            testbook.toHtmlFiles('test/files/html/', { baseurl: 'http://oz.studiotendra.com/book/1/html/'}).then(test, (thing) ->
-              done(thing))
+            testbook.toHtmlFiles('test/files/html/', { baseurl: 'http://oz.studiotendra.com/book/1/html/'}, test)
     describe '#toHtmlandJsonFiles',
       () ->
         it 'Renders the book to html and json files',
@@ -111,8 +108,7 @@ describe 'JsonBook',
               testfiles = glob("test/files/htmlandjson/**/*", (er, files) ->
                 files.join().should.equal("test/files/htmlandjson/assets,test/files/htmlandjson/assets/SourceSansPro-Regular.otf,test/files/htmlandjson/assets/SourceSansPro-Regular.ttf,test/files/htmlandjson/assets/cover.jpg,test/files/htmlandjson/assets/jquery.js,test/files/htmlandjson/assets/jquery2.js,test/files/htmlandjson/assets/noise.png,test/files/htmlandjson/assets/style.css,test/files/htmlandjson/assets/texture.jpg,test/files/htmlandjson/chapters,test/files/htmlandjson/chapters/doc1.html,test/files/htmlandjson/chapters/doc1.json,test/files/htmlandjson/chapters/doc2.html,test/files/htmlandjson/chapters/doc2.json,test/files/htmlandjson/chapters/doc3.html,test/files/htmlandjson/chapters/doc3.json,test/files/htmlandjson/cover.html,test/files/htmlandjson/htmlexample.html,test/files/htmlandjson/htmlexample.json,test/files/htmlandjson/index.html,test/files/htmlandjson/index.json")
                 done())
-            testbook.toHtmlAndJsonFiles('test/files/htmlandjson/', { baseurl: 'http://oz.studiotendra.com/book/1/htmlandjson/'}).then(test, (thing) ->
-              done(thing))
+            testbook.toHtmlAndJsonFiles('test/files/htmlandjson/', { baseurl: 'http://oz.studiotendra.com/book/1/htmlandjson/'}, test)
 
 
 

@@ -14,9 +14,7 @@ testassets = {};
 describe('Assets', function() {
   before(function(done) {
     testassets = new Assets('test/files/', 'assets/');
-    return testassets.init().then(function() {
-      return done();
-    });
+    return testassets.init(done);
   });
   describe('#png', function() {
     return it('should show all pngs', function() {
@@ -55,17 +53,14 @@ describe('Assets', function() {
     });
   });
   return describe('#copy', function() {
-    return it('should copy the assets folder to a new location', function() {
+    return it('should copy the assets folder to a new location', function(done) {
       var assets1, assets2;
 
-      testassets.copy('test/files/assets2/');
-      assets1 = glob.sync('assets/*', {
+      return testassets.copy('test/files/assets2/', function() {}, assets1 = glob.sync('assets/*', {
         cwd: 'test/files/assets/'
-      }).join();
-      assets2 = glob.sync('assets2/*', {
+      }).join(), assets2 = glob.sync('assets2/*', {
         cwd: 'test/files/assets2/'
-      }).join();
-      return assets1.should.equal(assets2);
+      }).join(), console.log(assets1, assets2), assets1.should.equal(assets2), done());
     });
   });
 });
