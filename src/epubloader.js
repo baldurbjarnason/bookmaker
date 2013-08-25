@@ -1,5 +1,5 @@
 'use strict';
-var $, EpubLoaderMixin, Zip, async, bodyre, extend, fs, log, parseString, parser, path, utilities, xml2js;
+var $, EpubLoaderMixin, Zip, async, bodyre, extend, fs, log, mangle, mangler, parseString, parser, path, utilities, xml2js;
 
 fs = require('fs');
 
@@ -24,13 +24,17 @@ async = require('async');
 
 log = require('./logger').logger();
 
+mangler = require('./mangler');
+
+mangle = mangler.mangle;
+
 bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig');
 
 EpubLoaderMixin = (function() {
   function EpubLoaderMixin() {}
 
   EpubLoaderMixin.fromEpub = function(epubpath, assetsroot, callback) {
-    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, parseChapter, preBook, processNav, tasks;
+    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, parseChapter, preBook, processNav, tasks, unMangle;
 
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
@@ -342,10 +346,42 @@ EpubLoaderMixin = (function() {
       log.info('EPUB – extracting chapters');
       return async.series(chapters, callback);
     };
+    unMangle = function(callback) {
+      var xml;
+
+      xml = epub.readAsText('META-INF/encryption.xml');
+      return parseString(xml, function(err, result) {
+        var eData, font, fontpath, fontpaths, _i, _j, _len, _len1, _ref;
+
+        if (err) {
+          log.error(err);
+          callback(err);
+        }
+        if (result) {
+          fontpaths = [];
+          _ref = result.encryption['enc:EncryptedData'];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            eData = _ref[_i];
+            if (eData['enc:EncryptionMethod'][0].$['Algorithm'] === 'http://www.idpf.org/2008/embedding') {
+              fontpaths.push(eData['enc:CipherData'][0]['enc:CipherReference'][0].$['URI']);
+            }
+          }
+          log.info("EPUB – unmangling fonts");
+          for (_j = 0, _len1 = fontpaths.length; _j < _len1; _j++) {
+            fontpath = fontpaths[_j];
+            font = fs.readFileSync(path.join(assetsroot, fontpath));
+            fs.writeFileSync(path.join(assetsroot, fontpath), mangle(font, preBook.book.meta.bookId));
+          }
+          return callback();
+        } else {
+          return callback();
+        }
+      });
+    };
     done = function() {
       return callback(null, preBook.book);
     };
-    tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, done];
+    tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, unMangle, done];
     return async.series(tasks);
   };
 

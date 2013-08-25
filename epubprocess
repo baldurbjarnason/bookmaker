@@ -122,4 +122,4 @@ load = function(err, book) {
 
 
 // loader = bookmaker.Book.fromEpub(args[0], temppath);
-bookmaker.Book.fromEpub(args[0], 'tempassets/', load);
+bookmaker.Book.fromEpub(args[0], temppath, load);

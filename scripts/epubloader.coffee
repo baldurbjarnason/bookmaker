@@ -10,6 +10,8 @@ parseString = parser.parseString
 $ = require 'jquery'
 async = require 'async'
 log = require('./logger').logger()
+mangler = require './mangler'
+mangle = mangler.mangle
 
 
 bodyre = new RegExp('(<body[^>]*>|</body>)', 'ig')
@@ -217,9 +219,32 @@ class EpubLoaderMixin
         chapters.push parseChapter.bind(null, xml, chapter)
       log.info 'EPUB – extracting chapters'
       async.series chapters, callback
+
+    unMangle = (callback) ->
+      xml = epub.readAsText 'META-INF/encryption.xml'
+      parseString xml, (err, result) ->
+        if err
+          log.error err
+          callback err
+        if result
+          fontpaths = []
+          for eData in result.encryption['enc:EncryptedData']
+            if eData['enc:EncryptionMethod'][0].$['Algorithm'] is 'http://www.idpf.org/2008/embedding'
+              fontpaths.push eData[ 'enc:CipherData'][0]['enc:CipherReference'][0].$['URI']
+          log.info "EPUB – unmangling fonts"
+          for fontpath in fontpaths
+            font = fs.readFileSync(path.join(assetsroot, fontpath), )
+            fs.writeFileSync(path.join(assetsroot, fontpath), mangle(font, preBook.book.meta.bookId))
+          callback()
+        else
+          callback()
+
+
+
     done = () ->
       callback null, preBook.book
-    tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, done]
+
+    tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, unMangle, done]
     async.series tasks
 
 extend = (Book) ->
