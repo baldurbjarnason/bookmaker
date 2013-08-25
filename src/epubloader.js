@@ -288,7 +288,7 @@ EpubLoaderMixin = (function() {
     parseChapter = function(xml, chapterpath, callback) {
       chapterpath = unescape(chapterpath);
       return parseString(xml, function(err, result) {
-        var chapter, css, js, link, links, script, scripts, svgEmbedRE, svgLinkRE, _i, _j, _len, _len1, _links;
+        var chapter, link, links, script, scripts, svgEmbedRE, svgLinkRE, _i, _j, _len, _len1, _links;
 
         log.info("EPUB – Parsing " + chapterpath);
         if (err) {
@@ -306,7 +306,7 @@ EpubLoaderMixin = (function() {
         chapter.body = xml.split(bodyre)[2];
         chapter.filename = chapterpath;
         links = result.html.head[0].link;
-        css = [];
+        chapter.css = [];
         _links = {};
         if (links) {
           for (_i = 0, _len = links.length; _i < _len; _i++) {
@@ -324,9 +324,8 @@ EpubLoaderMixin = (function() {
             }
           }
         }
-        chapter.css = css;
         scripts = result.html.head[0].scripts;
-        js = [];
+        chapter.js = [];
         if (scripts) {
           for (_j = 0, _len1 = scripts.length; _j < _len1; _j++) {
             script = scripts[_j];

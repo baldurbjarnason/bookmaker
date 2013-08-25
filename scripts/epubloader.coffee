@@ -196,7 +196,7 @@ class EpubLoaderMixin
         chapter.body = xml.split(bodyre)[2]
         chapter.filename = chapterpath
         links = result.html.head[0].link
-        css = []
+        chapter.css = []
         _links = {}
         if links
           for link in links
@@ -206,9 +206,8 @@ class EpubLoaderMixin
               _links[link.$.rel] = { type: link.$.type, href: link.$.href }
               if link.$.hreflang
                 _links[link.$.rel].hreflang = link.$.hreflang
-        chapter.css = css
         scripts = result.html.head[0].scripts
-        js = []
+        chapter.js = []
         if scripts
           for script in scripts
             js.push script.$.src
