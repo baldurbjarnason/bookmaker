@@ -8,8 +8,6 @@ Book = index.Book
 Assets = index.Assets
 zipStream = require('zipstream-contentment')
 fs = require 'fs'
-whenjs = require('when')
-callbacks = require 'when/callbacks'
 glob = require 'glob'
 
 testoutline = {

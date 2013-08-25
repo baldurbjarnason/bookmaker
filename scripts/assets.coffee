@@ -2,13 +2,10 @@
 
 glob = require 'glob'
 async = require 'async'
-_ = require 'underscore'
 fs = require 'fs'
 ncp = require('ncp').ncp
 path = require 'path'
 log = require('./logger').logger()
-
-# Some way to enable single chapter css and js? Is that even necessary?
 
 class Assets
   constructor: (@root, @assetsPath) ->

@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, callbacks, chai, fs, glob, index, should, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, chai, fs, glob, index, should, testbook, testchapters, testoutline, zipStream;
 
 chai = require('chai');
 
@@ -16,10 +16,6 @@ Assets = index.Assets;
 zipStream = require('zipstream-contentment');
 
 fs = require('fs');
-
-whenjs = require('when');
-
-callbacks = require('when/callbacks');
 
 glob = require('glob');
 

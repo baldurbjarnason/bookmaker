@@ -1,5 +1,5 @@
 'use strict';
-var addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream, _;
+var addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
 
 zipStream = require('zipstream-contentment');
 
@@ -11,9 +11,7 @@ glob = require('glob');
 
 fs = require('fs');
 
-mangler = require('./lib/mangler');
-
-_ = require('underscore');
+mangler = require('./mangler');
 
 utilities = require('./utilities');
 

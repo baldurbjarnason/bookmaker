@@ -48,21 +48,21 @@ module.exports = function(grunt) {
       },
       tasks: {
         expand: true,
-        cwd: 'bookmaker/',
+        cwd: 'scripts/',
         src: ['*.coffee'],
         dest: 'src/',
         ext: '.js'    
       },
       lib: {
         expand: true,
-        cwd: 'bookmaker/lib/',
+        cwd: 'scripts/lib/',
         src: ['*.coffee'],
         dest: 'src/lib/',
         ext: '.js'    
       },
       test: {
         expand: true,
-        cwd: 'bookmaker/test/',
+        cwd: 'scripts/test/',
         src: ['*.coffee'],
         dest: 'test/',
         ext: '.js'    
@@ -77,7 +77,7 @@ module.exports = function(grunt) {
     },
     watch: {
       coffee: {
-        files: ['bookmaker/**/*.coffee'],
+        files: ['scripts/**/*.coffee'],
         tasks: ['coffeelint', 'coffee']
       },
       js: {

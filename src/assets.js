@@ -1,11 +1,9 @@
 'use strict';
-var Assets, async, fs, glob, log, ncp, path, _;
+var Assets, async, fs, glob, log, ncp, path;
 
 glob = require('glob');
 
 async = require('async');
-
-_ = require('underscore');
 
 fs = require('fs');
 
