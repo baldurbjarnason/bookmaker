@@ -1,5 +1,5 @@
 'use strict';
-var addStoredToZip, addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, log, mixin, mkdirp, pageLinks, path, relative, write, _,
+var addStoredToZip, addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, logger, mixin, mkdirp, pageLinks, path, relative, write, _,
   __slice = [].slice;
 
 path = require('path');
@@ -10,7 +10,7 @@ mkdirp = require('mkdirp');
 
 _ = require('underscore');
 
-log = require('./logger').logger();
+logger = require('./logger');
 
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;
@@ -93,10 +93,10 @@ write = function(filename, data, callback) {
   mkdirp.sync(container);
   return fs.writeFile(filename, data, function(err) {
     if (err) {
-      log.error(err);
+      logger.log.error(err);
       return callback(err);
     } else {
-      log.info("" + filename + " written");
+      logger.log.info("" + filename + " written");
       return callback();
     }
   });
@@ -141,7 +141,7 @@ addToZip = function(zip, fn, file, callback, store) {
     name: fn
   };
   resolver = function() {
-    log.info("" + fn + " written to zip");
+    logger.log.info("" + fn + " written to zip");
     return callback();
   };
   if (store) {
@@ -161,7 +161,7 @@ addStoredToZip = function(zip, fn, file, callback) {
     name: fn
   };
   resolver = function() {
-    log.info("" + fn + " written to zip");
+    logger.log.info("" + fn + " written to zip");
     return callback();
   };
   options.store = true;

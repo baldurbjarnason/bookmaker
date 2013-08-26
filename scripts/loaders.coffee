@@ -4,7 +4,7 @@ fs = require('fs')
 path = require('path')
 yaml = require('js-yaml')
 utilities = require './utilities'
-log = require('./logger').logger()
+logger = require('./logger')
 
 class LoaderMixin
   @loadBookDir = (directory) ->
@@ -45,7 +45,7 @@ class LoaderMixin
         else
           filename = filename.trim()
           loadFile(filename, book)
-      log.info 'BOOKDIR – chapters loaded'
+      logger.log.info 'BOOKDIR – chapters loaded'
       return book
     if fs.existsSync path.resolve(directory,'meta.yaml')
       meta = yaml.safeLoad fs.readFileSync path.resolve(directory,'meta.yaml'), 'utf8'
@@ -53,12 +53,12 @@ class LoaderMixin
       meta = JSON.parse fs.readFileSync directory + 'meta.json', 'utf8'
     else
       return
-    log.info 'BOOKDIR – Metadata loaded'
+    logger.log.info 'BOOKDIR – Metadata loaded'
     if meta.assetsPath
       assets = new Assets(directory, meta.assetsPath)
     else
       assets = new Assets(directory, 'assets/')
-    log.info 'BOOKDIR – Assets prepared'
+    logger.log.info 'BOOKDIR – Assets prepared'
     NewBook = this
     book = new NewBook(meta, assets)
     if fs.existsSync path.resolve(directory, 'book.txt')

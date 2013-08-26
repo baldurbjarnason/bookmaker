@@ -1,5 +1,5 @@
 'use strict';
-var $, EpubLoaderMixin, Zip, async, bodyre, extend, fs, log, mangle, mangler, parseString, parser, path, utilities, xml2js;
+var $, EpubLoaderMixin, Zip, async, bodyre, extend, fs, logger, mangle, mangler, parseString, parser, path, utilities, xml2js;
 
 fs = require('fs');
 
@@ -22,7 +22,7 @@ $ = require('jquery');
 
 async = require('async');
 
-log = require('./logger').logger();
+logger = require('./logger');
 
 mangler = require('./mangler');
 
@@ -41,21 +41,21 @@ EpubLoaderMixin = (function() {
     Book = this;
     Assets = this.Assets;
     preBook = {};
-    log.info("Extraction starting");
+    logger.log.info("Extraction starting");
     findOpf = function(callback) {
       var xml;
 
       xml = epub.readAsText('META-INF/container.xml');
-      log.info("EPUB – Finding opf file");
+      logger.log.info("EPUB – Finding opf file");
       return parseString(xml, function(err, result) {
         var rootfile;
 
         if (err) {
-          log.error(err);
+          logger.log.error(err);
           callback(err);
         }
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path'];
-        log.info("EPUB – Path to opf file is /" + rootfile);
+        logger.log.info("EPUB – Path to opf file is /" + rootfile);
         preBook.opfpath = rootfile;
         preBook.basedir = path.dirname(preBook.opfpath);
         return callback(null, rootfile);
@@ -64,7 +64,7 @@ EpubLoaderMixin = (function() {
     extractOpf = function(callback) {
       return parseString(epub.readAsText(preBook.opfpath), function(err, result) {
         if (err) {
-          log.error(err);
+          logger.log.error(err);
           callback(err);
         }
         return createMetaAndSpine(result, callback);
@@ -88,12 +88,12 @@ EpubLoaderMixin = (function() {
       if (metadata['dc:creator']) {
         meta.author = metadata['dc:creator'][0]._;
       } else {
-        log.warn('Author metadata not set (dc:creator)');
+        logger.log.warn('Author metadata not set (dc:creator)');
       }
       if (metadata['dc:title']) {
         meta.title = metadata['dc:title'][0]._;
       } else {
-        log.warn('Title not set (dc:title)');
+        logger.log.warn('Title not set (dc:title)');
       }
       if (metadata['dc:creator'][1]) {
         meta.author2 = metadata['dc:creator'][1]._;
@@ -101,32 +101,32 @@ EpubLoaderMixin = (function() {
       if (meta.lang = metadata['dc:language']) {
         meta.lang = metadata['dc:language'][0]._;
       } else {
-        log.warn('Language metadata not set (dc:language)');
+        logger.log.warn('Language metadata not set (dc:language)');
       }
       if (metadata['dc:date']) {
         meta.date = metadata['dc:date'][0]._;
       } else {
-        log.warn("Date not set (dc:date)");
+        logger.log.warn("Date not set (dc:date)");
       }
       if (metadata['dc:rights']) {
         meta.rights = metadata['dc:rights'][0]._;
       } else {
-        log.warn("Rights metadata not set (dc:rights)");
+        logger.log.warn("Rights metadata not set (dc:rights)");
       }
       if (metadata['dc:description']) {
         meta.description = metadata['dc:description'][0]._;
       } else {
-        log.warn("Description metadata not set (dc:description)");
+        logger.log.warn("Description metadata not set (dc:description)");
       }
       if (metadata['dc:publisher']) {
         meta.publisher = metadata['dc:publisher'][0]._;
       } else {
-        log.warn("Publisher metadata not set (dc:publisher)");
+        logger.log.warn("Publisher metadata not set (dc:publisher)");
       }
       if (metadata['dc:subject']) {
         meta.subject1 = metadata['dc:subject'][0]._;
       } else {
-        log.warn('Subject not set (dc:subject)');
+        logger.log.warn('Subject not set (dc:subject)');
       }
       if (metadata['dc:subject'] && metadata['dc:subject'][1]) {
         meta.subject2 = metadata['dc:subject'][1]._;
@@ -148,7 +148,7 @@ EpubLoaderMixin = (function() {
         }
       }
       manifest = xml["package"].manifest[0];
-      log.info('EPUB – Extracting metadata');
+      logger.log.info('EPUB – Extracting metadata');
       preBook.spine = (function() {
         var _k, _len2, _ref2, _results;
 
@@ -203,7 +203,7 @@ EpubLoaderMixin = (function() {
                 href: reference.$.href
               });
             } else {
-              log.warn("Landmark " + type + " isn't in the spine");
+              logger.log.warn("Landmark " + type + " isn't in the spine");
             }
           }
         }
@@ -211,7 +211,7 @@ EpubLoaderMixin = (function() {
           meta.landmarks = landmarks;
         }
       }
-      log.info('EPUB – OPF parsed and worked');
+      logger.log.info('EPUB – OPF parsed and worked');
       return callback(null, xml);
     };
     extractLandmarks = function(index, element) {
@@ -227,7 +227,7 @@ EpubLoaderMixin = (function() {
           href: href
         });
       } else {
-        return log.warn("Landmark " + type + " isn't in the spine");
+        return logger.log.warn("Landmark " + type + " isn't in the spine");
       }
     };
     processNav = function(callback) {
@@ -243,7 +243,7 @@ EpubLoaderMixin = (function() {
       }
       preBook.outline = $('nav[epub\\:type=toc]').html();
       preBook.pageList = $('nav[epub\\:type=page-list]').html();
-      log.info('EPUB – Nav parsed and worked');
+      logger.log.info('EPUB – Nav parsed and worked');
       return callback(null, xml);
     };
     extractAssetsAndCreateBook = function(callback) {
@@ -273,7 +273,7 @@ EpubLoaderMixin = (function() {
       });
       for (_i = 0, _len = assetslist.length; _i < _len; _i++) {
         entry = assetslist[_i];
-        log.info("Extracting " + entry.entryName);
+        logger.log.info("Extracting " + entry.entryName);
         epub.extractEntryTo(entry, assetsroot, true, true);
       }
       if (preBook.basedir) {
@@ -282,7 +282,7 @@ EpubLoaderMixin = (function() {
       assets = new Assets(assetsroot, '.');
       preBook.book = new Book(preBook.meta, assets);
       preBook.book.outline = preBook.outline;
-      log.info('EPUB – assets extracted');
+      logger.log.info('EPUB – assets extracted');
       return callback(null, preBook.book);
     };
     parseChapter = function(xml, chapterpath, callback) {
@@ -290,9 +290,9 @@ EpubLoaderMixin = (function() {
       return parseString(xml, function(err, result) {
         var chapter, link, links, script, scripts, svgEmbedRE, svgLinkRE, _i, _j, _len, _len1, _links;
 
-        log.info("EPUB – Parsing " + chapterpath);
+        logger.log.info("EPUB – Parsing " + chapterpath);
         if (err) {
-          log.error(err);
+          logger.log.error(err);
           callback(err);
         }
         chapter = {};
@@ -348,7 +348,7 @@ EpubLoaderMixin = (function() {
         xml = epub.readAsText(chapterpath);
         chapters.push(parseChapter.bind(null, xml, chapter));
       }
-      log.info('EPUB – extracting chapters');
+      logger.log.info('EPUB – extracting chapters');
       return async.series(chapters, callback);
     };
     unMangle = function(callback) {
@@ -359,7 +359,7 @@ EpubLoaderMixin = (function() {
         var eData, font, fontpath, fontpaths, _i, _j, _len, _len1, _ref;
 
         if (err) {
-          log.error(err);
+          logger.log.error(err);
           callback(err);
         }
         if (result) {
@@ -371,7 +371,7 @@ EpubLoaderMixin = (function() {
               fontpaths.push(eData['enc:CipherData'][0]['enc:CipherReference'][0].$['URI']);
             }
           }
-          log.info("EPUB – unmangling fonts");
+          logger.log.info("EPUB – unmangling fonts");
           for (_j = 0, _len1 = fontpaths.length; _j < _len1; _j++) {
             fontpath = fontpaths[_j];
             font = fs.readFileSync(path.join(assetsroot, fontpath));
@@ -384,6 +384,7 @@ EpubLoaderMixin = (function() {
       });
     };
     done = function() {
+      logger.log.info('EPUB loaded');
       return callback(null, preBook.book);
     };
     tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, unMangle, done];

@@ -4,7 +4,7 @@ path = require('path')
 fs = require 'fs'
 mkdirp = require 'mkdirp'
 _ = require 'underscore'
-log = require('./logger').logger()
+logger = require('./logger')
 
 
 relative = (current, target) ->
@@ -48,10 +48,10 @@ write = (filename, data, callback) ->
   mkdirp.sync container
   fs.writeFile(filename, data, (err) ->
     if err
-      log.error err
+      logger.log.error err
       callback(err)
     else
-      log.info "#{filename} written"
+      logger.log.info "#{filename} written"
       callback())
 
 mixin = (ReceivingClass, DonatingClasses...) ->
@@ -69,7 +69,7 @@ mixin = (ReceivingClass, DonatingClasses...) ->
 addToZip = (zip, fn, file, callback, store) ->
   options = { name: fn }
   resolver = () ->
-    log.info "#{fn} written to zip"
+    logger.log.info "#{fn} written to zip"
     callback()
   if store
     options.store = store
@@ -81,7 +81,7 @@ addToZip = (zip, fn, file, callback, store) ->
 addStoredToZip = (zip, fn, file, callback) ->
   options = { name: fn }
   resolver = () ->
-    log.info "#{fn} written to zip"
+    logger.log.info "#{fn} written to zip"
     callback()
   options.store = true
   if typeof file is 'function'

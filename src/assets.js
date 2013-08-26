@@ -1,5 +1,5 @@
 'use strict';
-var Assets, async, fs, glob, log, ncp, path;
+var Assets, async, fs, glob, logger, ncp, path;
 
 glob = require('glob');
 
@@ -11,7 +11,7 @@ ncp = require('ncp').ncp;
 
 path = require('path');
 
-log = require('./logger').logger();
+logger = require('./logger');
 
 Assets = (function() {
   function Assets(root, assetsPath) {
@@ -34,7 +34,7 @@ Assets = (function() {
     var resolver;
 
     resolver = function() {
-      log.info("" + item + " written to zip");
+      logger.log.info("" + item + " written to zip");
       return callback();
     };
     return zip.addFile(this.getStream(item), {
@@ -71,7 +71,7 @@ Assets = (function() {
 
     source = path.resolve(this.root, this.assetsPath);
     resolver = function(err) {
-      log.info("Assets copied");
+      logger.log.info("Assets copied");
       return callback(err);
     };
     return ncp(source, directory, resolver);

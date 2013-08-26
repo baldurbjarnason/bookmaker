@@ -5,7 +5,7 @@ async = require 'async'
 fs = require 'fs'
 ncp = require('ncp').ncp
 path = require 'path'
-log = require('./logger').logger()
+logger = require('./logger')
 
 class Assets
   constructor: (@root, @assetsPath) ->
@@ -16,7 +16,7 @@ class Assets
     fs.createReadStream(path.resolve(@root, filepath), options)
   addItemToZip: (item, zip, callback) ->
     resolver = () ->
-      log.info "#{item} written to zip"
+      logger.log.info "#{item} written to zip"
       callback()
     zip.addFile(@getStream(item), { name: item }, resolver)
   addTypeToZip: (type, zip, callback) ->
@@ -33,7 +33,7 @@ class Assets
   copy: (directory, callback) ->
     source = path.resolve(@root, @assetsPath)
     resolver = (err) ->
-      log.info "Assets copied"
+      logger.log.info "Assets copied"
       callback(err)
     ncp(source, directory, resolver)
 

@@ -8,7 +8,7 @@ url = require 'url'
 handlebars = require('handlebars')
 utilities = require './utilities'
 nunjucks = require 'nunjucks'
-log = require('./logger').logger()
+logger = require('./logger')
 
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
 
@@ -184,7 +184,7 @@ extendBook = (Book) ->
     tasks.push write.bind(null, directory + 'index.json', json)
     async.series tasks, callback
   Book.prototype.toHtmlFiles = (directory, options, callback) ->
-    log.info "Writing HTML files"
+    logger.log.info "Writing HTML files"
     book = Object.create this
     book._state = {} unless book._state
     book._state.htmltype = "text/html"
@@ -215,7 +215,7 @@ extendBook = (Book) ->
     tasks.push(write.bind(null, directory + 'index.html', env.getTemplate('index.html').render(book)))
     tasks.push(write.bind(null, directory + 'cover.html', env.getTemplate('cover.html').render(book)))
     for chapter in book.chapters
-      log.info "Preparing #{chapter.filename}"
+      logger.log.info "Preparing #{chapter.filename}"
       context = chapter.context(book)
       selfindex = book.chapters.indexOf(chapter)
       context._links = {} unless context._links

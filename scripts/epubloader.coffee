@@ -9,7 +9,7 @@ parser = new xml2js.Parser({ explicitCharkey: true, explicitArray: true })
 parseString = parser.parseString
 $ = require 'jquery'
 async = require 'async'
-log = require('./logger').logger()
+logger = require('./logger')
 mangler = require './mangler'
 mangle = mangler.mangle
 
@@ -23,16 +23,16 @@ class EpubLoaderMixin
     Book = this
     Assets = @Assets
     preBook = {} # both book state and meta will be attached to this object
-    log.info "Extraction starting"
+    logger.log.info "Extraction starting"
     findOpf = (callback) ->
       xml = epub.readAsText 'META-INF/container.xml'
-      log.info "EPUB – Finding opf file"
+      logger.log.info "EPUB – Finding opf file"
       parseString xml, (err, result) ->
         if err
-          log.error err
+          logger.log.error err
           callback err
         rootfile = result.container.rootfiles[0].rootfile[0].$['full-path']
-        log.info "EPUB – Path to opf file is /#{rootfile}"
+        logger.log.info "EPUB – Path to opf file is /#{rootfile}"
         preBook.opfpath = rootfile
         preBook.basedir = path.dirname preBook.opfpath
         callback null, rootfile
@@ -40,7 +40,7 @@ class EpubLoaderMixin
     extractOpf = (callback) ->
       parseString epub.readAsText(preBook.opfpath), (err, result) ->
         if err
-          log.error err
+          logger.log.error err
           callback err
         createMetaAndSpine result, callback
 
@@ -56,36 +56,36 @@ class EpubLoaderMixin
       if metadata['dc:creator']
         meta.author = metadata['dc:creator'][0]._
       else
-        log.warn 'Author metadata not set (dc:creator)'
+        logger.log.warn 'Author metadata not set (dc:creator)'
       if metadata['dc:title']
         meta.title = metadata['dc:title'][0]._
       else
-        log.warn 'Title not set (dc:title)'
+        logger.log.warn 'Title not set (dc:title)'
       meta.author2 = metadata['dc:creator'][1]._ if metadata['dc:creator'][1]
       if meta.lang = metadata['dc:language']
         meta.lang = metadata['dc:language'][0]._
       else
-        log.warn 'Language metadata not set (dc:language)'
+        logger.log.warn 'Language metadata not set (dc:language)'
       if metadata['dc:date']
         meta.date = metadata['dc:date'][0]._
       else
-        log.warn "Date not set (dc:date)"
+        logger.log.warn "Date not set (dc:date)"
       if metadata['dc:rights']
         meta.rights = metadata['dc:rights'][0]._
       else
-        log.warn "Rights metadata not set (dc:rights)"
+        logger.log.warn "Rights metadata not set (dc:rights)"
       if metadata['dc:description']
         meta.description = metadata['dc:description'][0]._
       else
-        log.warn "Description metadata not set (dc:description)"
+        logger.log.warn "Description metadata not set (dc:description)"
       if metadata['dc:publisher']
         meta.publisher = metadata['dc:publisher'][0]._
       else
-        log.warn "Publisher metadata not set (dc:publisher)"
+        logger.log.warn "Publisher metadata not set (dc:publisher)"
       if metadata['dc:subject']
         meta.subject1 = metadata['dc:subject'][0]._
       else
-        log.warn 'Subject not set (dc:subject)'
+        logger.log.warn 'Subject not set (dc:subject)'
       if metadata['dc:subject'] and metadata['dc:subject'][1]
         meta.subject2 = metadata['dc:subject'][1]._
       if metadata['dc:subject'] and metadata['dc:subject'][2]
@@ -98,7 +98,7 @@ class EpubLoaderMixin
         if elem.$['property'] is 'ibooks:version'
           meta.version = elem._
       manifest = xml.package.manifest[0]
-      log.info 'EPUB – Extracting metadata'
+      logger.log.info 'EPUB – Extracting metadata'
       preBook.spine = for item in xml.package.spine[0].itemref
         item.$.idref
       for elem in manifest.item
@@ -128,10 +128,10 @@ class EpubLoaderMixin
             if preBook.spine.indexOf(reference.$.href) isnt -1
               landmarks.push { type: type, title: reference.$.title, href: reference.$.href }
             else
-              log.warn "Landmark #{type} isn't in the spine"
+              logger.log.warn "Landmark #{type} isn't in the spine"
         if landmarks.length > 0
           meta.landmarks = landmarks
-      log.info 'EPUB – OPF parsed and worked'
+      logger.log.info 'EPUB – OPF parsed and worked'
       callback null, xml
 
     extractLandmarks = (index, element) ->
@@ -141,7 +141,7 @@ class EpubLoaderMixin
       if preBook.spine.indexOf(href) isnt -1
         preBook.landmarks.push { type: type, title: title, href: href }
       else
-        log.warn "Landmark #{type} isn't in the spine"
+        logger.log.warn "Landmark #{type} isn't in the spine"
 
 
     processNav = (callback) ->
@@ -154,7 +154,7 @@ class EpubLoaderMixin
         preBook.meta.landmarks = preBook.landmarks
       preBook.outline = $('nav[epub\\:type=toc]').html()
       preBook.pageList = $('nav[epub\\:type=page-list]').html()
-      log.info 'EPUB – Nav parsed and worked'
+      logger.log.info 'EPUB – Nav parsed and worked'
       callback null, xml
 
     extractAssetsAndCreateBook = (callback) ->
@@ -170,21 +170,21 @@ class EpubLoaderMixin
           when '.xml' then return false
           else return true
       for entry in assetslist
-        log.info "Extracting #{entry.entryName}"
+        logger.log.info "Extracting #{entry.entryName}"
         epub.extractEntryTo entry, assetsroot, true, true
       assetsroot = path.join(assetsroot, preBook.basedir) if preBook.basedir
       assets = new Assets(assetsroot, '.')
       preBook.book = new Book preBook.meta, assets
       preBook.book.outline = preBook.outline
-      log.info 'EPUB – assets extracted'
+      logger.log.info 'EPUB – assets extracted'
       callback null, preBook.book
     
     parseChapter = (xml, chapterpath, callback) ->
       chapterpath = unescape chapterpath
       parseString xml, (err, result) ->
-        log.info "EPUB – Parsing #{chapterpath}"
+        logger.log.info "EPUB – Parsing #{chapterpath}"
         if err
-          log.error err
+          logger.log.error err
           callback err
         chapter = {}
         chapter.title = result.html.head[0].title[0]._
@@ -221,21 +221,21 @@ class EpubLoaderMixin
         chapterpath = unescape chapterpath
         xml = epub.readAsText(chapterpath)
         chapters.push parseChapter.bind(null, xml, chapter)
-      log.info 'EPUB – extracting chapters'
+      logger.log.info 'EPUB – extracting chapters'
       async.series chapters, callback
 
     unMangle = (callback) ->
       xml = epub.readAsText 'META-INF/encryption.xml'
       parseString xml, (err, result) ->
         if err
-          log.error err
+          logger.log.error err
           callback err
         if result
           fontpaths = []
           for eData in result.encryption['enc:EncryptedData']
             if eData['enc:EncryptionMethod'][0].$['Algorithm'] is 'http://www.idpf.org/2008/embedding'
               fontpaths.push eData[ 'enc:CipherData'][0]['enc:CipherReference'][0].$['URI']
-          log.info "EPUB – unmangling fonts"
+          logger.log.info "EPUB – unmangling fonts"
           for fontpath in fontpaths
             font = fs.readFileSync(path.join(assetsroot, fontpath), )
             fs.writeFileSync(path.join(assetsroot, fontpath), mangle(font, preBook.book.meta.bookId))
@@ -246,6 +246,7 @@ class EpubLoaderMixin
 
 
     done = () ->
+      logger.log.info 'EPUB loaded'
       callback null, preBook.book
 
     tasks = [findOpf, extractOpf, processNav, extractAssetsAndCreateBook, extractChapters, unMangle, done]

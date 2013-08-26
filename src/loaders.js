@@ -1,5 +1,5 @@
 'use strict';
-var LoaderMixin, extend, fs, log, path, utilities, yaml;
+var LoaderMixin, extend, fs, logger, path, utilities, yaml;
 
 fs = require('fs');
 
@@ -9,7 +9,7 @@ yaml = require('js-yaml');
 
 utilities = require('./utilities');
 
-log = require('./logger').logger();
+logger = require('./logger');
 
 LoaderMixin = (function() {
   function LoaderMixin() {}
@@ -76,7 +76,7 @@ LoaderMixin = (function() {
           loadFile(filename, book);
         }
       }
-      log.info('BOOKDIR – chapters loaded');
+      logger.log.info('BOOKDIR – chapters loaded');
       return book;
     };
     if (fs.existsSync(path.resolve(directory, 'meta.yaml'))) {
@@ -86,13 +86,13 @@ LoaderMixin = (function() {
     } else {
       return;
     }
-    log.info('BOOKDIR – Metadata loaded');
+    logger.log.info('BOOKDIR – Metadata loaded');
     if (meta.assetsPath) {
       assets = new Assets(directory, meta.assetsPath);
     } else {
       assets = new Assets(directory, 'assets/');
     }
-    log.info('BOOKDIR – Assets prepared');
+    logger.log.info('BOOKDIR – Assets prepared');
     NewBook = this;
     book = new NewBook(meta, assets);
     if (fs.existsSync(path.resolve(directory, 'book.txt'))) {

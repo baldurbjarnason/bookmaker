@@ -1,5 +1,5 @@
 'use strict';
-var addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
+var Chapter, addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, glob, isCover, logger, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
 
 zipStream = require('zipstream-contentment');
 
@@ -23,7 +23,7 @@ addToZip = utilities.addToZip;
 
 addStoredToZip = utilities.addStoredToZip;
 
-log = require('./logger').logger();
+logger = require('./logger');
 
 nunjucks = require('nunjucks');
 
@@ -32,6 +32,8 @@ env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__file
 });
 
 env.getTemplate('cover.xhtml').render();
+
+Chapter = require('./chapter');
 
 extendBook = function(Book) {
   Book.prototype.toEpub = toEpub;
@@ -87,7 +89,7 @@ processLandmarks = function(landmarks) {
     }
     return _results;
   })();
-  log.info('EPUB – Landmarks prepared');
+  logger.log.info('EPUB – Landmarks prepared');
   return landmarks;
 };
 
@@ -101,7 +103,7 @@ generateChapters = function(book) {
       filename: 'htmltoc.html',
       body: env.getTemplate('htmltoc.xhtml').render(book)
     };
-    book.prependChapter(toc);
+    book.prependChapter(new Chapter(toc), book);
     book.meta.landmarks.push({
       type: 'toc',
       title: 'Table of Contents',
@@ -115,10 +117,10 @@ generateChapters = function(book) {
     body: "Copyright " + book.meta.copyrightYear + " " + book.meta.author + ", all rights reserved."
   };
   if (book.generate.copyrightFront) {
-    book.prependChapter(copyright);
+    book.prependChapter(new Chapter(copyright), book);
   }
   if (book.generate.copyrightBack) {
-    book.addChapter(copyright);
+    book.addChapter(new Chapter(copyright), book);
   }
   if (book.generate.copyrightFront || book.generate.copyrightBack) {
     book.meta.landmarks.push({
@@ -134,6 +136,7 @@ generateChapters = function(book) {
       filename: 'titlepage.html',
       body: "# " + book.meta.title + "\n\n## by " + book.meta.author
     };
+    book.prependChapter(new Chapter(titlepage), book);
     return book.meta.landmarks.push({
       type: 'titlepage',
       title: 'Title Page',
@@ -145,7 +148,7 @@ generateChapters = function(book) {
 toEpub = function(out, options, callback) {
   var book, final, zip;
 
-  log.info('Rendering EPUB');
+  logger.log.info('Rendering EPUB');
   book = Object.create(this);
   zip = zipStream.createZip({
     level: 1
@@ -155,7 +158,7 @@ toEpub = function(out, options, callback) {
     if (err) {
       callback(err);
     }
-    log.info('Finishing...');
+    logger.log.info('Finishing...');
     return zip.finalize(function(written) {
       return callback(null, written);
     });
@@ -194,7 +197,7 @@ renderEpub = function(book, out, options, zip, callback) {
     tasks.push(options.assets.addToZip.bind(options.assets, zip));
   }
   if ((options != null ? options.obfuscateFonts : void 0) || book.obfuscateFonts) {
-    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.id));
+    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId));
   }
   return async.series(tasks, callback);
 };

@@ -11,10 +11,11 @@ relative = utilities.relative
 pageLinks = utilities.pageLinks
 addToZip = utilities.addToZip
 addStoredToZip = utilities.addStoredToZip
-log = require('./logger').logger()
+logger = require('./logger')
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
 env.getTemplate('cover.xhtml').render()
+Chapter = require './chapter'
 
 extendBook = (Book) ->
   Book.prototype.toEpub = toEpub
@@ -48,7 +49,7 @@ processLandmarks = (landmarks) ->
       else
         landmark.opftype = landmark.type
       return landmark
-  log.info 'EPUB – Landmarks prepared'
+  logger.log.info 'EPUB – Landmarks prepared'
   return landmarks
 
 generateChapters = (book) ->
@@ -59,7 +60,7 @@ generateChapters = (book) ->
       filename: 'htmltoc.html'
       body: env.getTemplate('htmltoc.xhtml').render(book)
     }
-    book.prependChapter toc
+    book.prependChapter new Chapter(toc), book
     book.meta.landmarks.push {
       type: 'toc'
       title: 'Table of Contents'
@@ -72,9 +73,9 @@ generateChapters = (book) ->
     body: "Copyright #{book.meta.copyrightYear} #{book.meta.author}, all rights reserved."
   }
   if book.generate.copyrightFront
-    book.prependChapter copyright
+    book.prependChapter new Chapter(copyright), book
   if book.generate.copyrightBack
-    book.addChapter copyright
+    book.addChapter new Chapter(copyright), book
   if book.generate.copyrightFront or book.generate.copyrightBack
     book.meta.landmarks.push {
       type: 'copyright-page'
@@ -88,6 +89,7 @@ generateChapters = (book) ->
       filename: 'titlepage.html'
       body: "# #{book.meta.title}\n\n## by #{book.meta.author}"
     }
+    book.prependChapter new Chapter(titlepage), book
     book.meta.landmarks.push {
       type: 'titlepage'
       title: 'Title Page'
@@ -96,14 +98,14 @@ generateChapters = (book) ->
 
 
 toEpub = (out, options, callback) ->
-  log.info 'Rendering EPUB'
+  logger.log.info 'Rendering EPUB'
   book = Object.create this
   zip = zipStream.createZip({ level: 1 })
   zip.pipe(out)
   final = (err, result) ->
     if err
       callback(err)
-    log.info 'Finishing...'
+    logger.log.info 'Finishing...'
     zip.finalize((written) ->
       callback(null, written))
   renderEpub(book, out, options, zip, final)
@@ -148,7 +150,7 @@ renderEpub = (book, out, options, zip, callback) ->
   if options?.assets
     tasks.push(options.assets.addToZip.bind(options.assets, zip))
   if options?.obfuscateFonts or book.obfuscateFonts
-    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.id))
+    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId))
   async.series(tasks, callback)
 
 extendAssets = (Assets) ->

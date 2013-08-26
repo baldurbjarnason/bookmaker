@@ -1,5 +1,5 @@
 'use strict';
-var async, ensuredir, env, extend, extendAssets, extendBook, extendChapter, filter, handlebars, log, nodefn, nunjucks, path, relative, url, utilities, write, _;
+var async, ensuredir, env, extend, extendAssets, extendBook, extendChapter, filter, handlebars, logger, nodefn, nunjucks, path, relative, url, utilities, write, _;
 
 async = require('async');
 
@@ -17,7 +17,7 @@ utilities = require('./utilities');
 
 nunjucks = require('nunjucks');
 
-log = require('./logger').logger();
+logger = require('./logger');
 
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
   autoescape: false
@@ -381,7 +381,7 @@ extendBook = function(Book) {
   Book.prototype.toHtmlFiles = function(directory, options, callback) {
     var book, chapter, context, jsonpath, selfindex, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
 
-    log.info("Writing HTML files");
+    logger.log.info("Writing HTML files");
     book = Object.create(this);
     if (!book._state) {
       book._state = {};
@@ -422,7 +422,7 @@ extendBook = function(Book) {
     _ref1 = book.chapters;
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       chapter = _ref1[_i];
-      log.info("Preparing " + chapter.filename);
+      logger.log.info("Preparing " + chapter.filename);
       context = chapter.context(book);
       selfindex = book.chapters.indexOf(chapter);
       if (!context._links) {
