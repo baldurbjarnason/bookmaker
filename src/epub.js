@@ -1,5 +1,5 @@
 'use strict';
-var addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
+var addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, glob, isCover, log, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
 
 zipStream = require('zipstream-contentment');
 
@@ -91,6 +91,57 @@ processLandmarks = function(landmarks) {
   return landmarks;
 };
 
+generateChapters = function(book) {
+  var copyright, titlepage, toc;
+
+  if (book.generate.htmlToc) {
+    toc = {
+      title: 'Table of Contents',
+      type: 'html',
+      filename: 'htmltoc.html',
+      body: env.getTemplate('htmltoc.xhtml').render(book)
+    };
+    book.prependChapter(toc);
+    book.meta.landmarks.push({
+      type: 'toc',
+      title: 'Table of Contents',
+      href: 'htmltoc.html'
+    });
+  }
+  copyright = {
+    title: 'Copyright',
+    type: 'md',
+    filename: 'copyright.html',
+    body: "Copyright " + book.meta.copyrightYear + " " + book.meta.author + ", all rights reserved."
+  };
+  if (book.generate.copyrightFront) {
+    book.prependChapter(copyright);
+  }
+  if (book.generate.copyrightBack) {
+    book.addChapter(copyright);
+  }
+  if (book.generate.copyrightFront || book.generate.copyrightBack) {
+    book.meta.landmarks.push({
+      type: 'copyright-page',
+      title: 'Copyright',
+      href: 'copyright.html'
+    });
+  }
+  if (book.generate.title) {
+    titlepage = {
+      title: book.meta.title,
+      type: 'md',
+      filename: 'titlepage.html',
+      body: "# " + book.meta.title + "\n\n## by " + book.meta.author
+    };
+    return book.meta.landmarks.push({
+      type: 'titlepage',
+      title: 'Title Page',
+      href: 'titlepage.html'
+    });
+  }
+};
+
 toEpub = function(out, options, callback) {
   var book, final, zip;
 
@@ -113,7 +164,7 @@ toEpub = function(out, options, callback) {
 };
 
 renderEpub = function(book, out, options, zip, callback) {
-  var tasks, toc;
+  var tasks;
 
   book._state = {};
   book._state.htmltype = "application/xhtml+xml";
@@ -123,22 +174,7 @@ renderEpub = function(book, out, options, zip, callback) {
   book.links = pageLinks(book, book);
   book.chapterProperties = chapterProperties.bind(book);
   book.idGen = utilities.idGen;
-  if (book.htmlToc) {
-    toc = {
-      title: 'Table of Contents',
-      type: 'html',
-      js: book.chapters[0].js,
-      css: book.chapters[0].css,
-      filename: 'htmltoc.html',
-      body: env.getTemplate('htmltoc.xhtml').render(book)
-    };
-    book.prependChapter(toc);
-    book.meta.landmarks.push({
-      type: 'toc',
-      title: 'Table of Contents',
-      href: 'htmltoc.html'
-    });
-  }
+  generateChapters(book);
   tasks = [];
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"));
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>'));

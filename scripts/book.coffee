@@ -11,6 +11,7 @@ class Book
   constructor: (meta, @assets, @sharedAssets) ->
     @chapters = []
     @meta = meta
+    @generate = {}
     @meta.date =
       if meta.date
         dateProcess(meta.date)

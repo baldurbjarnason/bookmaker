@@ -21,6 +21,7 @@ Book = (function() {
     this.sharedAssets = sharedAssets;
     this.chapters = [];
     this.meta = meta;
+    this.generate = {};
     this.meta.date = meta.date ? dateProcess(meta.date) : dateProcess();
     this.meta.modified = meta.modified ? dateProcess(meta.modified) : dateProcess();
     this.meta.copyrightYear = meta.copyrightYear || meta.date.dateYear;

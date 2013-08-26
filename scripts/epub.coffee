@@ -51,6 +51,50 @@ processLandmarks = (landmarks) ->
   log.info 'EPUB – Landmarks prepared'
   return landmarks
 
+generateChapters = (book) ->
+  if book.generate.htmlToc
+    toc = {
+      title: 'Table of Contents'
+      type: 'html'
+      filename: 'htmltoc.html'
+      body: env.getTemplate('htmltoc.xhtml').render(book)
+    }
+    book.prependChapter toc
+    book.meta.landmarks.push {
+      type: 'toc'
+      title: 'Table of Contents'
+      href: 'htmltoc.html'
+    }
+  copyright = {
+    title: 'Copyright'
+    type: 'md'
+    filename: 'copyright.html'
+    body: "Copyright #{book.meta.copyrightYear} #{book.meta.author}, all rights reserved."
+  }
+  if book.generate.copyrightFront
+    book.prependChapter copyright
+  if book.generate.copyrightBack
+    book.addChapter copyright
+  if book.generate.copyrightFront or book.generate.copyrightBack
+    book.meta.landmarks.push {
+      type: 'copyright-page'
+      title: 'Copyright'
+      href: 'copyright.html'
+    }
+  if book.generate.title
+    titlepage = {
+      title: book.meta.title
+      type: 'md'
+      filename: 'titlepage.html'
+      body: "# #{book.meta.title}\n\n## by #{book.meta.author}"
+    }
+    book.meta.landmarks.push {
+      type: 'titlepage'
+      title: 'Title Page'
+      href: 'titlepage.html'
+    }
+
+
 toEpub = (out, options, callback) ->
   log.info 'Rendering EPUB'
   book = Object.create this
@@ -73,21 +117,7 @@ renderEpub = (book, out, options, zip, callback) ->
   book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
   book.idGen = utilities.idGen
-  if book.htmlToc
-    toc = {
-      title: 'Table of Contents'
-      type: 'html'
-      js: book.chapters[0].js
-      css: book.chapters[0].css
-      filename: 'htmltoc.html'
-      body: env.getTemplate('htmltoc.xhtml').render(book)
-    }
-    book.prependChapter toc
-    book.meta.landmarks.push {
-      type: 'toc'
-      title: 'Table of Contents'
-      href: 'htmltoc.html'
-    }
+  generateChapters book
   tasks = []
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"))
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '''
