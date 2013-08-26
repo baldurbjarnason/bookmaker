@@ -6,7 +6,7 @@ Assets = require('./assets');
 
 Chapter = require('./chapter');
 
-logger = require('.logger');
+logger = require('./logger');
 
 require('./epub').extend(Book, Assets);
 

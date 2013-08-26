@@ -113,7 +113,7 @@ toEpub = function(out, options, callback) {
 };
 
 renderEpub = function(book, out, options, zip, callback) {
-  var tasks;
+  var tasks, toc;
 
   book._state = {};
   book._state.htmltype = "application/xhtml+xml";
@@ -123,6 +123,22 @@ renderEpub = function(book, out, options, zip, callback) {
   book.links = pageLinks(book, book);
   book.chapterProperties = chapterProperties.bind(book);
   book.idGen = utilities.idGen;
+  if (book.htmlToc) {
+    toc = {
+      title: 'Table of Contents',
+      type: 'html',
+      js: book.chapters[0].js,
+      css: book.chapters[0].css,
+      filename: 'htmltoc.html',
+      body: env.getTemplate('htmltoc.xhtml').render(book)
+    };
+    book.prependChapter(toc);
+    book.meta.landmarks.push({
+      type: 'toc',
+      title: 'Table of Contents',
+      href: 'htmltoc.html'
+    });
+  }
   tasks = [];
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"));
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>'));
