@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, utilities, _,
+var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -11,8 +11,6 @@ mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES]);
 $ = require('jquery');
 
 Assets = require('./assets');
-
-_ = require('underscore');
 
 handlebars = require('handlebars');
 
@@ -30,7 +28,14 @@ env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__file
 
 Chapter = (function() {
   function Chapter(doc) {
-    this.context = __bind(this.context, this);    _.extend(this, doc);
+    this.context = __bind(this.context, this);
+    var key, _i, _len, _ref;
+
+    _ref = Object.keys(doc);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      this[key] = doc[key];
+    }
   }
 
   Chapter.prototype.context = function(book) {

@@ -5,7 +5,6 @@ renderer = new rs.HtmlRenderer([rs.HTML_USE_XHTML])
 mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES])
 $ = require 'jquery'
 Assets = require './assets'
-_ = require 'underscore'
 handlebars = require('handlebars')
 path = require 'path'
 utilities = require './utilities'
@@ -16,7 +15,8 @@ env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__file
 
 class Chapter
   constructor: (doc) ->
-    _.extend this, doc
+    for key in Object.keys doc
+      this[key] = doc[key]
   context: (book) =>
     book = book || @book
     chapter = Object.create this

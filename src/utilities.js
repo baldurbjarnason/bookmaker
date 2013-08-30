@@ -1,5 +1,5 @@
 'use strict';
-var addStoredToZip, addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, logger, mixin, mkdirp, pageLinks, path, relative, write, _,
+var addStoredToZip, addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, jsonClone, logger, mixin, mkdirp, pageLinks, path, relative, write,
   __slice = [].slice;
 
 path = require('path');
@@ -7,8 +7,6 @@ path = require('path');
 fs = require('fs');
 
 mkdirp = require('mkdirp');
-
-_ = require('underscore');
 
 logger = require('./logger');
 
@@ -33,7 +31,8 @@ pageLinks = function(page, book) {
       value = _ref[key];
       link = {};
       link.rel = key;
-      _results.push(_.extend(link, value));
+      link.href = value.href;
+      _results.push(link.type = value.type);
     }
     return _results;
   })();
@@ -194,6 +193,10 @@ idGen = function(fn) {
   return "id" + safe;
 };
 
+jsonClone = function(obj) {
+  return JSON.parse(JSON.stringify(obj));
+};
+
 module.exports = {
   relative: relative,
   pageLinks: pageLinks,
@@ -205,5 +208,6 @@ module.exports = {
   addToZip: addToZip,
   addStoredToZip: addStoredToZip,
   countergen: countergen,
-  idGen: idGen
+  idGen: idGen,
+  jsonClone: jsonClone
 };

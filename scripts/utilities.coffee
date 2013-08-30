@@ -3,7 +3,6 @@
 path = require('path')
 fs = require 'fs'
 mkdirp = require 'mkdirp'
-_ = require 'underscore'
 logger = require('./logger')
 
 
@@ -17,7 +16,8 @@ pageLinks = (page, book) ->
   links = for key, value of page._links
     link = {}
     link.rel = key
-    _.extend link, value
+    link.href = value.href
+    link.type = value.type
   if book.meta.cover
     if path.extname(book.meta.cover) is '.jpg'
       type = 'image/jpeg'
@@ -102,6 +102,9 @@ idGen = (fn) ->
   safe = fn.replace idre, ""
   return "id" + safe
 
+jsonClone = (obj) ->
+  JSON.parse JSON.stringify obj
+
 module.exports = {
   relative: relative
   pageLinks: pageLinks
@@ -114,4 +117,5 @@ module.exports = {
   addStoredToZip: addStoredToZip
   countergen: countergen
   idGen: idGen
+  jsonClone: jsonClone
 }

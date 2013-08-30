@@ -1,7 +1,6 @@
 'use strict'
 
 async = require 'async'
-_ = require 'underscore'
 path = require 'path'
 nodefn = require("when/node/function")
 url = require 'url'
@@ -36,8 +35,11 @@ relative = (current, target) ->
 
 extendChapter = (Chapter) ->
   Chapter.prototype.toHal = () ->
-    banned = ['links', 'book', 'meta', 'filename','assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
-    hal = _.omit this, banned
+    banned = ['links', 'book', 'meta', 'filename','assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX']
+    hal = {}
+    for key in Object.keys this
+      if banned.indexOf(key) is -1 and typeof this[key] isnt 'function'
+        hal[key] = this[key]
     hal.body = @html
     hal.type = 'html'
     urlgen = @book.uri.bind(@book) || relative
@@ -96,8 +98,7 @@ extendBook = (Book) ->
       return @relative(current, target)
   Book.prototype.toHal = (options) ->
     # banned = ['chapters', '_chapterIndex', '_navPoint', '_globalCounter', 'docIdCount', 'root', 'meta', 'assets', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this))
-    hal = {}
-    _.extend hal, @meta
+    hal = utilities.jsonClone @meta
     @_state = {} unless @_state
     if options?.baseurl
       selfpath = options.baseurl + 'index.json'
@@ -238,8 +239,6 @@ extendBook = (Book) ->
       tasks.push(write.bind(null, directory + chapter.filename, env.getTemplate('chapter.html').render(context)))
     async.series tasks, callback
   Book.prototype.toHtmlAndJsonFiles = (directory, options, callback) ->
-    defaults = { arbitraryDefault: true }
-    options = _.extend defaults, options
     book = Object.create this
     book._state = {}
     book._state.htmlAndJson = true
