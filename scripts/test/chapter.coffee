@@ -47,9 +47,7 @@ describe 'Chapter',
           () ->
             testbook = new Book({
               title: 'The Wonderful Wizard of Oz',
-              author: 'L. Frank Baum',
-              sharedAssetsPath: 'sharedassets/',
-              sharedAssetsRoot: '../' }, new Assets('test/files', 'assets/'))
+              author: 'L. Frank Baum'}, new Assets('test/files', 'assets/'))
             testbook.addChapter(new Chapter(testchapters.html))
             testbook.chapters.should.be.instanceOf(Array)
             testbook.chapters[0].title.should.equal('HTML')
@@ -84,9 +82,7 @@ describe 'Chapter',
           () ->
             testbook = new Book({
               title: 'The Wonderful Wizard of Oz',
-              author: 'L. Frank Baum',
-              sharedAssetsPath: 'sharedassets/',
-              sharedAssetsRoot: '../' })
+              author: 'L. Frank Baum'})
             testbook.addChapter(new Chapter(testchapters.hbs))
             testbook.chapters[0].should.be.instanceOf(Chapter)
             testbook.chapters[0].title.should.equal('Template')
@@ -106,9 +102,7 @@ describe 'Chapter',
           () ->
             testbook = new Book({
               title: 'The Wonderful Wizard of Oz',
-              author: 'L. Frank Baum',
-              sharedAssetsPath: 'sharedassets/',
-              sharedAssetsRoot: '../' })
+              author: 'L. Frank Baum'})
             testbook.addChapter(new Chapter(testchapters.hbs))
             jsontest = testbook.chapters[0].toJSON()
             jsontest.should.equal("{\n  \"type\": \"html\",\n  \"title\": \"Template\",\n  \"body\": \"<h1 id=\\\"h1-1\\\">Template</h1><p class=\\\"noindent\\\" id=\\\"p-1\\\">Test<br />‘—’“–”&#160;</p>\",\n  \"id\": \"doc1\",\n  \"_links\": {\n    \"toc\": {\n      \"href\": \"../index.json\",\n      \"name\": \"TOC-JSON\",\n      \"type\": \"application/hal+json\"\n    },\n    \"self\": {\n      \"href\": \"doc1.json\",\n      \"type\": \"application/hal+json\"\n    }\n  }\n}")

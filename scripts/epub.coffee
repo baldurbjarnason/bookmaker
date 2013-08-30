@@ -145,10 +145,6 @@ renderEpub = (book, out, options, zip, callback) ->
   tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)))
   tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')))
   tasks.push(book.assets.addToZip.bind(book.assets, zip))
-  if book.sharedAssets
-    tasks.push(book.sharedAssets.addToZip.bind(book.sharedAssets, zip))
-  if options?.assets
-    tasks.push(options.assets.addToZip.bind(options.assets, zip))
   if options?.obfuscateFonts or book.obfuscateFonts
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId))
   async.series(tasks, callback)

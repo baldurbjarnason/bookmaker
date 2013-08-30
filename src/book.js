@@ -14,11 +14,10 @@ async = require('async');
 $ = require('jquery');
 
 Book = (function() {
-  function Book(meta, assets, sharedAssets) {
+  function Book(meta, assets) {
     var fn, _i, _len, _ref;
 
     this.assets = assets;
-    this.sharedAssets = sharedAssets;
     this.chapters = [];
     this.meta = meta;
     this.generate = {};

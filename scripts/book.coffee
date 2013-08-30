@@ -8,7 +8,7 @@ async = require 'async'
 $ = require 'jquery'
 
 class Book
-  constructor: (meta, @assets, @sharedAssets) ->
+  constructor: (meta, @assets) ->
     @chapters = []
     @meta = meta
     @generate = {}

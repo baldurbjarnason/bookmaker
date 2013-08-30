@@ -55,9 +55,7 @@ describe('Chapter', function() {
 
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../'
+        author: 'L. Frank Baum'
       }, new Assets('test/files', 'assets/'));
       testbook.addChapter(new Chapter(testchapters.html));
       testbook.chapters.should.be.instanceOf(Array);
@@ -97,9 +95,7 @@ describe('Chapter', function() {
     return it('should correctly render xhtml body content', function() {
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../'
+        author: 'L. Frank Baum'
       });
       testbook.addChapter(new Chapter(testchapters.hbs));
       testbook.chapters[0].should.be.instanceOf(Chapter);
@@ -124,9 +120,7 @@ describe('Chapter', function() {
 
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../'
+        author: 'L. Frank Baum'
       });
       testbook.addChapter(new Chapter(testchapters.hbs));
       jsontest = testbook.chapters[0].toJSON();
