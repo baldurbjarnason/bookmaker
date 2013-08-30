@@ -188,7 +188,7 @@ describe('EpubBook', function() {
       publisher: 'Bar',
       subject1: 'Foobar',
       version: "1.0",
-      date: "15 May 2013",
+      date: "2013-05-15T00:00:00Z",
       copyrightYear: "19watsit"
     }, assets);
     for (_i = 0, _len = testchapters.length; _i < _len; _i++) {

@@ -58,9 +58,9 @@ describe 'JsonBook',
         publisher: 'Bar'
         subject1: 'Foobar'
         version: "1.0"
-        date: "15 May 2013"
+        date: "2013-05-15T00:00:00Z"
         copyrightYear: "19watsit"
-        modified: "19 May 2013"
+        modified: "2013-05-19T00:00:00Z"
         }, assets)
       for chap in testchapters
         testbook.addChapter(new Chapter(chap))
