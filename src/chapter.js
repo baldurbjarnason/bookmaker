@@ -93,7 +93,7 @@ Chapter = (function() {
 })();
 
 toHtml = Chapter.prototype.toHtml = function() {
-  var bodytemplate, _ref, _ref1;
+  var bodytemplate;
 
   switch (this.type) {
     case 'md':
@@ -102,7 +102,7 @@ toHtml = Chapter.prototype.toHtml = function() {
       return this.processHTML(typogr.typogrify(this.body));
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return this.processHTML(typogr.typogrify(bodytemplate(this.context()), (_ref = this.book) != null ? (_ref1 = _ref.meta) != null ? _ref1.smartyPants : void 0 : void 0));
+      return this.processHTML(typogr.typogrify(bodytemplate(this.context())));
     case 'xhtml':
       return this.body;
   }
@@ -113,12 +113,9 @@ Object.defineProperty(Chapter.prototype, 'html', {
   enumerable: true
 });
 
-Chapter.prototype.processHTML = function(html, smartyPants) {
+Chapter.prototype.processHTML = function(html) {
   var addId, counter, elem, elements, nbsp, _counter, _i, _len;
 
-  if (smartyPants === true) {
-    html = rs.smartypantsHtml(html);
-  }
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   $('img').addClass('bookmaker-respect');

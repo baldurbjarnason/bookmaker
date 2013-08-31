@@ -53,7 +53,7 @@ toHtml = Chapter.prototype.toHtml = ->
       @processHTML typogr.typogrify @body
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      @processHTML typogr.typogrify bodytemplate(@context()), @book?.meta?.smartyPants
+      @processHTML typogr.typogrify bodytemplate(@context())
     when 'xhtml'
       @body
 
@@ -61,9 +61,7 @@ Object.defineProperty Chapter.prototype, 'html', {
   get: toHtml
   enumerable: true
 }
-Chapter.prototype.processHTML = (html, smartyPants) ->
-  if smartyPants is true
-    html = rs.smartypantsHtml html
+Chapter.prototype.processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   $('img').addClass('bookmaker-respect')
