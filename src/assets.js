@@ -54,10 +54,22 @@ Assets = (function() {
     return async.series(tasks, callback);
   };
 
-  Assets.prototype.addToZip = function(zip, callback) {
+  Assets.prototype.addToZip = function(zip, options, callback) {
     var tasks, type, types, _i, _len;
 
+    if (typeof options === 'function') {
+      callback = options;
+    }
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
+    if (options.exclude) {
+      types = types.filter(function(value) {
+        if (options.exclude.indexOf(value !== -1)) {
+          return false;
+        } else {
+          return true;
+        }
+      });
+    }
     tasks = [];
     for (_i = 0, _len = types.length; _i < _len; _i++) {
       type = types[_i];

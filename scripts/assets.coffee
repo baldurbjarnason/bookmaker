@@ -24,8 +24,16 @@ class Assets
     for item in this[type]
       tasks.push(@addItemToZip.bind(this, item, zip))
     async.series tasks, callback
-  addToZip: (zip, callback) ->
+  addToZip: (zip, options, callback) ->
+    if typeof options is 'function'
+      callback = options
     types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
+    if options.exclude
+      types = types.filter (value) ->
+        if options.exclude.indexOf value isnt -1
+          return false
+        else
+          return true
     tasks = []
     for type in types
       tasks.push(@addTypeToZip.bind(this, type, zip))

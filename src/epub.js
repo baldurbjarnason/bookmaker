@@ -185,11 +185,15 @@ renderEpub = function(book, out, options, zip, callback) {
   if (book.meta.cover) {
     tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)));
   }
-  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)));
   tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)));
   tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)));
   tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')));
-  tasks.push(book.assets.addToZip.bind(book.assets, zip));
+  if (options != null ? options.exclude : void 0) {
+    tasks.push(book.assets.addToZip.bind(book.assets, zip, options));
+  } else {
+    tasks.push(book.assets.addToZip.bind(book.assets, zip));
+  }
+  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)));
   if ((options != null ? options.obfuscateFonts : void 0) || book.obfuscateFonts) {
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId));
   }
