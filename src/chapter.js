@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, utilities,
+var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -19,6 +19,8 @@ path = require('path');
 utilities = require('./utilities');
 
 addToZip = utilities.addToZip;
+
+typogr = require('typogr');
 
 nunjucks = require('nunjucks');
 
@@ -91,16 +93,16 @@ Chapter = (function() {
 })();
 
 toHtml = Chapter.prototype.toHtml = function() {
-  var bodytemplate, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+  var bodytemplate, _ref, _ref1;
 
   switch (this.type) {
     case 'md':
-      return this.processHTML(mdparser.render(this.body, (_ref = this.book) != null ? (_ref1 = _ref.meta) != null ? _ref1.smartyPants : void 0 : void 0));
+      return this.processHTML(typogr.typogrify(mdparser.render(this.body)));
     case 'html':
-      return this.processHTML(this.body, (_ref2 = this.book) != null ? (_ref3 = _ref2.meta) != null ? _ref3.smartyPants : void 0 : void 0);
+      return this.processHTML(typogr.typogrify(this.body));
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return this.processHTML(bodytemplate(this.context()), (_ref4 = this.book) != null ? (_ref5 = _ref4.meta) != null ? _ref5.smartyPants : void 0 : void 0);
+      return this.processHTML(typogr.typogrify(bodytemplate(this.context()), (_ref = this.book) != null ? (_ref1 = _ref.meta) != null ? _ref1.smartyPants : void 0 : void 0));
     case 'xhtml':
       return this.body;
   }

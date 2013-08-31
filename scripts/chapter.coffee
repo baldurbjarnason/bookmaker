@@ -9,6 +9,7 @@ handlebars = require('handlebars')
 path = require 'path'
 utilities = require './utilities'
 addToZip = utilities.addToZip
+typogr = require 'typogr'
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
 
@@ -47,12 +48,12 @@ class Chapter
 toHtml = Chapter.prototype.toHtml = ->
   switch @type
     when 'md'
-      @processHTML mdparser.render @body, @book?.meta?.smartyPants
+      @processHTML typogr.typogrify mdparser.render @body
     when 'html'
-      @processHTML @body, @book?.meta?.smartyPants
+      @processHTML typogr.typogrify @body
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      @processHTML bodytemplate(@context()), @book?.meta?.smartyPants
+      @processHTML typogr.typogrify bodytemplate(@context()), @book?.meta?.smartyPants
     when 'xhtml'
       @body
 
