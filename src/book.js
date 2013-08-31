@@ -198,13 +198,19 @@ Book = (function() {
   Book.prototype.relative = utilities.relative;
 
   Book.prototype.addChaptersToZip = function(zip, template, callback) {
-    var chapter, context, tasks, _i, _len, _ref;
+    var chapter, context, tasks, _i, _len, _ref, _ref1;
 
     tasks = [];
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       chapter = _ref[_i];
-      context = chapter.context(this);
+      if (((_ref1 = this.exclude) != null ? _ref1.indexOf('js') : void 0) !== -1) {
+        context = chapter.context(this, {
+          noJs: true
+        });
+      } else {
+        context = chapter.context(this);
+      }
       tasks.push(context.addToZip.bind(context, zip, template));
     }
     return async.series(tasks, callback);

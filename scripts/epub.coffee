@@ -119,6 +119,7 @@ renderEpub = (book, out, options, zip, callback) ->
   book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
   book.idGen = utilities.idGen
+  book.exclude = options.exclude if options and options.exclude
   generateChapters book
   tasks = []
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"))

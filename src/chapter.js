@@ -38,7 +38,7 @@ Chapter = (function() {
     }
   }
 
-  Chapter.prototype.context = function(book) {
+  Chapter.prototype.context = function(book, options) {
     var chapter, _ref;
 
     book = book || this.book;
@@ -55,10 +55,12 @@ Chapter = (function() {
     }
     chapter.relative = utilities.relative;
     chapter.links = utilities.pageLinks(chapter, this.book);
-    if (book.meta.specifiedJs && this.js) {
-      chapter.scripted = true;
-    } else if ((_ref = book.assets) != null ? _ref.js : void 0) {
-      chapter.scripted = true;
+    if (!(options != null ? options.noJs : void 0)) {
+      if (book.meta.specifiedJs && this.js) {
+        chapter.scripted = true;
+      } else if ((_ref = book.assets) != null ? _ref.js : void 0) {
+        chapter.scripted = true;
+      }
     }
     return chapter;
   };

@@ -17,7 +17,7 @@ class Chapter
   constructor: (doc) ->
     for key in Object.keys doc
       this[key] = doc[key]
-  context: (book) =>
+  context: (book, options) =>
     book = book || @book
     chapter = Object.create this
     chapter.book = book
@@ -26,10 +26,11 @@ class Chapter
     chapter.chapters = book.chapters unless @chapters
     chapter.relative = utilities.relative
     chapter.links = utilities.pageLinks chapter, @book
-    if book.meta.specifiedJs and @js
-      chapter.scripted = true
-    else if book.assets?.js
-      chapter.scripted = true
+    unless options?.noJs
+      if book.meta.specifiedJs and @js
+        chapter.scripted = true
+      else if book.assets?.js
+        chapter.scripted = true
     return chapter
   formatPath: (type) ->
     newpath = path.dirname(@filename) + "/" + path.basename(@filename, path.extname(@filename)) + '.' + type

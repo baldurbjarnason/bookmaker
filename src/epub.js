@@ -177,6 +177,9 @@ renderEpub = function(book, out, options, zip, callback) {
   book.links = pageLinks(book, book);
   book.chapterProperties = chapterProperties.bind(book);
   book.idGen = utilities.idGen;
+  if (options && options.exclude) {
+    book.exclude = options.exclude;
+  }
   generateChapters(book);
   tasks = [];
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"));
