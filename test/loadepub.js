@@ -36,13 +36,13 @@ describe('EpubLoader', function() {
       book.meta.subject1.should.equal("Foobar");
       book.meta.cover.should.equal("assets/cover.jpg");
       book.chapters[0].title.should.equal('Markdown – The Wonderful Wizard of Oz');
-      book.chapters[0].body.should.equal('\n\t\n\t\t<div class="chapter" id="chapter"><h1 id="h1-1">header</h1>\n\n<p class="noindent" id="p-1">Test</p>\n</div>\n\t\n');
+      book.chapters[0].body.should.equal('\n\t\n\t\t<div class="chapter" id="bm-chapter"><h1 id="h1-1">header</h1>\n\n<p class="noindent" id="p-1">Test</p>\n</div>\n\t\n');
       book.chapters[1].title.should.equal('HTML – The Wonderful Wizard of Oz');
-      book.chapters[1].body.should.equal('\n\t\n\t\t<div class="chapter" id="chapter"><h1 id="h1-1">header</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p></div>\n\t\n');
+      book.chapters[1].body.should.equal('\n\t\n\t\t<div class="chapter" id="bm-chapter"><h1 id="h1-1">header</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p></div>\n\t\n');
       book.chapters[2].title.should.equal('XHTML – The Wonderful Wizard of Oz');
-      book.chapters[2].body.should.equal('\n\t\n\t\t<div class="chapter" id="chapter"><h1>header</h1><p>Test<br/></p></div>\n\t\n');
+      book.chapters[2].body.should.equal('\n\t\n\t\t<div class="chapter" id="bm-chapter"><h1>header</h1><p>Test<br/></p></div>\n\t\n');
       book.chapters[3].title.should.equal('Template – The Wonderful Wizard of Oz');
-      book.chapters[3].body.should.equal('\n\t\n\t\t<div class="chapter" id="chapter"><h1 id="h1-1">Template</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p></div>\n\t\n');
+      book.chapters[3].body.should.equal('\n\t\n\t\t<div class="chapter" id="bm-chapter"><h1 id="h1-1">Template</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p></div>\n\t\n');
       return book.assets.root.should.equal('test/files/epubloader');
     });
   });
