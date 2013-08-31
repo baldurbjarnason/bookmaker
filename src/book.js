@@ -44,8 +44,8 @@ Book = (function() {
     return "doc" + this.docIdCount;
   };
 
-  Book.prototype.chapterPrepare = function(chapter, bookoverride) {
-    chapter.book = this || bookoverride;
+  Book.prototype.chapterPrepare = function(chapter) {
+    chapter.book = this;
     if (!chapter.id) {
       chapter.id = this.docId();
     }
@@ -55,14 +55,90 @@ Book = (function() {
     return chapter;
   };
 
-  Book.prototype.addChapter = function(chapter, bookoverride) {
-    this.chapterPrepare(chapter, bookoverride);
-    return this.chapters.push(chapter);
+  Book.prototype.addChapter = function(chapter, options, callback) {
+    var chap, index, landmarkHrefs, type, _i, _len, _ref;
+
+    this.chapterPrepare(chapter);
+    if (!callback && typeof options === 'function') {
+      callback = options;
+    }
+    if (options != null ? options.ignoreLandmarks : void 0) {
+      landmarkHrefs = (function() {
+        var _i, _len, _ref, _results;
+
+        _ref = options.ignoreLandmarks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          type = _ref[_i];
+          _results.push(this.findLandmarkHref(type));
+        }
+        return _results;
+      }).call(this);
+      _ref = this.chapters;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        chap = _ref[_i];
+        index = this.chapters.indexOf(chap);
+        if (landmarkHrefs.indexOf(chap.filename === -1)) {
+          this.chapters.splice(index + 1, 0, chapter);
+          this.appendOutline(chap.filename, chapter);
+          if (callback && typeof callback === 'function') {
+            callback(null, this);
+          } else {
+            return this;
+          }
+        }
+      }
+    } else {
+      this.chapters.push(chapter);
+      this.appendOutline(this.chapters[this.chapters.length - 1].filename, chapter);
+      if (callback && typeof callback === 'function') {
+        return callback(null, this);
+      } else {
+        return this;
+      }
+    }
   };
 
-  Book.prototype.prependChapter = function(chapter, bookoverride) {
-    this.chapterPrepare(chapter, bookoverride);
-    return this.chapters.unshift(chapter);
+  Book.prototype.prependChapter = function(chapter, options, callback) {
+    var chap, index, landmarkHrefs, type, _i, _ref;
+
+    this.chapterPrepare(chapter);
+    if (!callback && typeof options === 'function') {
+      callback = options;
+    }
+    if (options != null ? options.ignoreLandmarks : void 0) {
+      landmarkHrefs = (function() {
+        var _i, _len, _ref, _results;
+
+        _ref = options.ignoreLandmarks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          type = _ref[_i];
+          _results.push(this.findLandmarkHref(type));
+        }
+        return _results;
+      }).call(this);
+      for (index = _i = _ref = this.chapters.length; _ref <= 1 ? _i <= 1 : _i >= 1; index = _ref <= 1 ? ++_i : --_i) {
+        chap = this.chapters[index];
+        if (landmarkHrefs.indexOf(chap.filename === -1)) {
+          this.chapters.splice(index, 0, chapter);
+          this.prependOutline(chap.filename, chapter);
+          if (callback && typeof callback === 'function') {
+            callback(null, this);
+          } else {
+            return this;
+          }
+        }
+      }
+    } else {
+      this.chapters.unshift(chapter);
+      this.prependOutline(this.chapters[0].filename, chapter);
+      if (callback && typeof callback === 'function') {
+        return callback(null, this);
+      } else {
+        return this;
+      }
+    }
   };
 
   Book.prototype.insertBeforeHref = function(href, newChapter) {
@@ -77,6 +153,21 @@ Book = (function() {
     }
     if (index !== -1) {
       return this.chapters.splice(index, 0, newChapter);
+    }
+  };
+
+  Book.prototype.insertAfterHref = function(href, newChapter) {
+    var chapter, index, _i, _len, _ref;
+
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      if (chapter.filename === href) {
+        index = this.chapters.indexOf(chapter);
+      }
+    }
+    if (index !== -1) {
+      return this.chapters.splice(index + 1, 0, newChapter);
     }
   };
 
@@ -114,76 +205,6 @@ Book = (function() {
     return _results;
   };
 
-  Book.prototype.appendMain = function(chapter, bookoverride) {
-    var landmarkHref;
-
-    this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = this.findLandmarkHref('backmatter');
-    if (landmarkHref) {
-      this.insertBeforeHref(landmarkHref, chapters);
-      return this.prependOutline(landmarkHref, chapter);
-    } else {
-      return this.addChapter(chapter);
-    }
-  };
-
-  Book.prototype.prependMain = function(chapter, bookoverride) {
-    var landmarkHref;
-
-    this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = this.findLandmarkHref('bodymatter');
-    if (landmarkHref) {
-      this.insertBeforeHref(landmarkHref, chapter);
-      this.updateLandmark('bodymatter', landmarkHref);
-      return this.prependOutline(landmarkHref, chapter);
-    } else {
-      return this.prependChapter(chapter);
-    }
-  };
-
-  Book.prototype.appendFront = function(chapter, bookoverride) {
-    var landmarkHref;
-
-    this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = this.findLandmarkHref('bodymatter');
-    if (landmarkHref) {
-      this.insertBeforeHref(landmarkHref, chapter);
-      return this.prependOutline(landmarkHref, chapter);
-    } else {
-      return this.prependChapter(chapter);
-    }
-  };
-
-  Book.prototype.prependFront = function(chapter, bookoverride) {
-    var landmarkHref;
-
-    this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = this.findLandmarkHref('frontmatter');
-    if (landmarkHref) {
-      this.insertBeforeHref(landmarkHref, chapter);
-      this.updateLandmark('frontmatter', landmarkHref);
-      return this.prependOutline(landmarkHref, chapter);
-    } else {
-      return this.prependChapter(chapter);
-    }
-  };
-
-  Book.prototype.appendBack = Book.addChapter;
-
-  Book.prototype.prependBack = function(chapter, bookoverride) {
-    var landmarkHref;
-
-    this.chapterPrepare(chapter, bookoverride);
-    landmarkHref = this.findLandmarkHref('backmatter');
-    if (landmarkHref) {
-      this.insertBeforeHref(landmarkHref, chapter);
-      this.updateLandmark('backmatter', landmarkHref);
-      return this.prependOutline(landmarkHref, chapter);
-    } else {
-      return this.addChapter(chapter);
-    }
-  };
-
   Book.prototype.prependOutline = function(href, chapter) {
     var html;
 
@@ -191,6 +212,17 @@ Book = (function() {
       $('body').html(this.outline);
       html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
       $("a[href='" + href + "']").parent().before(html);
+      return this.outline = $('body').html();
+    }
+  };
+
+  Book.prototype.appendOutline = function(href, chapter) {
+    var html;
+
+    if (this.outline) {
+      $('body').html(this.outline);
+      html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
+      $("a[href='" + href + "']").parent().after(html);
       return this.outline = $('body').html();
     }
   };

@@ -60,7 +60,7 @@ generateChapters = (book) ->
       filename: 'htmltoc.html'
       body: env.getTemplate('htmltoc.xhtml').render(book)
     }
-    book.prependChapter new Chapter(toc), book
+    book.prependChapter new Chapter(toc)
     book.meta.landmarks.push {
       type: 'toc'
       title: 'Table of Contents'
@@ -73,9 +73,9 @@ generateChapters = (book) ->
     body: "Copyright #{book.meta.copyrightYear} #{book.meta.author}, all rights reserved."
   }
   if book.generate.copyrightFront
-    book.prependChapter new Chapter(copyright), book
+    book.prependChapter new Chapter(copyright)
   if book.generate.copyrightBack
-    book.addChapter new Chapter(copyright), book
+    book.addChapter new Chapter(copyright)
   if book.generate.copyrightFront or book.generate.copyrightBack
     book.meta.landmarks.push {
       type: 'copyright-page'
@@ -89,7 +89,7 @@ generateChapters = (book) ->
       filename: 'titlepage.html'
       body: "# #{book.meta.title}\n\n## by #{book.meta.author}"
     }
-    book.prependChapter new Chapter(titlepage), book
+    book.prependChapter new Chapter(titlepage)
     book.meta.landmarks.push {
       type: 'titlepage'
       title: 'Title Page'

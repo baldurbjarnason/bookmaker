@@ -34,25 +34,71 @@ class Book
   docId: () ->
     @docIdCount++
     return "doc" + @docIdCount
-  chapterPrepare: (chapter, bookoverride) ->
-    chapter.book = this or bookoverride
+  chapterPrepare: (chapter) ->
+    chapter.book = this
     unless chapter.id
       chapter.id = @docId()
     unless chapter.filename
       chapter.filename = 'chapters/' + chapter.id + '.html'
     return chapter
-  addChapter: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    @chapters.push(chapter)
-  prependChapter: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    @chapters.unshift chapter
+  addChapter: (chapter, options, callback) ->
+    @chapterPrepare chapter
+    if !callback and typeof options is 'function'
+      callback = options
+    if options?.ignoreLandmarks
+      landmarkHrefs = for type in options.ignoreLandmarks
+        @findLandmarkHref type
+      for chap in @chapters
+        index = @chapters.indexOf(chap)
+        if landmarkHrefs.indexOf chap.filename is -1
+          @chapters.splice(index + 1, 0, chapter)
+          @appendOutline chap.filename, chapter
+          if callback and typeof callback is 'function'
+            callback null, this
+          else
+            return this
+    else
+      @chapters.push(chapter)
+      @appendOutline @chapters[@chapters.length-1].filename, chapter
+      if callback and typeof callback is 'function'
+        callback null, this
+      else
+        return this
+  prependChapter: (chapter, options, callback) ->
+    @chapterPrepare chapter
+    if !callback and typeof options is 'function'
+      callback = options
+    if options?.ignoreLandmarks
+      landmarkHrefs = for type in options.ignoreLandmarks
+        @findLandmarkHref type
+      for index in [@chapters.length..1]
+        chap = @chapters[index]
+        if landmarkHrefs.indexOf chap.filename is -1
+          @chapters.splice(index, 0, chapter)
+          @prependOutline chap.filename, chapter
+          if callback and typeof callback is 'function'
+            callback null, this
+          else
+            return this
+    else
+      @chapters.unshift(chapter)
+      @prependOutline @chapters[0].filename, chapter
+      if callback and typeof callback is 'function'
+        callback null, this
+      else
+        return this
   insertBeforeHref: (href, newChapter) ->
     for chapter in @chapters
       if chapter.filename is href
         index = @chapters.indexOf(chapter)
     unless index is -1
       @chapters.splice(index, 0, newChapter)
+  insertAfterHref: (href, newChapter) ->
+    for chapter in @chapters
+      if chapter.filename is href
+        index = @chapters.indexOf(chapter)
+    unless index is -1
+      @chapters.splice(index+1, 0, newChapter)
   findLandmarkHref: (landmark) ->
     for landmark in @meta.landmarks
       if landmark.type is 'bodymatter'
@@ -64,55 +110,17 @@ class Book
         landmark.href = newLandmark
         if newTitle
           landmark.title = newTitle
-  appendMain: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    landmarkHref = @findLandmarkHref 'backmatter'
-    if landmarkHref
-      @insertBeforeHref landmarkHref, chapters
-      @prependOutline landmarkHref, chapter
-    else
-      @addChapter chapter
-  prependMain: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    landmarkHref = @findLandmarkHref 'bodymatter'
-    if landmarkHref
-      @insertBeforeHref landmarkHref, chapter
-      @updateLandmark 'bodymatter', landmarkHref
-      @prependOutline landmarkHref, chapter
-    else
-      @prependChapter chapter
-  appendFront: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    landmarkHref = @findLandmarkHref 'bodymatter'
-    if landmarkHref
-      @insertBeforeHref landmarkHref, chapter
-      @prependOutline landmarkHref, chapter
-    else
-      @prependChapter chapter
-  prependFront: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    landmarkHref = @findLandmarkHref 'frontmatter'
-    if landmarkHref
-      @insertBeforeHref landmarkHref, chapter
-      @updateLandmark 'frontmatter', landmarkHref
-      @prependOutline landmarkHref, chapter
-    else
-      @prependChapter chapter
-  appendBack: @addChapter
-  prependBack: (chapter, bookoverride) ->
-    @chapterPrepare chapter, bookoverride
-    landmarkHref = @findLandmarkHref 'backmatter'
-    if landmarkHref
-      @insertBeforeHref landmarkHref, chapter
-      @updateLandmark 'backmatter', landmarkHref
-      @prependOutline landmarkHref, chapter
-    else
-      @addChapter chapter
   prependOutline: (href, chapter) ->
     if @outline
       $('body').html(@outline)
       html = "<li id='toc-#{ chapter.id }'><a href='#{ chapter.filename }' rel='chapter'>#{ chapter.title }</a></li>"
       $("a[href='#{href}']").parent().before(html)
+      @outline = $('body').html()
+  appendOutline: (href, chapter) ->
+    if @outline
+      $('body').html(@outline)
+      html = "<li id='toc-#{ chapter.id }'><a href='#{ chapter.filename }' rel='chapter'>#{ chapter.title }</a></li>"
+      $("a[href='#{href}']").parent().after(html)
       @outline = $('body').html()
   relative: utilities.relative
   addChaptersToZip: (zip, template, callback) ->
