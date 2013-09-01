@@ -58,6 +58,15 @@
     {% for item in assets.js %}
     <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/javascript"/>
     {% endfor %}
+    {% for item in assets.mp3 %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="audio/mpeg"/>
+    {% endfor %}
+    {% for item in assets.m4a %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="audio/mp4"/>
+    {% endfor %}
+    {% for item in assets.m4v %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="video/mp4"/>
+    {% endfor %}
     {% for chapter in chapters %}
         {% if chapter.filename %}<item id="{{ chapter.id }}" href="{{ chapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(chapter) }}/>{% endif %}
         {% if chapter.subChapters %}

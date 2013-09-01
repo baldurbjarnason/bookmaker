@@ -7,6 +7,8 @@ ncp = require('ncp').ncp
 path = require 'path'
 logger = require('./logger')
 
+types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff', 'm4a', 'm4v', 'mp3']
+
 class Assets
   constructor: (@root, @assetsPath) ->
   get: (filepath, callback) ->
@@ -27,7 +29,6 @@ class Assets
   addToZip: (zip, options, callback) ->
     if typeof options is 'function'
       callback = options
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
     if options.exclude
       types = types.filter (value) ->
         if options.exclude.indexOf value isnt -1
@@ -55,8 +56,10 @@ class Assets
       if type is 'jpg'
         jpegList = glob.sync(@assetsPath + "**/*.jpeg", { cwd: @root })
         @jpg = @jpg.concat(jpegList)
+      if type is 'm4v'
+        m4vList = glob.sync(@assetsPath + "**/*.mp4", { cwd: @root })
+        @m4v = @m4v.concat(m4vList)
       callback()
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
     tasks = []
     for type in types
       tasks.push(task.bind(this, type))
@@ -67,7 +70,6 @@ class Assets
       newAssetsPath = ""
     if newAssetsPath is '.'
       newAssetsPath = ""
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff']
     tasks = []
     for type in types
       @[type] = glob.sync(newAssetsPath + "**/*.#{type}", { cwd: @root })

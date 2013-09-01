@@ -1,5 +1,5 @@
 'use strict';
-var Assets, async, fs, glob, logger, ncp, path;
+var Assets, async, fs, glob, logger, ncp, path, types;
 
 glob = require('glob');
 
@@ -12,6 +12,8 @@ ncp = require('ncp').ncp;
 path = require('path');
 
 logger = require('./logger');
+
+types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff', 'm4a', 'm4v', 'mp3'];
 
 Assets = (function() {
   function Assets(root, assetsPath) {
@@ -55,12 +57,11 @@ Assets = (function() {
   };
 
   Assets.prototype.addToZip = function(zip, options, callback) {
-    var tasks, type, types, _i, _len;
+    var tasks, type, _i, _len;
 
     if (typeof options === 'function') {
       callback = options;
     }
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
     if (options.exclude) {
       types = types.filter(function(value) {
         if (options.exclude.indexOf(value !== -1)) {
@@ -90,10 +91,10 @@ Assets = (function() {
   };
 
   Assets.prototype.init = function(callback) {
-    var task, tasks, type, types, _i, _len;
+    var task, tasks, type, _i, _len;
 
     task = function(type, callback) {
-      var jpegList;
+      var jpegList, m4vList;
 
       if (!this.assetsPath) {
         this.assetsPath = "";
@@ -110,9 +111,14 @@ Assets = (function() {
         });
         this.jpg = this.jpg.concat(jpegList);
       }
+      if (type === 'm4v') {
+        m4vList = glob.sync(this.assetsPath + "**/*.mp4", {
+          cwd: this.root
+        });
+        this.m4v = this.m4v.concat(m4vList);
+      }
       return callback();
     };
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
     tasks = [];
     for (_i = 0, _len = types.length; _i < _len; _i++) {
       type = types[_i];
@@ -122,7 +128,7 @@ Assets = (function() {
   };
 
   Assets.prototype.initSync = function() {
-    var jpeg, newAssetsPath, tasks, type, types, _i, _len;
+    var jpeg, newAssetsPath, tasks, type, _i, _len;
 
     newAssetsPath = this.assetsPath;
     if (!newAssetsPath) {
@@ -131,7 +137,6 @@ Assets = (function() {
     if (newAssetsPath === '.') {
       newAssetsPath = "";
     }
-    types = ['png', 'gif', 'jpg', 'css', 'js', 'svg', 'ttf', 'otf', 'woff'];
     tasks = [];
     for (_i = 0, _len = types.length; _i < _len; _i++) {
       type = types[_i];
