@@ -254,6 +254,7 @@ class EpubLoaderMixin
           fontpaths = []
           for eData in result.encryption['enc:EncryptedData']
             if eData['enc:EncryptionMethod'][0].$['Algorithm'] is 'http://www.idpf.org/2008/embedding'
+              preBook.book.obfuscateFonts = true
               fontpaths.push eData[ 'enc:CipherData'][0]['enc:CipherReference'][0].$['URI']
           logger.log.info "EPUB – unmangling fonts"
           for fontpath in fontpaths

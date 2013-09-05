@@ -398,6 +398,7 @@ EpubLoaderMixin = (function() {
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             eData = _ref[_i];
             if (eData['enc:EncryptionMethod'][0].$['Algorithm'] === 'http://www.idpf.org/2008/embedding') {
+              preBook.book.obfuscateFonts = true;
               fontpaths.push(eData['enc:CipherData'][0]['enc:CipherReference'][0].$['URI']);
             }
           }
