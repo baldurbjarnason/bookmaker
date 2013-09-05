@@ -62,15 +62,6 @@ Assets = (function() {
     if (typeof options === 'function') {
       callback = options;
     }
-    if (options.exclude) {
-      types = types.filter(function(value) {
-        if (options.exclude.indexOf(value !== -1)) {
-          return false;
-        } else {
-          return true;
-        }
-      });
-    }
     tasks = [];
     for (_i = 0, _len = types.length; _i < _len; _i++) {
       type = types[_i];

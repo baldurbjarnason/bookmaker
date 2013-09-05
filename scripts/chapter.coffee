@@ -16,7 +16,6 @@ marked.setOptions {
     return hljs.highlightAuto(lang, code).value
   langPrefix: 'language-'
 }
-sanitizer = require 'html-css-sanitizer'
 
 class Chapter
   constructor: (doc) ->
@@ -84,10 +83,7 @@ Chapter.prototype.processHTML = (html) ->
     $(elem).each((index) -> addId(this, elem))
   # Need to properly filter entities here. Or at least look further into the issue.
   nbsp = new RegExp('&nbsp;', 'g')
-  if @book?.sanitize
-    return sanitizer.sanitize($('body').html().replace(nbsp, '&#160;'))
-  else
-    return $('body').html().replace(nbsp, '&#160;')
+  return $('body').html().replace(nbsp, '&#160;')
 
 Chapter.prototype.renderHtml = (resolver) ->
   resolver.resolve(@html)

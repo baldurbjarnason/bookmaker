@@ -29,12 +29,6 @@ class Assets
   addToZip: (zip, options, callback) ->
     if typeof options is 'function'
       callback = options
-    if options.exclude
-      types = types.filter (value) ->
-        if options.exclude.indexOf value isnt -1
-          return false
-        else
-          return true
     tasks = []
     for type in types
       tasks.push(@addTypeToZip.bind(this, type, zip))

@@ -121,9 +121,6 @@ renderEpub = (book, out, options, zip, callback) ->
   book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
   book.idGen = utilities.idGen
-  if optons?.sanitize
-    book.sanitize = true
-  book.exclude = options.exclude if options and options.exclude
   generateChapters book
   tasks = []
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"))
@@ -148,10 +145,7 @@ renderEpub = (book, out, options, zip, callback) ->
   tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)))
   tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)))
   tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')))
-  if options?.exclude
-    tasks.push(book.assets.addToZip.bind(book.assets, zip, options))
-  else
-    tasks.push(book.assets.addToZip.bind(book.assets, zip))
+  tasks.push(book.assets.addToZip.bind(book.assets, zip))
   tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)))
   if options?.obfuscateFonts or book.obfuscateFonts
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId))

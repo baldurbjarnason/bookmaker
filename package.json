@@ -54,7 +54,6 @@
     "async": "~0.2.9",
     "typogr": "~0.6.1",
     "marked": "~0.2.9",
-    "highlight.js": "~7.3.0",
-    "html-css-sanitizer": "0.0.2"
+    "highlight.js": "~7.3.0"
   }
 }
