@@ -1,12 +1,6 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
+var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, nunjucks, path, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-rs = require('robotskirt');
-
-renderer = new rs.HtmlRenderer([rs.HTML_USE_XHTML]);
-
-mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES]);
 
 $ = require('jquery');
 

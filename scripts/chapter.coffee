@@ -1,8 +1,5 @@
 'use strict'
 
-rs = require('robotskirt')
-renderer = new rs.HtmlRenderer([rs.HTML_USE_XHTML])
-mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES])
 $ = require 'jquery'
 Assets = require './assets'
 handlebars = require('handlebars')
