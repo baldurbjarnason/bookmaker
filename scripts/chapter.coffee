@@ -74,7 +74,7 @@ Chapter.prototype.processHTML = (html) ->
   addId = (el, elem) ->
     unless el.id
       el.id = elem + '-' + counter(elem)
-  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a']
+  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption']
   for elem in elements
     $(elem).each((index) -> addId(this, elem))
   # Need to properly filter entities here. Or at least look further into the issue.

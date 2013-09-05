@@ -132,7 +132,7 @@ Chapter.prototype.processHTML = function(html) {
       return el.id = elem + '-' + counter(elem);
     }
   };
-  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a'];
+  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption'];
   for (_i = 0, _len = elements.length; _i < _len; _i++) {
     elem = elements[_i];
     $(elem).each(function(index) {
