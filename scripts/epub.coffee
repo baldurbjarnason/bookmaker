@@ -121,6 +121,8 @@ renderEpub = (book, out, options, zip, callback) ->
   book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
   book.idGen = utilities.idGen
+  if optons?.sanitize
+    book.sanitize = true
   book.exclude = options.exclude if options and options.exclude
   generateChapters book
   tasks = []

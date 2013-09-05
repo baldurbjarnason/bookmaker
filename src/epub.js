@@ -179,6 +179,9 @@ renderEpub = function(book, out, options, zip, callback) {
   book.links = pageLinks(book, book);
   book.chapterProperties = chapterProperties.bind(book);
   book.idGen = utilities.idGen;
+  if (typeof optons !== "undefined" && optons !== null ? optons.sanitize : void 0) {
+    book.sanitize = true;
+  }
   if (options && options.exclude) {
     book.exclude = options.exclude;
   }
