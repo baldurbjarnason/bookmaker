@@ -146,6 +146,24 @@ EpubLoaderMixin = (function() {
         if (elem.$['property'] === 'ibooks:version') {
           meta.version = elem._;
         }
+        if ((elem.$['property'] === 'rendition:layout') && (elem._ === 'pre-paginated')) {
+          meta.fxl = true;
+        }
+        if (elem.$['property'] === 'rendition:spread') {
+          meta.fxlSpread = elem._;
+        }
+        if (elem.$['property'] === 'rendition:orientation') {
+          meta.fxlOrientation = elem._;
+        }
+        if (elem.$['property'] === 'ibooks:binding') {
+          meta.fxlBinding = elem._;
+        }
+        if (elem.$['property'] === 'ibooks:ipad-orientation-lock') {
+          meta.fxliPadOrientationLock = elem._;
+        }
+        if (elem.$['property'] === 'ibooks:iphone-orientation-lock') {
+          meta.fxliPhoneOrientationLock = elem._;
+        }
       }
       manifest = xml["package"].manifest[0];
       logger.log.info('EPUB – Extracting metadata');
@@ -288,7 +306,7 @@ EpubLoaderMixin = (function() {
     parseChapter = function(xml, chapterpath, callback) {
       chapterpath = unescape(chapterpath);
       return parseString(xml, function(err, result) {
-        var chapter, link, links, script, scripts, svgEmbedRE, svgLinkRE, _i, _j, _len, _len1, _links;
+        var chapter, heightRE, link, links, metatag, metatags, script, scripts, svgEmbedRE, svgLinkRE, widthRE, _i, _j, _k, _len, _len1, _len2, _links;
 
         logger.log.info("EPUB – Parsing " + chapterpath);
         if (err) {
@@ -300,6 +318,8 @@ EpubLoaderMixin = (function() {
         chapter.type = 'xhtml';
         svgLinkRE = new RegExp('src="[^"]*\\.svg"');
         svgEmbedRE = new RegExp('<svg [^>]*>');
+        widthRE = new RegExp('width=([^,]*)');
+        heightRE = new RegExp('height=([^,]*)');
         if (svgLinkRE.test(xml) || svgEmbedRE) {
           chapter.svg = true;
         }
@@ -324,11 +344,21 @@ EpubLoaderMixin = (function() {
             }
           }
         }
+        metatags = result.html.head[0].meta;
+        if (metatags) {
+          for (_j = 0, _len1 = metatags.length; _j < _len1; _j++) {
+            metatag = metatags[_j];
+            if (metatag.$.name === 'viewport') {
+              chapter.width = widthRE.exec(metatag.$.content)[1];
+              chapter.height = heightRE.exec(metatag.$.content)[1];
+            }
+          }
+        }
         scripts = result.html.head[0].scripts;
         chapter.js = [];
         if (scripts) {
-          for (_j = 0, _len1 = scripts.length; _j < _len1; _j++) {
-            script = scripts[_j];
+          for (_k = 0, _len2 = scripts.length; _k < _len2; _k++) {
+            script = scripts[_k];
             js.push(script.$.src);
           }
         }

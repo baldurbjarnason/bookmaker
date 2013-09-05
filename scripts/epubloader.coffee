@@ -97,6 +97,18 @@ class EpubLoaderMixin
           preBook.coverId = elem.$['content']
         if elem.$['property'] is 'ibooks:version'
           meta.version = elem._
+        if (elem.$['property'] is 'rendition:layout') and (elem._ is 'pre-paginated')
+          meta.fxl = true
+        if (elem.$['property'] is 'rendition:spread')
+          meta.fxlSpread = elem._
+        if (elem.$['property'] is 'rendition:orientation')
+          meta.fxlOrientation = elem._
+        if (elem.$['property'] is 'ibooks:binding')
+          meta.fxlBinding = elem._
+        if (elem.$['property'] is 'ibooks:ipad-orientation-lock')
+          meta.fxliPadOrientationLock = elem._
+        if (elem.$['property'] is 'ibooks:iphone-orientation-lock')
+          meta.fxliPhoneOrientationLock = elem._
       manifest = xml.package.manifest[0]
       logger.log.info 'EPUB – Extracting metadata'
       preBook.spine = for item in xml.package.spine[0].itemref
@@ -191,6 +203,8 @@ class EpubLoaderMixin
         chapter.type = 'xhtml'
         svgLinkRE = new RegExp('src="[^"]*\\.svg"')
         svgEmbedRE = new RegExp('<svg [^>]*>')
+        widthRE = new RegExp('width=([^,]*)')
+        heightRE = new RegExp('height=([^,]*)')
         if svgLinkRE.test(xml) or svgEmbedRE
           chapter.svg = true
         chapter.body = xml.split(bodyre)[2]
@@ -206,6 +220,12 @@ class EpubLoaderMixin
               _links[link.$.rel] = { type: link.$.type, href: link.$.href }
               if link.$.hreflang
                 _links[link.$.rel].hreflang = link.$.hreflang
+        metatags = result.html.head[0].meta
+        if metatags
+          for metatag in metatags
+            if metatag.$.name is 'viewport'
+              chapter.width = widthRE.exec(metatag.$.content)[1]
+              chapter.height = heightRE.exec(metatag.$.content)[1]
         scripts = result.html.head[0].scripts
         chapter.js = []
         if scripts

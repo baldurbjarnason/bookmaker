@@ -5,6 +5,9 @@
 <title>{% block title %}{{ title }} – {{ meta.title }}{% endblock %}</title>
 {% block metadata %}
 <meta charset='utf-8'/> 
+{% if meta.fxl and width and height %}
+<meta name="viewport" content="width={{ width }}, height={{ height }}"/>
+{% endif %}
 {% endblock%}
 {%- block css -%}
 {%- if meta.specifiedCss -%}{%- for x in css -%}

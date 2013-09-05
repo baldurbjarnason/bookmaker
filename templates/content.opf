@@ -28,6 +28,27 @@
     <meta property="ibooks:specified-fonts">true</meta>
     <meta property="ibooks:respect-image-size-class">bookmaker-respect</meta>
     <meta property="ibooks:version">{{ meta.version }}</meta>
+    {% if meta.fxl %}
+    <meta property="rendition:layout">pre-paginated</meta>
+    <meta name="original-resolution" content="{{ chapters[0].width }}x{{ chapters[0].height }}"/>
+    {% if meta.fxlSpread %}
+    <meta property="rendition:spread">{{ meta.fxlSpread }}</meta>
+    {% endif %}
+    {% if meta.fxlOrientation %}
+    <meta property="rendition:orientation">{{ meta.fxlOrientation }}</meta>
+    {% endif %}
+    {% if meta.fxlBinding %}
+    <meta property="ibooks:binding">{{ meta.fxlBinding }}</meta>
+    {% endif %}
+    {% if meta.fxliPadOrientationLock %}
+    <meta property="ibooks:ipad-orientation-lock">{{ meta.fxliPadOrientationLock }}</meta>
+    {% endif %}
+    {% if meta.fxliPhoneOrientationLock %}
+    <meta property="ibooks:iphone-orientation-lock">{{ meta.fxliPadOrientationLock }}</meta>
+    {% endif %}
+    
+
+    {% endif %}
 </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
