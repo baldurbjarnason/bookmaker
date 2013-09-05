@@ -94,3 +94,11 @@ test/files/htmlandjson/cover.html
 test/files/htmlandjson/htmlexample.html
 test/files/htmlandjson/index.html
 test/files/htmlandjson/index.json
+test/files/epubloader/assets/SourceSansPro-Regular.otf
+test/files/epubloader/assets/SourceSansPro-Regular.ttf
+test/files/epubloader/assets/cover.jpg
+test/files/epubloader/assets/jquery.js
+test/files/epubloader/assets/jquery2.js
+test/files/epubloader/assets/noise.png
+test/files/epubloader/assets/style.css
+test/files/epubloader/assets/texture.jpg

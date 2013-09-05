@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" xml:lang="en" unique-identifier="uid" prefix="rendition: http://www.idpf.org/vocab/rendition/# ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:title id="title">{{ meta.title }}</dc:title>
+    <dc:creator>{{ meta.author }}</dc:creator>
+    {% if meta.author2 %}
+    <dc:creator>{{ meta.author2 }}</dc:creator>
+    {% endif %}
+    <dc:identifier id="uid" >{{ meta.bookId }}</dc:identifier>
+    <dc:language>{{ meta.lang }}</dc:language>    
+    <meta property="dcterms:modified">{{ meta.modified.isoDate }}</meta>
+    <dc:date>{{ meta.date.isoDate }}</dc:date>
+    {% if meta.rights %}
+    <dc:rights>{{ meta.rights }}</dc:rights>
+    {% else %}
+    <dc:rights>Copyright {{ meta.copyrightYear }} {{ meta.author }}{% if meta.author2 %} and {{ meta.author2 }}{% endif %}</dc:rights>
+    {% endif %}
+    {% if meta.description %}<dc:description>{{ meta.description }}</dc:description>{% endif %}
+    {% if meta.publisher %}<dc:publisher>{{ meta.publisher }}</dc:publisher>{% endif %}
+    {% if meta.subject1 %}<dc:subject>{{ meta.subject1 }}</dc:subject>{% endif %}
+    {% if meta.subject2 %}
+    <dc:subject>{{ meta.subject2 }}</dc:subject>
+    {% endif %}
+    {% if meta.subject3 %}
+    <dc:subject>{{ meta.subject3 }}</dc:subject>
+    {% endif %}
+    {% if meta.cover %}<meta name="cover" content="{{ idGen(meta.cover) }}" />{% endif %}
+    <meta property="ibooks:specified-fonts">true</meta>
+    <meta property="ibooks:respect-image-size-class">bookmaker-respect</meta>
+    <meta property="ibooks:version">{{ meta.version }}</meta>
+</metadata>
+  <manifest>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
+    {% for item in assets.css %}
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="text/css"/>
+    {% endfor %}
+    {% for item in assets.jpg %}
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) }}/>
+    {% endfor %}
+    {% for item in assets.png %}
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/png" {{ isCover(item) }}/>
+    {% endfor %}
+    {% for item in assets.gif %}
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) }}/>
+    {% endfor %}
+    {% for item in assets.svg %}
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) }}/>
+    {% endfor %}
+    {% for item in assets.ttf %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/x-font-ttf"/>
+    {% endfor %}
+    {% for item in assets.otf %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/x-font-otf"/>
+    {% endfor %}
+    {% for item in assets.woff %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/x-font-woff"/>
+    {% endfor %}
+    {% for item in assets.js %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/javascript"/>
+    {% endfor %}
+    {% for item in assets.mp3 %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="audio/mpeg"/>
+    {% endfor %}
+    {% for item in assets.m4a %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="audio/mp4"/>
+    {% endfor %}
+    {% for item in assets.m4v %}
+    <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="video/mp4"/>
+    {% endfor %}
+    {% for chapter in chapters %}
+        {% if chapter.filename %}<item id="{{ chapter.id }}" href="{{ chapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(chapter) }}/>{% endif %}
+        {% if chapter.subChapters %}
+            {% for subChapter in chapter.subChapters.chapters %}
+            {% if subChapter.filename %}
+                <item id="{{ subChapter.id }}" href="{{ subChapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(subChapter) }}/>
+            {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+	{% if meta.cover %}<item id="cover" href="cover.html" media-type="application/xhtml+xml" />{% endif %}
+	<item id="nav" href="index.html" media-type="application/xhtml+xml" properties="nav"/>
+  </manifest>
+  <spine toc="ncx">
+    {% if meta.cover %}<itemref idref="cover" linear="no"></itemref>{% endif %}
+    {% for chapter in chapters %}
+        {% if chapter.filename %}<itemref idref="{{ chapter.id }}" linear="yes"></itemref>{% endif %}
+        {% if chapter.subChapters %}
+            {% for subChapter in chapter.subChapters.chapters %}
+                {% if subChapter.filename %}<itemref idref="{{ subChapter.id }}" linear="yes"></itemref>{% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+  </spine>
+      <guide>
+        {% if meta.cover %}<reference type="cover" title="Cover" href="cover.html"></reference>{% endif %}
+        {% for landmark in meta.landmarks %}
+            <reference type="{{ landmark.opftype }}" title="{{ landmark.title }}" href="{{ landmark.href }}"></reference>
+        {% endfor %}
+    </guide>
+</package>

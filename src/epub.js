@@ -1,16 +1,9 @@
 'use strict';
-var addToZip, bookLinks, bookTemplates, callbacks, chapterLinks, chapterTemplates, extendAssets, extendBook, extendChapter, fs, glob, handlebars, helpers, loadTemplates, mangler, pagelinks, path, relative, renderEpub, sequence, temp, template, templates, tempname, toEpub, utilities, whenjs, zipStream, _,
-  __hasProp = {}.hasOwnProperty;
+var Chapter, addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, glob, isCover, logger, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
 
 zipStream = require('zipstream-contentment');
 
-handlebars = require('handlebars');
-
-helpers = require('./lib/hbs.js');
-
-whenjs = require('when');
-
-callbacks = require('when/callbacks');
+async = require('async');
 
 path = require('path');
 
@@ -18,297 +11,212 @@ glob = require('glob');
 
 fs = require('fs');
 
-mangler = require('./lib/mangler');
-
-sequence = require('when/sequence');
-
-_ = require('underscore');
-
-temp = require('./templates');
-
-templates = temp.templates;
-
-loadTemplates = temp.loadTemplates;
+mangler = require('./mangler');
 
 utilities = require('./utilities');
 
-chapterTemplates = {
-  manifest: '{{#if this.nomanifest }}\n{{else}}{{#if filename }}<item id="{{ id }}" href="{{ filename }}" media-type="application/xhtml+xml" properties="{{#if svg }}svg {{/if}}{{#if scripted }}scripted{{/if}}"/>\n{{/if}}{{#if subChapters.epubManifest}}\n{{ subChapters.epubManifest }}{{/if}}{{/if}}',
-  spine: '{{#if filename }}<itemref idref="{{ id }}" linear="yes"></itemref>\n{{/if}}{{#if subChapters.epubManifest}}\n{{ subChapters.epubSpine }}{{/if}}',
-  nav: '<li class="tocitem {{ id }}{{#if majornavitem}} majornavitem{{/if}}" id="toc-{{ id }}">{{#if filename }}<a href="{{ filename }}" rel="chapter">{{/if}}{{ title }}{{#if filename }}</a>\n{{/if}}\n{{ subChapters.navList }}\n</li>\n',
-  ncx: '{{#if filename }}<navPoint id="navPoint-{{ navPoint }}" playOrder="{{ chapterIndex }}">\n  <navLabel>\n      <text>{{ title }}</text>\n  </navLabel>\n  <content src="{{ filename }}"></content>\n{{ subChapters.epubNCX }}</navPoint>{{else}}\n {{ subChapters.epubNCX }}\n{{/if}}'
-};
-
-bookTemplates = {
-  manifest: '{{#each chapters }}{{{ this.epubManifest }}}{{/each}}',
-  spine: '{{#each chapters }}{{{ this.epubSpine }}}{{/each}}',
-  nav: '{{#each chapters }}{{{ this.navList }}}{{/each}}',
-  ncx: '{{#each chapters }}{{{ this.epubNCX }}}{{/each}}'
-};
-
-for (tempname in chapterTemplates) {
-  if (!__hasProp.call(chapterTemplates, tempname)) continue;
-  template = chapterTemplates[tempname];
-  chapterTemplates[tempname] = handlebars.compile(template);
-}
-
-for (tempname in bookTemplates) {
-  template = bookTemplates[tempname];
-  bookTemplates[tempname] = handlebars.compile(template);
-}
-
 relative = utilities.relative;
 
-pagelinks = utilities.pageLinks;
+pageLinks = utilities.pageLinks;
 
 addToZip = utilities.addToZip;
 
-bookLinks = function() {
-  return pagelinks(this, this);
-};
+addStoredToZip = utilities.addStoredToZip;
 
-chapterLinks = function() {
-  return pagelinks(this, this.book);
-};
+logger = require('./logger');
 
-extendChapter = function(Chapter) {
-  Object.defineProperty(Chapter.prototype, 'epubManifest', {
-    get: function() {
-      var manifest;
+nunjucks = require('nunjucks');
 
-      manifest = chapterTemplates.manifest(this.context());
-      return manifest;
-    }
-  });
-  Object.defineProperty(Chapter.prototype, 'links', {
-    get: chapterLinks
-  });
-  Object.defineProperty(Chapter.prototype, 'epubSpine', {
-    get: function() {
-      return chapterTemplates.spine(this.context());
-    }
-  });
-  Object.defineProperty(Chapter.prototype, 'navList', {
-    get: function() {
-      return chapterTemplates.nav(this.context());
-    }
-  });
-  Object.defineProperty(Chapter.prototype, 'epubNCX', {
-    get: function() {
-      return chapterTemplates.ncx(this.context());
-    }
-  });
-  Chapter.prototype.addToZip = function(zip) {
-    var context;
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
 
-    if (!this.assets) {
-      context = this.context();
-    } else {
-      context = this;
-    }
-    return addToZip(zip, this.filename, templates.chapters.bind(templates, context));
-  };
-  return Chapter;
-};
+env.getTemplate('cover.xhtml').render();
+
+Chapter = require('./chapter');
 
 extendBook = function(Book) {
-  if (!Book.prototype.init) {
-    Book.prototype.init = [];
-  }
-  Book.prototype.init.push(function(book) {
-    return handlebars.registerHelper('relative', book.relative.bind(book));
-  });
-  Book.prototype.init.push(function(book) {
-    return handlebars.registerHelper('isCover', book.isCover.bind(book));
-  });
-  Book.prototype.relative = relative;
-  Book.prototype.isCover = function(path) {
-    if (this.meta.cover === path) {
-      return new handlebars.SafeString(' properties="cover-image"');
-    } else {
-      return "";
-    }
-  };
-  Object.defineProperty(Book.prototype, 'epubManifest', {
-    get: function() {
-      return bookTemplates.manifest(this);
-    },
-    enumerable: true
-  });
-  Object.defineProperty(Book.prototype, 'epubSpine', {
-    get: function() {
-      return bookTemplates.spine(this);
-    },
-    enumerable: true
-  });
-  Object.defineProperty(Book.prototype, 'navList', {
-    get: function() {
-      return bookTemplates.nav(this);
-    },
-    enumerable: true
-  });
-  Object.defineProperty(Book.prototype, 'epubNCX', {
-    get: function() {
-      return bookTemplates.ncx(this);
-    },
-    enumerable: true
-  });
-  Object.defineProperty(Book.prototype, 'chapterIndex', {
-    get: function() {
-      this._chapterIndex++;
-      return this._chapterIndex;
-    },
-    enumerable: true
-  });
-  Object.defineProperty(Book.prototype, 'navPoint', {
-    get: function() {
-      this._navPoint++;
-      return this._navPoint;
-    },
-    enumerable: true
-  });
-  Object.defineProperty(Book.prototype, 'links', {
-    get: bookLinks
-  });
-  Book.prototype.addChaptersToZip = function(zip) {
-    var chapter, context, tasks, _i, _len, _ref;
-
-    tasks = [];
-    _ref = this.chapters;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      chapter = _ref[_i];
-      context = chapter.context(this);
-      tasks.push(context.addToZip.bind(context, zip));
-    }
-    return sequence(tasks);
-  };
-  Object.defineProperty(Book.prototype, 'optToc', {
-    get: function() {
-      var doc, _i, _len, _ref, _results;
-
-      _ref = this.chapters;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        doc = _ref[_i];
-        _results.push((function(doc) {
-          if (doc.toc != null) {
-            return "<reference type='toc' title='Contents' href='" + doc.filename + "'></reference>";
-          }
-        })(doc));
-      }
-      return _results;
-    },
-    enumerable: true
-  });
   Book.prototype.toEpub = toEpub;
-  Object.defineProperty(Book.prototype, 'globalCounter', {
-    get: function() {
-      var prefix, prefre;
-
-      prefre = new RegExp("\\/", "g");
-      this._globalCounter++;
-      prefix = this.assets.assetsPath.replace(prefre, "");
-      return prefix + this._globalCounter;
-    },
-    enumerable: true
-  });
   return Book;
 };
 
-toEpub = function(out, options) {
+isCover = function(path) {
+  if (this.meta.cover === path) {
+    return ' properties="cover-image"';
+  } else {
+    return "";
+  }
+};
+
+chapterProperties = function(chapter) {
+  var prop, properties;
+
+  properties = [];
+  if (chapter.svg) {
+    properties.push('svg');
+  }
+  if (chapter.js || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
+    properties.push('scripted');
+  }
+  prop = properties.join(' ');
+  if (properties.toString() !== "") {
+    return "properties='" + prop + "'";
+  } else {
+    return "";
+  }
+};
+
+processLandmarks = function(landmarks) {
+  var landmark;
+
+  if (!landmarks) {
+    return;
+  }
+  landmarks = (function() {
+    var _i, _len, _results;
+
+    _results = [];
+    for (_i = 0, _len = landmarks.length; _i < _len; _i++) {
+      landmark = landmarks[_i];
+      _results.push((function(landmark) {
+        if (landmark.type === 'bodymatter') {
+          landmark.opftype = "text";
+        } else {
+          landmark.opftype = landmark.type;
+        }
+        return landmark;
+      })(landmark));
+    }
+    return _results;
+  })();
+  logger.log.info('EPUB – Landmarks prepared');
+  return landmarks;
+};
+
+generateChapters = function(book) {
+  var copyright, titlepage, toc;
+
+  if (book.generate.htmlToc) {
+    toc = {
+      title: 'Table of Contents',
+      type: 'html',
+      filename: 'htmltoc.html',
+      body: env.getTemplate('htmltoc.xhtml').render(book)
+    };
+    book.prependChapter(new Chapter(toc));
+    book.meta.landmarks.push({
+      type: 'toc',
+      title: 'Table of Contents',
+      href: 'htmltoc.html'
+    });
+  }
+  copyright = {
+    title: 'Copyright',
+    type: 'md',
+    filename: 'copyright.html',
+    body: "Copyright " + book.meta.copyrightYear + " " + book.meta.author + ", all rights reserved."
+  };
+  if (book.generate.copyrightFront) {
+    book.prependChapter(new Chapter(copyright));
+  }
+  if (book.generate.copyrightBack) {
+    book.addChapter(new Chapter(copyright));
+  }
+  if (book.generate.copyrightFront || book.generate.copyrightBack) {
+    book.meta.landmarks.push({
+      type: 'copyright-page',
+      title: 'Copyright',
+      href: 'copyright.html'
+    });
+  }
+  if (book.generate.title) {
+    titlepage = {
+      title: book.meta.title,
+      type: 'md',
+      filename: 'titlepage.html',
+      body: "# " + book.meta.title + "\n\n## by " + book.meta.author
+    };
+    book.prependChapter(new Chapter(titlepage));
+    return book.meta.landmarks.push({
+      type: 'titlepage',
+      title: 'Title Page',
+      href: 'titlepage.html'
+    });
+  }
+};
+
+toEpub = function(out, options, callback) {
   var book, final, zip;
 
+  logger.log.info('Rendering EPUB');
   book = Object.create(this);
   zip = zipStream.createZip({
     level: 1
   });
   zip.pipe(out);
-  final = function() {
-    var deferred, promise;
-
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    deferred.notify('Writing to file...');
-    zip.finalize(deferred.resolve);
-    return promise;
+  final = function(err, result) {
+    if (err) {
+      callback(err);
+    }
+    logger.log.info('Finishing...');
+    return zip.finalize(function(written) {
+      return callback(null, written);
+    });
   };
-  return renderEpub(book, out, options, zip).then(final);
+  return renderEpub(book, out, options, zip, final);
 };
 
-renderEpub = function(book, out, options, zip) {
-  var chapterIndex, navPoint, tasks;
+renderEpub = function(book, out, options, zip, callback) {
+  var tasks;
 
   book._state = {};
   book._state.htmltype = "application/xhtml+xml";
-  book._navPoint = 0;
-  book._chapterIndex = 0;
-  navPoint = function() {
-    book._navPoint++;
-    return book._navPoint;
-  };
-  chapterIndex = function() {
-    book._chapterIndex++;
-    return book._chapterIndex;
-  };
-  handlebars.registerHelper('navPoint', navPoint);
-  handlebars.registerHelper('chapterIndex', chapterIndex);
-  if (options != null ? options.templates : void 0) {
-    loadTemplates(options.templates + '**/*.hbs');
+  book.counter = utilities.countergen();
+  book.meta.landmarks = processLandmarks(book.meta.landmarks);
+  book.isCover = isCover.bind(book);
+  book.links = pageLinks(book, book);
+  book.chapterProperties = chapterProperties.bind(book);
+  book.idGen = utilities.idGen;
+  if (options && options.exclude) {
+    book.exclude = options.exclude;
   }
+  generateChapters(book);
   tasks = [];
-  tasks.push(addToZip.bind(null, zip, 'mimetype', "application/epub+zip", true));
+  tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"));
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>'));
-  tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>', 'META-INF/container.xml'));
+  tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>'));
   if (book.meta.cover) {
-    tasks.push(addToZip.bind(null, zip, 'cover.html', templates.cover.bind(templates, book)));
+    tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)));
   }
-  tasks.push(addToZip.bind(null, zip, 'content.opf', templates.content.bind(templates, book)));
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates.toc.bind(templates, book)));
-  tasks.push(addToZip.bind(null, zip, 'index.html', templates.nav.bind(templates, book)));
-  tasks.push(function() {
-    return book.addChaptersToZip(zip);
-  });
-  tasks.push(function() {
-    return book.assets.addToZip(zip);
-  });
-  if (book.sharedAssets) {
-    tasks.push(function() {
-      return book.sharedAssets.addToZip(zip);
-    });
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)));
+  tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)));
+  tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')));
+  if (options != null ? options.exclude : void 0) {
+    tasks.push(book.assets.addToZip.bind(book.assets, zip, options));
+  } else {
+    tasks.push(book.assets.addToZip.bind(book.assets, zip));
   }
-  if (options != null ? options.assets : void 0) {
-    tasks.push(function() {
-      return options.assets.addToZip(zip);
-    });
-  }
+  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)));
   if ((options != null ? options.obfuscateFonts : void 0) || book.obfuscateFonts) {
-    tasks.push(function() {
-      return book.assets.mangleFonts(zip, book.id);
-    });
+    tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId));
   }
-  return sequence(tasks);
+  return async.series(tasks, callback);
 };
 
 extendAssets = function(Assets) {
   var mangleTask;
 
-  mangleTask = function(item, assets, zip, id) {
-    var deferred, promise;
-
-    deferred = whenjs.defer();
-    promise = deferred.promise;
-    assets.get(item).then(function(data) {
+  mangleTask = function(item, assets, zip, id, callback) {
+    return assets.get(item, function(err, data) {
       var file;
 
-      deferred.notify("Writing mangled " + item + " to zip");
       file = mangler.mangle(data, id);
       return zip.addFile(file, {
         name: item
-      }, deferred.resolve);
+      }, callback);
     });
-    return promise;
   };
-  Assets.prototype.addMangledFontsToZip = function(zip, id) {
+  Assets.prototype.addMangledFontsToZip = function(zip, id, callback) {
     var item, tasks, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
 
     tasks = [];
@@ -327,33 +235,28 @@ extendAssets = function(Assets) {
       item = _ref2[_k];
       tasks.push(mangleTask.bind(null, item, this, zip, id));
     }
-    return sequence(tasks);
+    return async.series(tasks, callback);
   };
-  Assets.prototype.mangleFonts = function(zip, id) {
+  Assets.prototype.mangleFonts = function(zip, id, callback) {
     var fonts;
 
     fonts = this.ttf.concat(this.otf, this.woff);
-    return this.addMangledFontsToZip(zip, id).then(function() {
-      var deferred, promise;
-
-      deferred = whenjs.defer();
-      promise = deferred.promise;
-      zip.addFile(templates.encryption(fonts), {
+    return this.addMangledFontsToZip(zip, id, function() {
+      return zip.addFile(env.getTemplate('encryption.xml').render({
+        fonts: fonts
+      }), {
         name: 'META-INF/encryption.xml'
-      }, deferred.resolve);
-      return promise;
+      }, callback);
     });
   };
   return Assets;
 };
 
 module.exports = {
-  extend: function(Chapter, Book, Assets) {
-    extendChapter(Chapter);
+  extend: function(Book, Assets) {
     extendBook(Book);
     return extendAssets(Assets);
   },
-  extendChapter: extendChapter,
   extendBook: extendBook,
   extendAssets: extendAssets
 };

@@ -48,21 +48,21 @@ module.exports = function(grunt) {
       },
       tasks: {
         expand: true,
-        cwd: 'bookmaker/',
+        cwd: 'scripts/',
         src: ['*.coffee'],
         dest: 'src/',
         ext: '.js'    
       },
       lib: {
         expand: true,
-        cwd: 'bookmaker/lib/',
+        cwd: 'scripts/lib/',
         src: ['*.coffee'],
         dest: 'src/lib/',
         ext: '.js'    
       },
       test: {
         expand: true,
-        cwd: 'bookmaker/test/',
+        cwd: 'scripts/test/',
         src: ['*.coffee'],
         dest: 'test/',
         ext: '.js'    
@@ -77,23 +77,12 @@ module.exports = function(grunt) {
     },
     watch: {
       coffee: {
-        files: ['bookmaker/**/*.coffee'],
+        files: ['scripts/**/*.coffee'],
         tasks: ['coffeelint', 'coffee']
       },
       js: {
         files: ['helpers/**/*.js','Gruntfile.js'],
         tasks: ['jshint']
-      }
-    },
-    handlebars: {
-      options: {
-        node: true,
-        processName: function (filename) { return path.basename(filename, '.hbs'); }
-      },
-      main: {
-        files: {
-          "lib/templates.js": "templates/*.hbs"
-        }
       }
     }
   });
@@ -101,18 +90,9 @@ module.exports = function(grunt) {
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-nodeunit');
   grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-coffeelint');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-contrib-csslint');
-  grunt.loadNpmTasks('grunt-contrib-less');
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-handlebars');
-  // Whenever the "test" task is run, first clean the "tmp" dir, then run this
-  // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'bookmaker', 'nodeunit']);
 
   // By default, lint and run all tests.
   grunt.registerTask('default', ['coffeelint', 'coffee']);

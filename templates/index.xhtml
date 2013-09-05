@@ -1,0 +1,79 @@
+{% extends 'chapter.xhtml' %}
+{% block title %}Table of Contents – {{ meta.title }}{% endblock %}
+{% block js %}
+{% endblock %}
+	{% block metadata -%}{{ super() }}
+	<meta name="dcterms.title" content="{{ meta.title }}" />
+	<meta name="dcterms.created" content="{{ meta.date.isoDate }}" />
+	<meta name="dcterms.modified" content="{{ meta.modified.isoDate }}" />
+	<meta name="dcterms.creator" content="{{ meta.author }}" />
+	<meta name="author" content="{{ meta.author }}" />
+	{% if meta.author2 -%}
+	<meta name="dcterms.creator" content="{{ meta.author2 }}" />
+	{%- endif %}
+	{% if meta.description -%}
+	<meta name="dcterms.description" content="{{ meta.description }}" />
+	<meta name="description" content="{{ meta.description }}" />
+	{%- endif %}
+	{% if meta.bookId -%}
+	<meta name="dcterms.identifier" content="{{ meta.bookId }}" />
+	{%- endif %}
+	{% if meta.publisher -%}
+	<meta name="dcterms.publisher" content="{{ meta.publisher }}" />
+	<meta name="publisher" content="{{ meta.publisher }}" />
+	{%- endif %}
+	{% if meta.rights -%}
+	<meta name="dcterms.rights" content="{{ meta.rights }}" />
+	{%- endif %}
+	{%- if meta.subject1 -%}
+	<meta name="dcterms.subject" content="{{ meta.subject1 }}" />
+	{%- endif %}
+	{% if meta.subject2 -%}
+	<meta name="dcterms.subject" content="{{ meta.subject2 }}" />
+	{%- endif %}
+	{% if meta.subject3 -%}
+	<meta name="dcterms.subject" content="{{ meta.subject3 }}" />
+	{%- endif %}
+	{%- endblock %}
+{% block attributes %}class="nav" id="nav"{% endblock %}
+{% block content %}
+<h1>{{ meta.title }} – Table of Contents</h1>
+<nav id="toc" class="toc h-toc" epub:type="toc">
+	{% if outline %}
+	{{ outline }}
+	{% else %}
+<ol>
+	{% for item in chapters %}
+	<li class="tocitem {{ item.id }}{% if item.majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}
+	{% if item.subChapters %}
+		{% for item in item.subChapters.chapters %}
+		<li class="tocitem {{ item.id }}{% if majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}</li>
+		{% endfor %}
+		{% endif %}
+	</li>
+	{% endfor %}
+</ol>
+	{% endif %}
+</nav>
+
+{% if pageList %}
+<nav id="pagelist" class="pagelist" epub:type="page-list">
+	{{ pageList }}
+</nav>
+{% endif %}
+
+<nav id="landmarks" class="landmarks h-landmarks" epub:type="landmarks">
+  <ol>
+        {% if meta.cover %}<li><a href="cover.html" epub:type="cover">Cover</a></li>{% endif %}
+  	{% for landmark in meta.landmarks %}
+    	<li><a href="{{ landmark.href }}" epub:type="{{ landmark.type }}">{{ landmark.title }}</a></li>
+    {% endfor %}
+</ol> </nav>
+
+{% if meta.copyrightStatement %}
+<p class="copyright">{{ meta.copyrightStatement }}</p>
+{% else %}
+<p class="copyright">Copyright &#xa9; {{ meta.copyrightYear }} {{ meta.author }} {% if meta.author2 %}and {{ meta.author2 }}{% endif %}</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'index.xhtml' %}
+{% block top %}<!DOCTYPE HTML>
+<html lang="{{ meta.lang }}">
+{% endblock %}
+{% block navhead %}<nav id="toc" class="toc h-toc">{% endblock %}
+{% block landmarkhead %}<nav id="landmarks" class="landmarks h-landmarks">{% endblock %}
+{% block attributes %}class="nav html" id="nav"{% endblock %}
+{% block content %}
+<div class="chapter" id="chapter">
+<h1>{{ meta.title }}</h1>
+<h2>by {{ meta.author }}</h2>
+<h3>Table of Contents</h3>
+<nav id="toc" class="toc h-toc">
+<ol>
+	{% for item in chapters %}
+	<li class="tocitem {{ item.id }}{% if item.majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}
+	{% if item.subChapters %}
+		{% for item in item.subChapters.chapters %}
+		<li class="tocitem {{ item.id }}{% if majornavitem %} majornavitem{% endif %}" id="toc-{{ item.id }}">{% if item.filename %}<a href="{{ item.filename }}" rel="chapter">{% endif %}{{ item.title }}{% if item.filename %}</a>{% endif %}</li>
+		{% endfor %}
+		{% endif %}
+	</li>
+	{% endfor %}
+
+</ol>
+</nav>
+
+<h3>Landmarks</h3>
+<nav id="landmarks" class="landmarks h-landmarks">
+  <ol>
+        {% if meta.cover %}<li><a href="cover.html" rel="cover">Cover</a></li>{% endif %}
+  	{% for landmark in meta.landmarks %}
+    	<li><a href="{{ landmark.href }}" rel="{{ landmark.type }}">{{ landmark.title }}</a></li>
+    {% endfor %}
+</ol> </nav>
+
+{% if meta.copyrightStatement %}
+<p class="copyright">{{ meta.copyrightStatement }}</p>
+{% else %}
+<p class="copyright">Copyright &#xa9; {{ meta.copyrightYear }} {{ meta.author }} {% if meta.author2 %}and {{ meta.author2 }}{% endif %}</p>
+{% endif %}
+</div>
+{% endblock %}

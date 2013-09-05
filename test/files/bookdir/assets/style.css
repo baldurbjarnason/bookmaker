@@ -1,0 +1,201 @@
+@font-face {
+  font-family: 'GaramondPremrProCapt';
+  src: url('SourceSansPro-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'GaramondPremrProDisp';
+  src: url('SourceSansPro-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+p {
+  text-indent: 0;
+}
+p + p {
+  text-indent: 1.35em;
+}
+@media amzn-mobi {
+  .firstparagraph {
+    text-indent: 0;
+  }
+  p {
+    margin: 0;
+    text-indent: 1.35em;
+  }
+}
+.toc ol {
+  list-style: none;
+  padding: 0;
+}
+
+body {
+  font-size: 100%;
+  line-height: 1.3;
+  color: #000000;
+  font-family: "GaramondPremrProCapt", "Garamond Premier Pro Caption", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+}
+p {
+  margin: 0;
+  padding: 0;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  -epub-hyphens: auto;
+  hyphens: auto;
+  text-align: justify;
+  font-size: 1.1em;
+}
+.small {
+  font-size: 90%;
+  line-height: 1.3;
+}
+.big {
+  font-size: 1.1em;
+  line-height: 1.3;
+}
+.medium {
+  font-size: 1.4em;
+  line-height: 1.1;
+}
+.bigger {
+  font-size: 2.4em;
+  line-height: 1;
+}
+.biggerer {
+  font-size: 2.5em;
+  line-height: 1;
+}
+.biggest {
+  font-size: 4em;
+  line-height: 1;
+}
+h5,
+h6 {
+  font-family: "GaramondPremrProDisp", "Garamond Premier Pro Display", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: left;
+  -webkit-hyphens: manual;
+  -moz-hyphens: manual;
+  -epub-hyphens: manual;
+  hyphens: manual;
+}
+h1 {
+  font-size: 2.4em;
+  line-height: 1;
+  font-family: "GaramondPremrProDisp", "Garamond Premier Pro Display", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: left;
+  -webkit-hyphens: manual;
+  -moz-hyphens: manual;
+  -epub-hyphens: manual;
+  hyphens: manual;
+  margin: 110px 0 11px 0;
+}
+h2 {
+  margin-top: 11px;
+  font-family: "GaramondPremrProDisp", "Garamond Premier Pro Display", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: left;
+  -webkit-hyphens: manual;
+  -moz-hyphens: manual;
+  -epub-hyphens: manual;
+  hyphens: manual;
+  font-style: italic;
+  font-size: 1.4em;
+  line-height: 1.1;
+}
+h3 {
+  margin-top: 11px;
+  font-family: "GaramondPremrProDisp", "Garamond Premier Pro Display", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: left;
+  -webkit-hyphens: manual;
+  -moz-hyphens: manual;
+  -epub-hyphens: manual;
+  hyphens: manual;
+  font-size: 1.4em;
+  line-height: 1.1;
+}
+h4 {
+  margin-top: 11px;
+  font-family: "GaramondPremrProDisp", "Garamond Premier Pro Display", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: left;
+  -webkit-hyphens: manual;
+  -moz-hyphens: manual;
+  -epub-hyphens: manual;
+  hyphens: manual;
+  font-style: italic;
+}
+h3 + h4 {
+  margin-top: 0;
+}
+dl,
+menu,
+ol,
+ul {
+  margin: 11px 0;
+  padding: 0 0 0 22px;
+}
+hr {
+  width: 50%;
+  border-top: 1px solid black;
+  margin: 20px auto 22px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+blockquote {
+  padding: 0 44px;
+  border-left: 1px solid black;
+  margin: 11px 0;
+}
+img {
+  max-width: 100%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.tocitem {
+  font-family: "GaramondPremrProDisp", "Garamond Premier Pro Display", "Garamond Premier Pro", "Iowan Old Style", Garamond, serif;
+  list-style: none;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  vertical-align: top;
+  padding: 0;
+  text-indent: 0;
+  margin: 11px 0;
+  font-size: 1.4em;
+  line-height: 1.1;
+}
+.tocitem a {
+  text-decoration: none;
+  color: #CC2200;
+}
+a {
+  color: #CC2200;
+}
+.copyright {
+  text-indent: 0;
+  margin: 22px 0;
+  font-style: italic;
+}
+
+.footnote {
+  margin-top: 1em;
+  padding-top: 1em;
+  border-top: 1px solid;
+  font-style: italic;
+}
+
+.fntext {
+  font-style: italic;
+}

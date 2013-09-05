@@ -1,0 +1,5 @@
+htmlexample.html
+doc1.md
+doc2.xhtml
+doc3.hbs
+doc4.md

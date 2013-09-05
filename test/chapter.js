@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, chai, index, should, testbook, testchapters;
+var Assets, Book, Chapter, chai, index, should, testbook, testchapters;
 
 chai = require('chai');
 
@@ -12,8 +12,6 @@ Chapter = index.Chapter;
 Book = index.Book;
 
 Assets = index.Assets;
-
-SubOutline = index.SubOutline;
 
 testbook = {};
 
@@ -57,9 +55,7 @@ describe('Chapter', function() {
 
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../'
+        author: 'L. Frank Baum'
       }, new Assets('test/files', 'assets/'));
       testbook.addChapter(new Chapter(testchapters.html));
       testbook.chapters.should.be.instanceOf(Array);
@@ -99,9 +95,7 @@ describe('Chapter', function() {
     return it('should correctly render xhtml body content', function() {
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../'
+        author: 'L. Frank Baum'
       });
       testbook.addChapter(new Chapter(testchapters.hbs));
       testbook.chapters[0].should.be.instanceOf(Chapter);
@@ -120,33 +114,17 @@ describe('Chapter', function() {
       return testchapter.html.should.equal('<h1>header</h1><p>Test<br/></p>');
     });
   });
-  describe('#toJSON', function() {
+  return describe('#toJSON', function() {
     return it('should correctly give you a safe json file', function() {
       var jsontest;
 
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
-        author: 'L. Frank Baum',
-        sharedAssetsPath: 'sharedassets/',
-        sharedAssetsRoot: '../'
+        author: 'L. Frank Baum'
       });
       testbook.addChapter(new Chapter(testchapters.hbs));
       jsontest = testbook.chapters[0].toJSON();
       return jsontest.should.equal("{\n  \"type\": \"html\",\n  \"title\": \"Template\",\n  \"body\": \"<h1 id=\\\"h1-1\\\">Template</h1><p class=\\\"noindent\\\" id=\\\"p-1\\\">Test<br />‘—’“–”&#160;</p>\",\n  \"id\": \"doc1\",\n  \"_links\": {\n    \"toc\": {\n      \"href\": \"../index.json\",\n      \"name\": \"TOC-JSON\",\n      \"type\": \"application/hal+json\"\n    },\n    \"self\": {\n      \"href\": \"doc1.json\",\n      \"type\": \"application/hal+json\"\n    }\n  }\n}");
-    });
-  });
-  return describe('#htmlPromise (html)', function() {
-    return it('should correctly render xhtml body content', function(done) {
-      var testchapter;
-
-      testchapter = new Chapter(testchapters.html);
-      testchapter.title.should.equal('HTML');
-      testchapter.arbitraryMeta.should.equal('is arbitrary');
-      testchapter.should.be.instanceOf(Chapter);
-      return testchapter.htmlPromise().then(function(html) {
-        html.should.equal('<h1 id="h1-1">header</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p>');
-        return done();
-      });
     });
   });
 });

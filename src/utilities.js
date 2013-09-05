@@ -1,16 +1,14 @@
 'use strict';
-var addToZip, bookLinks, chapterLinks, ensuredir, fs, mixin, mkdirp, pagelinks, path, relative, whenjs, write, _,
+var addStoredToZip, addToZip, bookLinks, chapterLinks, countergen, ensuredir, fs, idGen, idre, jsonClone, logger, mixin, mkdirp, pageLinks, path, relative, write,
   __slice = [].slice;
 
 path = require('path');
 
 fs = require('fs');
 
-whenjs = require('when');
-
 mkdirp = require('mkdirp');
 
-_ = require('underscore');
+logger = require('./logger');
 
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;
@@ -21,7 +19,7 @@ relative = function(current, target) {
   return relativetarget;
 };
 
-pagelinks = function(page, book) {
+pageLinks = function(page, book) {
   var key, link, links, type, value, _ref, _ref1;
 
   links = (function() {
@@ -33,12 +31,16 @@ pagelinks = function(page, book) {
       value = _ref[key];
       link = {};
       link.rel = key;
-      _results.push(_.extend(link, value));
+      link.href = value.href;
+      _results.push(link.type = value.type);
     }
     return _results;
   })();
   if (book.meta.cover) {
     if (path.extname(book.meta.cover) === '.jpg') {
+      type = 'image/jpeg';
+    }
+    if (path.extname(book.meta.cover) === '.jpeg') {
       type = 'image/jpeg';
     }
     if (path.extname(book.meta.cover) === '.png') {
@@ -72,41 +74,31 @@ pagelinks = function(page, book) {
 };
 
 bookLinks = function() {
-  return pagelinks(this, this);
+  return pageLinks(this, this);
 };
 
 chapterLinks = function() {
-  return pagelinks(this, this.book);
+  return pageLinks(this, this.book);
 };
 
-ensuredir = function(directory) {
-  var deferred, promise;
-
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  mkdirp(directory, function(err) {
-    if (err) {
-      return deferred.reject(err);
-    } else {
-      return deferred.resolve();
-    }
-  });
-  return promise;
+ensuredir = function(directory, callback) {
+  return mkdirp(directory, callback);
 };
 
-write = function(filename, data) {
-  var deferred, promise;
+write = function(filename, data, callback) {
+  var container;
 
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  fs.writeFile(filename, data, function(err) {
+  container = path.dirname(filename);
+  mkdirp.sync(container);
+  return fs.writeFile(filename, data, function(err) {
     if (err) {
-      return deferred.reject(err);
+      logger.log.error(err);
+      return callback(err);
     } else {
-      return deferred.resolve();
+      logger.log.info("" + filename + " written");
+      return callback();
     }
   });
-  return promise;
 };
 
 mixin = function() {
@@ -141,32 +133,81 @@ mixin = function() {
   return ReceivingClass;
 };
 
-addToZip = function(zip, fn, file, store) {
-  var deferred, options, promise;
+addToZip = function(zip, fn, file, callback, store) {
+  var options, resolver;
 
-  deferred = whenjs.defer();
-  promise = deferred.promise;
   options = {
     name: fn
+  };
+  resolver = function() {
+    logger.log.info("" + fn + " written to zip");
+    return callback();
   };
   if (store) {
     options.store = store;
   }
   if (typeof file === 'function') {
-    zip.addFile(file(), options, deferred.resolve);
+    return zip.addFile(file(), options, resolver);
   } else {
-    zip.addFile(file, options, deferred.resolve);
+    return zip.addFile(file, options, resolver);
   }
-  return promise;
+};
+
+addStoredToZip = function(zip, fn, file, callback) {
+  var options, resolver;
+
+  options = {
+    name: fn
+  };
+  resolver = function() {
+    logger.log.info("" + fn + " written to zip");
+    return callback();
+  };
+  options.store = true;
+  if (typeof file === 'function') {
+    return zip.addFile(file(), options, resolver);
+  } else {
+    return zip.addFile(file, options, resolver);
+  }
+};
+
+countergen = function() {
+  var _counter;
+
+  _counter = {};
+  return function(namespace) {
+    if (!_counter[namespace]) {
+      _counter[namespace] = 0;
+    }
+    _counter[namespace]++;
+    return _counter[namespace];
+  };
+};
+
+idre = new RegExp("[^A-Za-z0-9_\\.\\-\\:]", "g");
+
+idGen = function(fn) {
+  var safe;
+
+  safe = fn.replace(idre, "");
+  return "id" + safe;
+};
+
+jsonClone = function(obj) {
+  return JSON.parse(JSON.stringify(obj));
 };
 
 module.exports = {
   relative: relative,
-  pageLinks: pagelinks,
+  pageLinks: pageLinks,
   bookLinks: bookLinks,
   chapterLinks: chapterLinks,
   ensuredir: ensuredir,
   write: write,
   mixin: mixin,
-  addToZip: addToZip
+  addToZip: addToZip,
+  addStoredToZip: addStoredToZip,
+  countergen: countergen,
+  idGen: idGen,
+  jsonClone: jsonClone
 };

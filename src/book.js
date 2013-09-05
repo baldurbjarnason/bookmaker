@@ -1,9 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, dateProcess, handlebars, path,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-handlebars = require('handlebars');
+var $, Assets, Book, Chapter, async, dateProcess, path, utilities;
 
 Assets = require('./assets');
 
@@ -11,14 +7,20 @@ Chapter = require('./chapter');
 
 path = require('path');
 
+utilities = require('./utilities');
+
+async = require('async');
+
+$ = require('jquery');
+
 Book = (function() {
-  function Book(meta, assets, sharedAssets) {
+  function Book(meta, assets) {
     var fn, _i, _len, _ref;
 
     this.assets = assets;
-    this.sharedAssets = sharedAssets;
     this.chapters = [];
     this.meta = meta;
+    this.generate = {};
     this.meta.date = meta.date ? dateProcess(meta.date) : dateProcess();
     this.meta.modified = meta.modified ? dateProcess(meta.modified) : dateProcess();
     this.meta.copyrightYear = meta.copyrightYear || meta.date.dateYear;
@@ -27,9 +29,6 @@ Book = (function() {
     if (!meta.bookId) {
       this.meta.bookId = 'id' + require('crypto').randomBytes(16).toString('hex');
     }
-    this._chapterIndex = 0;
-    this._navPoint = 0;
-    this._globalCounter = 0;
     if (this.init) {
       _ref = this.init;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -45,18 +44,208 @@ Book = (function() {
     return "doc" + this.docIdCount;
   };
 
-  Book.prototype.addChapter = function(chapter, bookoverride) {
-    chapter.book = this || bookoverride;
+  Book.prototype.chapterPrepare = function(chapter) {
+    chapter.book = this;
     if (!chapter.id) {
       chapter.id = this.docId();
     }
     if (!chapter.filename) {
       chapter.filename = 'chapters/' + chapter.id + '.html';
     }
-    if (chapter.subChapters) {
-      chapter.subChapters = new this.constructor.SubOutline(chapter.subChapters, this);
+    return chapter;
+  };
+
+  Book.prototype.addChapter = function(chapter, options, callback) {
+    var chap, index, landmarkHrefs, type, _i, _len, _ref;
+
+    this.chapterPrepare(chapter);
+    if (!callback && typeof options === 'function') {
+      callback = options;
     }
-    return this.chapters.push(chapter);
+    if (options != null ? options.ignoreLandmarks : void 0) {
+      landmarkHrefs = (function() {
+        var _i, _len, _ref, _results;
+
+        _ref = options.ignoreLandmarks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          type = _ref[_i];
+          _results.push(this.findLandmarkHref(type));
+        }
+        return _results;
+      }).call(this);
+      _ref = this.chapters;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        chap = _ref[_i];
+        index = this.chapters.indexOf(chap);
+        if (landmarkHrefs.indexOf(chap.filename === -1)) {
+          this.chapters.splice(index + 1, 0, chapter);
+          this.appendOutline(chap.filename, chapter);
+          if (callback && typeof callback === 'function') {
+            callback(null, this);
+          } else {
+            return this;
+          }
+        }
+      }
+    } else {
+      this.chapters.push(chapter);
+      this.appendOutline(this.chapters[this.chapters.length - 1].filename, chapter);
+      if (callback && typeof callback === 'function') {
+        return callback(null, this);
+      } else {
+        return this;
+      }
+    }
+  };
+
+  Book.prototype.prependChapter = function(chapter, options, callback) {
+    var chap, index, landmarkHrefs, type, _i, _ref;
+
+    this.chapterPrepare(chapter);
+    if (!callback && typeof options === 'function') {
+      callback = options;
+    }
+    if (options != null ? options.ignoreLandmarks : void 0) {
+      landmarkHrefs = (function() {
+        var _i, _len, _ref, _results;
+
+        _ref = options.ignoreLandmarks;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          type = _ref[_i];
+          _results.push(this.findLandmarkHref(type));
+        }
+        return _results;
+      }).call(this);
+      for (index = _i = _ref = this.chapters.length; _ref <= 1 ? _i <= 1 : _i >= 1; index = _ref <= 1 ? ++_i : --_i) {
+        chap = this.chapters[index];
+        if (landmarkHrefs.indexOf(chap.filename === -1)) {
+          this.chapters.splice(index, 0, chapter);
+          this.prependOutline(chap.filename, chapter);
+          if (callback && typeof callback === 'function') {
+            callback(null, this);
+          } else {
+            return this;
+          }
+        }
+      }
+    } else {
+      this.chapters.unshift(chapter);
+      this.prependOutline(this.chapters[0].filename, chapter);
+      if (callback && typeof callback === 'function') {
+        return callback(null, this);
+      } else {
+        return this;
+      }
+    }
+  };
+
+  Book.prototype.insertBeforeHref = function(href, newChapter) {
+    var chapter, index, _i, _len, _ref;
+
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      if (chapter.filename === href) {
+        index = this.chapters.indexOf(chapter);
+      }
+    }
+    if (index !== -1) {
+      return this.chapters.splice(index, 0, newChapter);
+    }
+  };
+
+  Book.prototype.insertAfterHref = function(href, newChapter) {
+    var chapter, index, _i, _len, _ref;
+
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      if (chapter.filename === href) {
+        index = this.chapters.indexOf(chapter);
+      }
+    }
+    if (index !== -1) {
+      return this.chapters.splice(index + 1, 0, newChapter);
+    }
+  };
+
+  Book.prototype.findLandmarkHref = function(landmark) {
+    var landmarkHref, _i, _len, _ref;
+
+    _ref = this.meta.landmarks;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      landmark = _ref[_i];
+      if (landmark.type === 'bodymatter') {
+        landmarkHref = landmark.href;
+      }
+    }
+    return landmarkHref;
+  };
+
+  Book.prototype.updateLandmark = function(landmarkType, newLandmark, newTitle) {
+    var landmark, _i, _len, _ref, _results;
+
+    _ref = this.meta.landmarks;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      landmark = _ref[_i];
+      if (landmark.type === landmarkType) {
+        landmark.href = newLandmark;
+        if (newTitle) {
+          _results.push(landmark.title = newTitle);
+        } else {
+          _results.push(void 0);
+        }
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
+  Book.prototype.prependOutline = function(href, chapter) {
+    var html;
+
+    if (this.outline) {
+      $('body').html(this.outline);
+      html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
+      $("a[href='" + href + "']").parent().before(html);
+      return this.outline = $('body').html();
+    }
+  };
+
+  Book.prototype.appendOutline = function(href, chapter) {
+    var html;
+
+    if (this.outline) {
+      $('body').html(this.outline);
+      html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
+      $("a[href='" + href + "']").parent().after(html);
+      return this.outline = $('body').html();
+    }
+  };
+
+  Book.prototype.relative = utilities.relative;
+
+  Book.prototype.addChaptersToZip = function(zip, template, callback) {
+    var chapter, context, tasks, _i, _len, _ref, _ref1;
+
+    tasks = [];
+    _ref = this.chapters;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      chapter = _ref[_i];
+      if (((_ref1 = this.exclude) != null ? _ref1.indexOf('js') : void 0) !== -1) {
+        context = chapter.context(this, {
+          noJs: true
+        });
+      } else {
+        context = chapter.context(this);
+      }
+      tasks.push(context.addToZip.bind(context, zip, template));
+    }
+    return async.series(tasks, callback);
   };
 
   return Book;
@@ -93,37 +282,6 @@ dateProcess = function(date) {
   return _meta;
 };
 
-SubOutline = (function(_super) {
-  __extends(SubOutline, _super);
-
-  function SubOutline(sub, book) {
-    var chapter, entry, _i, _len;
-
-    this.book = book;
-    this.chapters = [];
-    for (_i = 0, _len = sub.length; _i < _len; _i++) {
-      entry = sub[_i];
-      chapter = new Chapter(entry);
-      if (entry.subChapters) {
-        chapter.subChapters = new this.constructor(entry.subChapters, this.book);
-      }
-      this.addChapter(chapter, this.book);
-    }
-    ({
-      docId: function() {
-        var id;
-
-        id = this.book.docId();
-        return id;
-      }
-    });
-  }
-
-  return SubOutline;
-
-})(Book);
-
 module.exports = {
-  Book: Book,
-  SubOutline: SubOutline
+  Book: Book
 };

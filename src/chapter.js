@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, handlebars, mdparser, path, processHTML, renderer, rs, toHtml, whenjs, _,
+var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -12,20 +12,35 @@ $ = require('jquery');
 
 Assets = require('./assets');
 
-_ = require('underscore');
-
 handlebars = require('handlebars');
-
-whenjs = require('when');
 
 path = require('path');
 
+utilities = require('./utilities');
+
+addToZip = utilities.addToZip;
+
+typogr = require('typogr');
+
+nunjucks = require('nunjucks');
+
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
+
 Chapter = (function() {
   function Chapter(doc) {
-    this.context = __bind(this.context, this);    _.extend(this, doc);
+    this.context = __bind(this.context, this);
+    var key, _i, _len, _ref;
+
+    _ref = Object.keys(doc);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      this[key] = doc[key];
+    }
   }
 
-  Chapter.prototype.context = function(book) {
+  Chapter.prototype.context = function(book, options) {
     var chapter, _ref;
 
     book = book || this.book;
@@ -40,10 +55,14 @@ Chapter = (function() {
     if (!this.chapters) {
       chapter.chapters = book.chapters;
     }
-    if (book.meta.specifiedJs && this.js) {
-      chapter.scripted = true;
-    } else if ((_ref = book.assets) != null ? _ref.js : void 0) {
-      chapter.scripted = true;
+    chapter.relative = utilities.relative;
+    chapter.links = utilities.pageLinks(chapter, this.book);
+    if (!(options != null ? options.noJs : void 0)) {
+      if (book.meta.specifiedJs && this.js) {
+        chapter.scripted = true;
+      } else if ((_ref = book.assets) != null ? _ref.js : void 0) {
+        chapter.scripted = true;
+      }
     }
     return chapter;
   };
@@ -55,21 +74,35 @@ Chapter = (function() {
     return newpath;
   };
 
+  Chapter.prototype.addToZip = function(zip, template, callback) {
+    var context;
+
+    if (!template) {
+      template = env.getTemplate('chapter.xhtml');
+    }
+    if (!this.assets) {
+      context = this.context();
+    } else {
+      context = this;
+    }
+    return addToZip(zip, this.filename, template.render.bind(template, context), callback);
+  };
+
   return Chapter;
 
 })();
 
-toHtml = function() {
+toHtml = Chapter.prototype.toHtml = function() {
   var bodytemplate;
 
   switch (this.type) {
     case 'md':
-      return processHTML(mdparser.render(this.body));
+      return this.processHTML(typogr.typogrify(mdparser.render(this.body)));
     case 'html':
-      return processHTML(this.body);
+      return this.processHTML(typogr.typogrify(this.body));
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return processHTML(bodytemplate(this.context()));
+      return this.processHTML(typogr.typogrify(bodytemplate(this.context())));
     case 'xhtml':
       return this.body;
   }
@@ -80,11 +113,12 @@ Object.defineProperty(Chapter.prototype, 'html', {
   enumerable: true
 });
 
-processHTML = function(html) {
+Chapter.prototype.processHTML = function(html) {
   var addId, counter, elem, elements, nbsp, _counter, _i, _len;
 
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
+  $('img').addClass('bookmaker-respect');
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {
@@ -98,7 +132,7 @@ processHTML = function(html) {
       return el.id = elem + '-' + counter(elem);
     }
   };
-  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a'];
+  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption'];
   for (_i = 0, _len = elements.length; _i < _len; _i++) {
     elem = elements[_i];
     $(elem).each(function(index) {
@@ -106,16 +140,7 @@ processHTML = function(html) {
     });
   }
   nbsp = new RegExp('&nbsp;', 'g');
-  return rs.smartypantsHtml($('body').html().replace(nbsp, '&#160;'));
-};
-
-Chapter.prototype.htmlPromise = function() {
-  var deferred, promise;
-
-  deferred = whenjs.defer();
-  promise = deferred.promise;
-  this.renderHtml(deferred.resolver);
-  return promise;
+  return $('body').html().replace(nbsp, '&#160;');
 };
 
 Chapter.prototype.renderHtml = function(resolver) {

@@ -1,5 +1,5 @@
 'use strict';
-var Assets, Book, Chapter, SubOutline, callbacks, chai, fs, glob, index, should, testbook, testchapters, testoutline, whenjs, zipStream;
+var Assets, Book, Chapter, chai, fs, glob, index, should, testbook, testchapters, testoutline, zipStream;
 
 chai = require('chai');
 
@@ -11,17 +11,11 @@ Chapter = index.Chapter;
 
 Book = index.Book;
 
-SubOutline = index.SubOutline;
-
 Assets = index.Assets;
 
 zipStream = require('zipstream-contentment');
 
 fs = require('fs');
-
-whenjs = require('when');
-
-callbacks = require('when/callbacks');
 
 glob = require('glob');
 
@@ -31,36 +25,7 @@ testoutline = {
   title: 'Title Page',
   render: true,
   template: 'title.hbs',
-  majornavitem: true,
-  subChapters: [
-    {
-      id: 'nav',
-      filename: 'index.html',
-      render: false,
-      title: 'Table of Contents',
-      nomanifest: true,
-      majornavitem: true,
-      toc: true
-    }, {
-      id: 'titlepage',
-      filename: 'title.html',
-      title: 'Title Page',
-      render: true,
-      template: 'title.hbs',
-      majornavitem: true
-    }, {
-      id: 'titletoc',
-      filename: 'title.html',
-      title: 'Contents',
-      render: true,
-      template: 'titletoc.hbs',
-      majornavitem: true,
-      toc: true
-    }, {
-      type: 'md',
-      body: '# This is Markdown!'
-    }
-  ]
+  majornavitem: true
 };
 
 testbook = {};
@@ -103,29 +68,27 @@ describe('JsonBook', function() {
       publisher: 'Bar',
       subject1: 'Foobar',
       version: "1.0",
-      date: "15 May 2013",
+      date: "2013-05-15T00:00:00Z",
       copyrightYear: "19watsit",
-      modified: "19 May 2013"
+      modified: "2013-05-19T00:00:00Z"
     }, assets);
     for (_i = 0, _len = testchapters.length; _i < _len; _i++) {
       chap = testchapters[_i];
       testbook.addChapter(new Chapter(chap));
     }
     testbook.meta.start = testbook.chapters[1];
-    return testbook.assets.init().then(function() {
-      return done();
-    });
+    return testbook.assets.init(done);
   });
   describe('#toJSON', function() {
     return it('Renders the book to json', function() {
       var json;
 
       json = testbook.toJSON();
-      json.should.equal("{\n  \"title\": \"The Wonderful Wizard of Oz\",\n  \"author\": \"L. Frank Baum\",\n  \"bookId\": \"this-is-an-id\",\n  \"lang\": \"en\",\n  \"description\": \"foo\",\n  \"publisher\": \"Bar\",\n  \"subject1\": \"Foobar\",\n  \"version\": \"1.0\",\n  \"date\": \"2013-05-14T23:00:00Z\",\n  \"copyrightYear\": \"19watsit\",\n  \"modified\": \"2013-05-18T23:00:00Z\",\n  \"_links\": {\n    \"self\": {\n      \"href\": \"index.json\",\n      \"type\": \"application/hal+json\",\n      \"hreflang\": \"en\"\n    },\n    \"cover\": [\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\",\n        \"title\": \"Cover Image\"\n      }\n    ],\n    \"start\": {\n      \"href\": \"htmlexample.json\",\n      \"type\": \"application/hal+json\"\n    },\n    \"chapters\": [\n      {\n        \"href\": \"chapters/doc1.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"Markdown\"\n      },\n      {\n        \"href\": \"htmlexample.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"HTML\"\n      },\n      {\n        \"href\": \"chapters/doc2.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"XHTML\"\n      },\n      {\n        \"href\": \"chapters/doc3.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"Template\"\n      }\n    ],\n    \"images\": [\n      {\n        \"href\": \"assets/noise.png\",\n        \"type\": \"image/png\"\n      },\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\"\n      },\n      {\n        \"href\": \"assets/texture.jpg\",\n        \"type\": \"image/jpeg\"\n      }\n    ],\n    \"stylesheets\": [\n      {\n        \"href\": \"assets/style.css\",\n        \"type\": \"text/css\"\n      }\n    ],\n    \"javascript\": [\n      {\n        \"href\": \"assets/jquery.js\",\n        \"type\": \"application/javascript\"\n      },\n      {\n        \"href\": \"assets/jquery2.js\",\n        \"type\": \"application/javascript\"\n      }\n    ]\n  }\n}");
+      json.should.equal("{\n  \"title\": \"The Wonderful Wizard of Oz\",\n  \"author\": \"L. Frank Baum\",\n  \"bookId\": \"this-is-an-id\",\n  \"lang\": \"en\",\n  \"description\": \"foo\",\n  \"publisher\": \"Bar\",\n  \"subject1\": \"Foobar\",\n  \"version\": \"1.0\",\n  \"date\": \"2013-05-15T00:00:00Z\",\n  \"copyrightYear\": \"19watsit\",\n  \"modified\": \"2013-05-19T00:00:00Z\",\n  \"_links\": {\n    \"self\": {\n      \"href\": \"index.json\",\n      \"type\": \"application/hal+json\",\n      \"hreflang\": \"en\"\n    },\n    \"cover\": [\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\",\n        \"title\": \"Cover Image\"\n      }\n    ],\n    \"start\": {\n      \"href\": \"htmlexample.json\",\n      \"type\": \"application/hal+json\"\n    },\n    \"chapters\": [\n      {\n        \"href\": \"chapters/doc1.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"Markdown\"\n      },\n      {\n        \"href\": \"htmlexample.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"HTML\"\n      },\n      {\n        \"href\": \"chapters/doc2.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"XHTML\"\n      },\n      {\n        \"href\": \"chapters/doc3.json\",\n        \"type\": \"application/hal+json\",\n        \"hreflang\": \"en\",\n        \"title\": \"Template\"\n      }\n    ],\n    \"images\": [\n      {\n        \"href\": \"assets/noise.png\",\n        \"type\": \"image/png\"\n      },\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\"\n      },\n      {\n        \"href\": \"assets/texture.jpg\",\n        \"type\": \"image/jpeg\"\n      }\n    ],\n    \"stylesheets\": [\n      {\n        \"href\": \"assets/style.css\",\n        \"type\": \"text/css\"\n      }\n    ],\n    \"javascript\": [\n      {\n        \"href\": \"assets/jquery.js\",\n        \"type\": \"application/javascript\"\n      },\n      {\n        \"href\": \"assets/jquery2.js\",\n        \"type\": \"application/javascript\"\n      }\n    ]\n  }\n}");
       json = testbook.toJSON({
         embedChapters: true
       });
-      return json.should.equal("{\n  \"title\": \"The Wonderful Wizard of Oz\",\n  \"author\": \"L. Frank Baum\",\n  \"bookId\": \"this-is-an-id\",\n  \"lang\": \"en\",\n  \"description\": \"foo\",\n  \"publisher\": \"Bar\",\n  \"subject1\": \"Foobar\",\n  \"version\": \"1.0\",\n  \"date\": \"2013-05-14T23:00:00Z\",\n  \"copyrightYear\": \"19watsit\",\n  \"modified\": \"2013-05-18T23:00:00Z\",\n  \"_links\": {\n    \"self\": {\n      \"href\": \"index.json\",\n      \"type\": \"application/hal+json\",\n      \"hreflang\": \"en\"\n    },\n    \"cover\": [\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\",\n        \"title\": \"Cover Image\"\n      }\n    ],\n    \"start\": {\n      \"href\": \"htmlexample.json\",\n      \"type\": \"application/hal+json\"\n    },\n    \"chapters\": [\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"Markdown\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">header</h1>\\\\n\\\\n<p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test</p>\\\\n\\\",\\n  \\\"id\\\": \\\"doc1\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"doc1.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"../assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"../htmlexample.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"id\\\": \\\"htmlexample\\\",\\n  \\\"title\\\": \\\"HTML\\\",\\n  \\\"arbitraryMeta\\\": \\\"is arbitrary\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">header</h1><p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test<br />‘—’“–”&#160;</p>\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"htmlexample.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"chapters/doc1.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"chapters/doc2.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"XHTML\\\",\\n  \\\"body\\\": \\\"<h1>header</h1><p>Test<br/></p>\\\",\\n  \\\"id\\\": \\\"doc2\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"doc2.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"../assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"../htmlexample.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"doc3.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"Template\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">Template</h1><p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test<br />‘—’“–”&#160;</p>\\\",\\n  \\\"id\\\": \\\"doc3\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"doc3.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"../assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"doc2.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\"\n    ],\n    \"images\": [\n      {\n        \"href\": \"assets/noise.png\",\n        \"type\": \"image/png\"\n      },\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\"\n      },\n      {\n        \"href\": \"assets/texture.jpg\",\n        \"type\": \"image/jpeg\"\n      }\n    ],\n    \"stylesheets\": [\n      {\n        \"href\": \"assets/style.css\",\n        \"type\": \"text/css\"\n      }\n    ],\n    \"javascript\": [\n      {\n        \"href\": \"assets/jquery.js\",\n        \"type\": \"application/javascript\"\n      },\n      {\n        \"href\": \"assets/jquery2.js\",\n        \"type\": \"application/javascript\"\n      }\n    ]\n  }\n}");
+      return json.should.equal("{\n  \"title\": \"The Wonderful Wizard of Oz\",\n  \"author\": \"L. Frank Baum\",\n  \"bookId\": \"this-is-an-id\",\n  \"lang\": \"en\",\n  \"description\": \"foo\",\n  \"publisher\": \"Bar\",\n  \"subject1\": \"Foobar\",\n  \"version\": \"1.0\",\n  \"date\": \"2013-05-15T00:00:00Z\",\n  \"copyrightYear\": \"19watsit\",\n  \"modified\": \"2013-05-19T00:00:00Z\",\n  \"_links\": {\n    \"self\": {\n      \"href\": \"index.json\",\n      \"type\": \"application/hal+json\",\n      \"hreflang\": \"en\"\n    },\n    \"cover\": [\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\",\n        \"title\": \"Cover Image\"\n      }\n    ],\n    \"start\": {\n      \"href\": \"htmlexample.json\",\n      \"type\": \"application/hal+json\"\n    },\n    \"chapters\": [\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"Markdown\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">header</h1>\\\\n\\\\n<p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test</p>\\\\n\\\",\\n  \\\"id\\\": \\\"doc1\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"doc1.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"../assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"../htmlexample.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"id\\\": \\\"htmlexample\\\",\\n  \\\"title\\\": \\\"HTML\\\",\\n  \\\"arbitraryMeta\\\": \\\"is arbitrary\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">header</h1><p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test<br />‘—’“–”&#160;</p>\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"htmlexample.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"chapters/doc1.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"chapters/doc2.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"XHTML\\\",\\n  \\\"body\\\": \\\"<h1>header</h1><p>Test<br/></p>\\\",\\n  \\\"id\\\": \\\"doc2\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"doc2.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"../assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"../htmlexample.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"next\\\": {\\n      \\\"href\\\": \\\"doc3.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\",\n      \"{\\n  \\\"type\\\": \\\"html\\\",\\n  \\\"title\\\": \\\"Template\\\",\\n  \\\"body\\\": \\\"<h1 id=\\\\\\\"h1-1\\\\\\\">Template</h1><p class=\\\\\\\"noindent\\\\\\\" id=\\\\\\\"p-1\\\\\\\">Test<br />‘—’“–”&#160;</p>\\\",\\n  \\\"id\\\": \\\"doc3\\\",\\n  \\\"_links\\\": {\\n    \\\"toc\\\": {\\n      \\\"href\\\": \\\"../index.json\\\",\\n      \\\"name\\\": \\\"TOC-JSON\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"self\\\": {\\n      \\\"href\\\": \\\"doc3.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    },\\n    \\\"stylesheets\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/style.css\\\",\\n        \\\"type\\\": \\\"text/css\\\"\\n      }\\n    ],\\n    \\\"javascript\\\": [\\n      {\\n        \\\"href\\\": \\\"../assets/jquery.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      },\\n      {\\n        \\\"href\\\": \\\"../assets/jquery2.js\\\",\\n        \\\"type\\\": \\\"application/javascript\\\"\\n      }\\n    ],\\n    \\\"prev\\\": {\\n      \\\"href\\\": \\\"doc2.json\\\",\\n      \\\"type\\\": \\\"application/hal+json\\\"\\n    }\\n  }\\n}\"\n    ],\n    \"images\": [\n      {\n        \"href\": \"assets/noise.png\",\n        \"type\": \"image/png\"\n      },\n      {\n        \"href\": \"assets/cover.jpg\",\n        \"type\": \"image/jpeg\"\n      },\n      {\n        \"href\": \"assets/texture.jpg\",\n        \"type\": \"image/jpeg\"\n      }\n    ],\n    \"stylesheets\": [\n      {\n        \"href\": \"assets/style.css\",\n        \"type\": \"text/css\"\n      }\n    ],\n    \"javascript\": [\n      {\n        \"href\": \"assets/jquery.js\",\n        \"type\": \"application/javascript\"\n      },\n      {\n        \"href\": \"assets/jquery2.js\",\n        \"type\": \"application/javascript\"\n      }\n    ]\n  }\n}");
     });
   });
   describe('#toJsonFiles', function() {
@@ -145,9 +108,7 @@ describe('JsonBook', function() {
       };
       return testbook.toJsonFiles('test/files/json/', {
         baseurl: 'http://oz.studiotendra.com/book/1/json/'
-      }).then(test, function(thing) {
-        return done(thing);
-      });
+      }, test);
     });
   });
   describe('#toHtmlFiles', function() {
@@ -167,9 +128,7 @@ describe('JsonBook', function() {
       };
       return testbook.toHtmlFiles('test/files/html/', {
         baseurl: 'http://oz.studiotendra.com/book/1/html/'
-      }).then(test, function(thing) {
-        return done(thing);
-      });
+      }, test);
     });
   });
   return describe('#toHtmlandJsonFiles', function() {
@@ -189,9 +148,7 @@ describe('JsonBook', function() {
       };
       return testbook.toHtmlAndJsonFiles('test/files/htmlandjson/', {
         baseurl: 'http://oz.studiotendra.com/book/1/htmlandjson/'
-      }).then(test, function(thing) {
-        return done(thing);
-      });
+      }, test);
     });
   });
 });

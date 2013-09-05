@@ -1,35 +1,33 @@
 'use strict';
-var fs, glob, handlebars, loadTemplates, path, templates;
-
-handlebars = require('handlebars');
+var env, loadTemplates, nunjucks, path, templates;
 
 path = require('path');
 
-fs = require('fs');
+nunjucks = require('nunjucks');
 
-glob = require('glob');
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
 
 templates = {};
 
 loadTemplates = function(searchpath) {
-  var name, newtemplates, template, temppath, _i, _len, _results;
+  var name, newtemplates, temppath, _i, _len, _results;
 
-  newtemplates = glob.sync(searchpath);
+  newtemplates = ['chapter.xhtml', 'chapter.html', 'cover.xhtml', 'cover.html', 'index.xhtml', 'index.html', 'chapter.xhtml', 'toc.ncx', 'content.opf', 'encryption.xml'];
   _results = [];
   for (_i = 0, _len = newtemplates.length; _i < _len; _i++) {
     temppath = newtemplates[_i];
-    name = path.basename(temppath, path.extname(temppath));
-    template = fs.readFileSync(temppath, 'utf8');
-    _results.push(templates[name] = handlebars.compile(template));
+    name = path.basename(temppath);
+    _results.push(templates[name] = env.getTemplate(temppath));
   }
   return _results;
 };
 
-loadTemplates(path.resolve(__filename, '../../', 'templates/**/*.hbs'));
-
-loadTemplates('templates/**/*.hbs');
+loadTemplates();
 
 module.exports = {
   templates: templates,
-  loadTemplates: loadTemplates
+  loadTemplates: loadTemplates,
+  env: env
 };

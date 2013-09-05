@@ -1,13 +1,9 @@
 'use strict';
-var ensuredir, extend, extendAssets, extendBook, extendChapter, filter, handlebars, loadTemplates, nodefn, path, relative, sequence, temp, templates, url, utilities, whenjs, write, _;
+var async, ensuredir, env, extend, extendAssets, extendBook, extendChapter, filter, handlebars, logger, nodefn, nunjucks, path, relative, url, utilities, write;
 
-whenjs = require('when');
-
-_ = require('underscore');
+async = require('async');
 
 path = require('path');
-
-sequence = require('when/sequence');
 
 nodefn = require("when/node/function");
 
@@ -15,13 +11,15 @@ url = require('url');
 
 handlebars = require('handlebars');
 
-temp = require('./templates');
-
-templates = temp.templates;
-
-loadTemplates = temp.loadTemplates;
-
 utilities = require('./utilities');
+
+nunjucks = require('nunjucks');
+
+logger = require('./logger');
+
+env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
+  autoescape: false
+});
 
 ensuredir = utilities.ensuredir;
 
@@ -54,15 +52,22 @@ relative = function(current, target) {
 
 extendChapter = function(Chapter) {
   Chapter.prototype.toHal = function() {
-    var banned, hal, href, htmlpath, selfindex, selfpath, subChapter, subChapters, tocpath, urlgen, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+    var banned, hal, href, htmlpath, key, selfindex, selfpath, tocpath, urlgen, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
 
-    banned = ['links', 'book', 'meta', 'filename', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'].concat(_.methods(this));
-    hal = _.omit(this, banned);
+    banned = ['links', 'book', 'meta', 'filename', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'];
+    hal = {};
+    _ref = Object.keys(this);
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      if (banned.indexOf(key) === -1 && typeof this[key] !== 'function') {
+        hal[key] = this[key];
+      }
+    }
     hal.body = this.html;
     hal.type = 'html';
     urlgen = this.book.uri.bind(this.book) || relative;
     tocpath = path.relative(path.resolve("/", path.dirname(this.filename)), "/index.json");
-    selfpath = ((_ref = this.book._state) != null ? _ref.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('json') : path.basename(this.formatPath('json'));
+    selfpath = ((_ref1 = this.book._state) != null ? _ref1.baseurl : void 0) ? url.resolve(this.book._state.baseurl, this.formatPath('json')) : path.basename(this.formatPath('json'));
     if (!hal._links) {
       hal._links = {};
     }
@@ -75,21 +80,21 @@ extendChapter = function(Chapter) {
       href: selfpath,
       type: "application/hal+json"
     };
-    if ((_ref1 = this.book._state) != null ? _ref1.htmlAndJson : void 0) {
-      htmlpath = ((_ref2 = this.book._state) != null ? _ref2.baseurl : void 0) ? this.book._state.baseurl + this.formatPath('html') : path.basename(this.formatPath('html'));
+    if ((_ref2 = this.book._state) != null ? _ref2.htmlAndJson : void 0) {
+      htmlpath = ((_ref3 = this.book._state) != null ? _ref3.baseurl : void 0) ? url.resolve(this.book._state.baseurl, this.formatPath('html')) : path.basename(this.formatPath('html'));
       hal._links.alternate = {
         href: htmlpath,
         type: this.book._state.htmltype
       };
     }
-    if (((_ref3 = this.book.assets) != null ? _ref3.css : void 0) && !this.book.meta.specifiedCss) {
+    if (((_ref4 = this.book.assets) != null ? _ref4.css : void 0) && !this.book.meta.specifiedCss) {
       hal._links.stylesheets = (function() {
-        var _i, _len, _ref4, _results;
+        var _j, _len1, _ref5, _results;
 
-        _ref4 = this.book.assets.css;
+        _ref5 = this.book.assets.css;
         _results = [];
-        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-          href = _ref4[_i];
+        for (_j = 0, _len1 = _ref5.length; _j < _len1; _j++) {
+          href = _ref5[_j];
           _results.push({
             href: urlgen(this.filename, href),
             type: "text/css"
@@ -99,12 +104,12 @@ extendChapter = function(Chapter) {
       }).call(this);
     } else if (this.css) {
       hal._links.stylesheets = (function() {
-        var _i, _len, _ref4, _results;
+        var _j, _len1, _ref5, _results;
 
-        _ref4 = this.css;
+        _ref5 = this.css;
         _results = [];
-        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-          href = _ref4[_i];
+        for (_j = 0, _len1 = _ref5.length; _j < _len1; _j++) {
+          href = _ref5[_j];
           _results.push({
             href: urlgen(this.filename, href),
             type: "text/css"
@@ -113,14 +118,14 @@ extendChapter = function(Chapter) {
         return _results;
       }).call(this);
     }
-    if (((_ref4 = this.book.assets) != null ? _ref4.js : void 0) && !this.book.meta.specifiedJs) {
+    if (((_ref5 = this.book.assets) != null ? _ref5.js : void 0) && !this.book.meta.specifiedJs) {
       hal._links.javascript = (function() {
-        var _i, _len, _ref5, _results;
+        var _j, _len1, _ref6, _results;
 
-        _ref5 = this.book.assets.js;
+        _ref6 = this.book.assets.js;
         _results = [];
-        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-          href = _ref5[_i];
+        for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
+          href = _ref6[_j];
           _results.push({
             href: urlgen(this.filename, href),
             type: "application/javascript"
@@ -130,12 +135,12 @@ extendChapter = function(Chapter) {
       }).call(this);
     } else if (this.js) {
       hal._links.javascript = (function() {
-        var _i, _len, _ref5, _results;
+        var _j, _len1, _ref6, _results;
 
-        _ref5 = this.js;
+        _ref6 = this.js;
         _results = [];
-        for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-          href = _ref5[_i];
+        for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
+          href = _ref6[_j];
           _results.push({
             href: urlgen(this.filename, href),
             type: "application/javascript"
@@ -158,15 +163,6 @@ extendChapter = function(Chapter) {
           type: "application/hal+json"
         };
       }
-    }
-    if (this.subChapters) {
-      subChapters = [];
-      _ref5 = this.subChapters.chapters;
-      for (_i = 0, _len = _ref5.length; _i < _len; _i++) {
-        subChapter = _ref5[_i];
-        subChapters.push(subChapter);
-      }
-      hal._embedded.chapters = subChapters;
     }
     return hal;
   };
@@ -196,8 +192,7 @@ extendBook = function(Book) {
   Book.prototype.toHal = function(options) {
     var chapter, covertype, hal, href, image, selfpath, stylesheet, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3, _ref4;
 
-    hal = {};
-    _.extend(hal, this.meta);
+    hal = utilities.jsonClone(this.meta);
     if (!this._state) {
       this._state = {};
     }
@@ -341,7 +336,7 @@ extendBook = function(Book) {
     hal = this.toHal(options);
     return JSON.stringify(hal, filter, 2);
   };
-  Book.prototype.toJsonFiles = function(directory, options) {
+  Book.prototype.toJsonFiles = function(directory, options, callback) {
     var chapter, context, hal, json, selfindex, tasks, _i, _len, _ref;
 
     hal = this.toHal(options);
@@ -349,13 +344,13 @@ extendBook = function(Book) {
     json = JSON.stringify(hal, filter, 2);
     tasks = [];
     if (directory) {
-      tasks.push(ensuredir(directory));
+      tasks.push(ensuredir.bind(null, directory));
     } else {
       directory = directory || process.cwd();
     }
-    tasks.push(ensuredir(directory + 'chapters/'));
+    tasks.push(ensuredir.bind(null, directory + 'chapters/'));
     if (!(options != null ? options.noAssets : void 0)) {
-      tasks.push(this.assets.copy(directory + hal.assetsPath));
+      tasks.push(this.assets.copy.bind(this.assets, directory + hal.assetsPath));
     }
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -382,20 +377,20 @@ extendBook = function(Book) {
           };
         }
       }
-      tasks.push(write(directory + chapter.formatPath('json'), context.toJSON(), 'utf8'));
+      tasks.push(write.bind(null, directory + chapter.formatPath('json'), context.toJSON()));
     }
-    tasks.push(write(directory + 'index.json', json, 'utf8'));
-    return whenjs.all(tasks);
+    tasks.push(write.bind(null, directory + 'index.json', json));
+    return async.series(tasks, callback);
   };
-  Book.prototype.toHtmlFiles = function(directory, options) {
+  Book.prototype.toHtmlFiles = function(directory, options, callback) {
     var book, chapter, context, jsonpath, selfindex, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
 
+    logger.log.info("Writing HTML files");
     book = Object.create(this);
     if (!book._state) {
       book._state = {};
     }
     book._state.htmltype = "text/html";
-    handlebars.registerHelper('relative', this.uri.bind(book));
     book.filename = 'index.html';
     if (options != null ? options.baseurl : void 0) {
       selfpath = options.baseurl + 'index.html';
@@ -415,21 +410,23 @@ extendBook = function(Book) {
         title: "JSON Table of Contents"
       };
     }
+    book.links = utilities.pageLinks(book, book);
     tasks = [];
     if (directory) {
-      tasks.push(ensuredir(directory));
+      tasks.push(ensuredir.bind(null, directory));
     } else {
       directory = directory || process.cwd();
     }
-    tasks.push(ensuredir(directory + 'chapters/'));
+    tasks.push(ensuredir.bind(null, directory + 'chapters/'));
     if (!(options != null ? options.noAssets : void 0)) {
-      tasks.push(book.assets.copy(directory + book.assets.assetsPath));
+      tasks.push(book.assets.copy.bind(book.assets, directory + book.assets.assetsPath));
     }
-    tasks.push(write(directory + 'index.html', templates.htmlindex(book), 'utf8'));
-    tasks.push(write(directory + 'cover.html', templates.htmlcover(book), 'utf8'));
+    tasks.push(write.bind(null, directory + 'index.html', env.getTemplate('index.html').render(book)));
+    tasks.push(write.bind(null, directory + 'cover.html', env.getTemplate('cover.html').render(book)));
     _ref1 = book.chapters;
     for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
       chapter = _ref1[_i];
+      logger.log.info("Preparing " + chapter.filename);
       context = chapter.context(book);
       selfindex = book.chapters.indexOf(chapter);
       if (!context._links) {
@@ -455,21 +452,25 @@ extendBook = function(Book) {
           href: jsonpath,
           type: "application/hal+json"
         };
+        context.links = utilities.pageLinks(context, book);
       }
-      tasks.push(write(directory + chapter.filename, templates.htmlchapter(context), 'utf8'));
+      tasks.push(write.bind(null, directory + chapter.filename, env.getTemplate('chapter.html').render(context)));
     }
-    return whenjs.all(tasks);
+    return async.series(tasks, callback);
   };
-  Book.prototype.toHtmlAndJsonFiles = function(directory, options) {
+  Book.prototype.toHtmlAndJsonFiles = function(directory, options, callback) {
     var book;
 
     book = Object.create(this);
     book._state = {};
     book._state.htmlAndJson = true;
     book._state.htmltype = "text/html";
-    return book.toHtmlFiles(directory, options).then(function() {
+    return book.toHtmlFiles(directory, options, function(err) {
+      if (err) {
+        callback(err);
+      }
       options.noAssets = true;
-      return book.toJsonFiles(directory, options);
+      return book.toJsonFiles(directory, options, callback);
     });
   };
   return Book;
