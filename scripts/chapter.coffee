@@ -72,6 +72,7 @@ Chapter.prototype.processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   $('img').addClass('bookmaker-respect')
+  $('pre code').each (i, e) -> hljs.highlightBlock(e)
   _counter = {}
   counter = (elem) ->
     unless _counter[elem]
@@ -81,7 +82,7 @@ Chapter.prototype.processHTML = (html) ->
   addId = (el, elem) ->
     unless el.id
       el.id = elem + '-' + counter(elem)
-  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption']
+  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code']
   for elem in elements
     $(elem).each((index) -> addId(this, elem))
   # Need to properly filter entities here. Or at least look further into the issue.

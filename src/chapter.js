@@ -130,6 +130,9 @@ Chapter.prototype.processHTML = function(html) {
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   $('img').addClass('bookmaker-respect');
+  $('pre code').each(function(i, e) {
+    return hljs.highlightBlock(e);
+  });
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {
@@ -143,7 +146,7 @@ Chapter.prototype.processHTML = function(html) {
       return el.id = elem + '-' + counter(elem);
     }
   };
-  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption'];
+  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code'];
   for (_i = 0, _len = elements.length; _i < _len; _i++) {
     elem = elements[_i];
     $(elem).each(function(index) {
