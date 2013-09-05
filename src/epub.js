@@ -53,9 +53,10 @@ chapterProperties = function(chapter) {
 
   properties = [];
   if (chapter.svg) {
+    console.log(chapter.svg);
     properties.push('svg');
   }
-  if (chapter.js || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
+  if ((chapter.js.toString() !== "") || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
     properties.push('scripted');
   }
   prop = properties.join(' ');

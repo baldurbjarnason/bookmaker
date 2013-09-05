@@ -30,8 +30,9 @@ isCover = (path) ->
 chapterProperties = (chapter) ->
   properties = []
   if chapter.svg
+    console.log chapter.svg
     properties.push('svg')
-  if chapter.js or (@assets.js.toString() isnt "" and !@specifiedJs)
+  if (chapter.js.toString() isnt "") or (@assets.js.toString() isnt "" and !@specifiedJs)
     properties.push('scripted')
   prop = properties.join(' ')
   if properties.toString() isnt ""

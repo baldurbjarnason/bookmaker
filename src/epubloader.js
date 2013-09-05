@@ -320,7 +320,7 @@ EpubLoaderMixin = (function() {
         svgEmbedRE = new RegExp('<svg [^>]*>');
         widthRE = new RegExp('width=([^,]*)');
         heightRE = new RegExp('height=([^,]*)');
-        if (svgLinkRE.test(xml) || svgEmbedRE) {
+        if (svgLinkRE.test(xml) || svgEmbedRE.test(xml)) {
           chapter.svg = true;
         }
         chapter.body = xml.split(bodyre)[2];
