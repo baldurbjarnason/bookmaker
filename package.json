@@ -55,6 +55,8 @@
     "winston": "~0.7.2",
     "rimraf": "~2.2.0",
     "async": "~0.2.9",
-    "typogr": "~0.6.1"
+    "typogr": "~0.6.1",
+    "marked": "~0.2.9",
+    "highlight.js": "~7.3.0"
   }
 }

@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
+var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -26,6 +26,17 @@ nunjucks = require('nunjucks');
 
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
   autoescape: false
+});
+
+marked = require('marked');
+
+hljs = require('highlight.js');
+
+marked.setOptions({
+  highlight: function(code, lang) {
+    return hljs.highlightAuto(lang, code).value;
+  },
+  langPrefix: 'language-'
 });
 
 Chapter = (function() {
@@ -97,7 +108,7 @@ toHtml = Chapter.prototype.toHtml = function() {
 
   switch (this.type) {
     case 'md':
-      return this.processHTML(typogr.typogrify(mdparser.render(this.body)));
+      return this.processHTML(typogr.typogrify(marked(this.body)));
     case 'html':
       return this.processHTML(typogr.typogrify(this.body));
     case 'hbs':
@@ -119,6 +130,9 @@ Chapter.prototype.processHTML = function(html) {
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   $('img').addClass('bookmaker-respect');
+  $('pre code').each(function(i, e) {
+    return hljs.highlightBlock(e);
+  });
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {
@@ -132,7 +146,7 @@ Chapter.prototype.processHTML = function(html) {
       return el.id = elem + '-' + counter(elem);
     }
   };
-  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption'];
+  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code'];
   for (_i = 0, _len = elements.length; _i < _len; _i++) {
     elem = elements[_i];
     $(elem).each(function(index) {

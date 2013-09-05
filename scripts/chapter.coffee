@@ -12,6 +12,13 @@ addToZip = utilities.addToZip
 typogr = require 'typogr'
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
+marked = require 'marked'
+hljs = require 'highlight.js'
+marked.setOptions {
+  highlight: (code, lang) ->
+    return hljs.highlightAuto(lang, code).value
+  langPrefix: 'language-'
+}
 
 
 class Chapter
@@ -48,7 +55,7 @@ class Chapter
 toHtml = Chapter.prototype.toHtml = ->
   switch @type
     when 'md'
-      @processHTML typogr.typogrify mdparser.render @body
+      @processHTML typogr.typogrify marked @body
     when 'html'
       @processHTML typogr.typogrify @body
     when 'hbs'
@@ -65,6 +72,7 @@ Chapter.prototype.processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   $('img').addClass('bookmaker-respect')
+  $('pre code').each (i, e) -> hljs.highlightBlock(e)
   _counter = {}
   counter = (elem) ->
     unless _counter[elem]
@@ -74,7 +82,7 @@ Chapter.prototype.processHTML = (html) ->
   addId = (el, elem) ->
     unless el.id
       el.id = elem + '-' + counter(elem)
-  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption']
+  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code']
   for elem in elements
     $(elem).each((index) -> addId(this, elem))
   # Need to properly filter entities here. Or at least look further into the issue.
