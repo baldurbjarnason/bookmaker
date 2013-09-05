@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, nunjucks, path, toHtml, typogr, utilities,
+var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, nunjucks, path, sanitizer, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 $ = require('jquery');
@@ -32,6 +32,8 @@ marked.setOptions({
   },
   langPrefix: 'language-'
 });
+
+sanitizer = require('html-css-sanitizer');
 
 Chapter = (function() {
   function Chapter(doc) {
@@ -119,7 +121,7 @@ Object.defineProperty(Chapter.prototype, 'html', {
 });
 
 Chapter.prototype.processHTML = function(html) {
-  var addId, counter, elem, elements, nbsp, _counter, _i, _len;
+  var addId, counter, elem, elements, nbsp, _counter, _i, _len, _ref;
 
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
@@ -148,7 +150,11 @@ Chapter.prototype.processHTML = function(html) {
     });
   }
   nbsp = new RegExp('&nbsp;', 'g');
-  return $('body').html().replace(nbsp, '&#160;');
+  if ((_ref = this.book) != null ? _ref.sanitize : void 0) {
+    return sanitizer.sanitize($('body').html().replace(nbsp, '&#160;'));
+  } else {
+    return $('body').html().replace(nbsp, '&#160;');
+  }
 };
 
 Chapter.prototype.renderHtml = function(resolver) {
