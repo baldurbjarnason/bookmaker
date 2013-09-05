@@ -52,11 +52,12 @@ chapterProperties = function(chapter) {
   var prop, properties;
 
   properties = [];
-  if (chapter.svg) {
-    console.log(chapter.svg);
+  chapter.svg = chapter.svg || [];
+  chapter.js = chapter.js || [];
+  if (chapter.svg.length !== 0) {
     properties.push('svg');
   }
-  if ((chapter.js.toString() !== "") || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
+  if ((chapter.js.length !== 0) || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
     properties.push('scripted');
   }
   prop = properties.join(' ');
