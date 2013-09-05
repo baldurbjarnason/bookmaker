@@ -12,6 +12,13 @@ addToZip = utilities.addToZip
 typogr = require 'typogr'
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
+marked = require 'marked'
+hljs = require 'highlight.js'
+marked.setOptions {
+  highlight: (code, lang) ->
+    return hljs.highlightAuto(lang, code).value
+  langPrefix: ''
+}
 
 
 class Chapter
@@ -48,7 +55,7 @@ class Chapter
 toHtml = Chapter.prototype.toHtml = ->
   switch @type
     when 'md'
-      @processHTML typogr.typogrify mdparser.render @body
+      @processHTML typogr.typogrify marked @body
     when 'html'
       @processHTML typogr.typogrify @body
     when 'hbs'

@@ -1,5 +1,5 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
+var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
 rs = require('robotskirt');
@@ -26,6 +26,17 @@ nunjucks = require('nunjucks');
 
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
   autoescape: false
+});
+
+marked = require('marked');
+
+hljs = require('highlight.js');
+
+marked.setOptions({
+  highlight: function(code, lang) {
+    return hljs.highlightAuto(lang, code).value;
+  },
+  langPrefix: ''
 });
 
 Chapter = (function() {
@@ -97,7 +108,7 @@ toHtml = Chapter.prototype.toHtml = function() {
 
   switch (this.type) {
     case 'md':
-      return this.processHTML(typogr.typogrify(mdparser.render(this.body)));
+      return this.processHTML(typogr.typogrify(marked(this.body)));
     case 'html':
       return this.processHTML(typogr.typogrify(this.body));
     case 'hbs':

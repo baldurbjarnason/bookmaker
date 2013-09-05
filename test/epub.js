@@ -209,7 +209,7 @@ describe('EpubBook', function() {
       zip.pipe(out);
       return testbook.addChaptersToZip(zip, null, function() {
         return zip.finalize(function(written) {
-          written.should.equal(2289);
+          written.should.equal(2288);
           return done();
         });
       });

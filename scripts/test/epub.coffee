@@ -166,7 +166,7 @@ describe 'EpubBook',
             zip.pipe(out)
             testbook.addChaptersToZip(zip, null, () ->
               zip.finalize((written) ->
-                written.should.equal(2289)
+                written.should.equal(2288)
                 done()))
     describe '#toEpub',
       () ->
