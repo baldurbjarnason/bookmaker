@@ -59,7 +59,8 @@ class Book
             return this
     else
       @chapters.push(chapter)
-      @appendOutline @chapters[@chapters.length-1].filename, chapter
+      if options?.modifyOutline
+        @appendOutline @chapters[@chapters.length-1].filename, chapter
       if callback and typeof callback is 'function'
         callback null, this
       else
@@ -82,7 +83,8 @@ class Book
             return this
     else
       @chapters.unshift(chapter)
-      @prependOutline @chapters[0].filename, chapter
+      if options?.modifyOutline
+        @prependOutline @chapters[0].filename, chapter
       if callback and typeof callback is 'function'
         callback null, this
       else

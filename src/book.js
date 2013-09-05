@@ -90,7 +90,9 @@ Book = (function() {
       }
     } else {
       this.chapters.push(chapter);
-      this.appendOutline(this.chapters[this.chapters.length - 1].filename, chapter);
+      if (options != null ? options.modifyOutline : void 0) {
+        this.appendOutline(this.chapters[this.chapters.length - 1].filename, chapter);
+      }
       if (callback && typeof callback === 'function') {
         return callback(null, this);
       } else {
@@ -132,7 +134,9 @@ Book = (function() {
       }
     } else {
       this.chapters.unshift(chapter);
-      this.prependOutline(this.chapters[0].filename, chapter);
+      if (options != null ? options.modifyOutline : void 0) {
+        this.prependOutline(this.chapters[0].filename, chapter);
+      }
       if (callback && typeof callback === 'function') {
         return callback(null, this);
       } else {
