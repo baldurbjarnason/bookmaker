@@ -33,7 +33,7 @@ chapterProperties = (chapter) ->
   chapter.js = chapter.js || []
   if chapter.svg.length isnt 0
     properties.push('svg')
-  if (chapter.js.length isnt 0) or (@assets.js.toString() isnt "" and !@specifiedJs)
+  if (chapter.js.length isnt 0) or (@assets.js.toString() isnt "" and !@meta.specifiedJs)
     properties.push('scripted')
   prop = properties.join(' ')
   if properties.toString() isnt ""
