@@ -128,10 +128,7 @@ class Book
   addChaptersToZip: (zip, template, callback) ->
     tasks = []
     for chapter in @chapters
-      if @exclude?.indexOf('js') isnt -1
-        context = chapter.context(this, { noJs: true })
-      else
-        context = chapter.context(this)
+      context = chapter.context(this)
       tasks.push(context.addToZip.bind(context, zip, template))
     async.series(tasks, callback)
 

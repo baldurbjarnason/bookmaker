@@ -68,7 +68,6 @@ Chapter.prototype.processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   $('img').addClass('bookmaker-respect')
-  $('pre code').each (i, e) -> hljs.highlightBlock(e)
   _counter = {}
   counter = (elem) ->
     unless _counter[elem]

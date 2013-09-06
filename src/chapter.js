@@ -124,9 +124,6 @@ Chapter.prototype.processHTML = function(html) {
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   $('img').addClass('bookmaker-respect');
-  $('pre code').each(function(i, e) {
-    return hljs.highlightBlock(e);
-  });
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {
