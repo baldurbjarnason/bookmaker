@@ -13,7 +13,7 @@ marked = require 'marked'
 hljs = require 'highlight.js'
 marked.setOptions {
   highlight: (code, lang) ->
-    return hljs.highlightAuto(lang, code).value
+    return hljs.highlight(lang, code).value
   langPrefix: 'language-'
 }
 

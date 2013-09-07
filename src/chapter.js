@@ -28,7 +28,7 @@ hljs = require('highlight.js');
 
 marked.setOptions({
   highlight: function(code, lang) {
-    return hljs.highlightAuto(lang, code).value;
+    return hljs.highlight(lang, code).value;
   },
   langPrefix: 'language-'
 });
