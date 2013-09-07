@@ -13,9 +13,21 @@ addToZip = utilities.addToZip
 addStoredToZip = utilities.addStoredToZip
 logger = require('./logger')
 nunjucks = require 'nunjucks'
-env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
-env.getTemplate('cover.xhtml').render()
+loader = new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/'))
+env = new nunjucks.Environment(loader, { autoescape: false, dev: true })
 Chapter = require './chapter'
+templatePaths = ['cover.xhtml', 'toc.ncx', 'index.xhtml', 'index.xhtml', 'content.opf']
+templates = {}
+for temppath in templatePaths
+  templates[temppath] = env.getTemplate(temppath)
+
+templateLoaders = [loader]
+addTemplatePath = (newtemplates) ->
+  templateLoaders.unshift new nunjucks.FileSystemLoader(newtemplates)
+  env.init templateLoaders
+
+getTemplateEnvironment = () ->
+  return env
 
 extendBook = (Book) ->
   Book.prototype.toEpub = toEpub
@@ -141,12 +153,12 @@ renderEpub = (book, out, options, zip, callback) ->
       </container>
       '''))
   if book.meta.cover
-    tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)))
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)))
-  tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)))
-  tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')))
+    tasks.push(addToZip.bind(null, zip, 'cover.html', templates['cover.xhtml'].render(book)))
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render(book)))
+  tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render(book)))
+  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']))
   tasks.push(book.assets.addToZip.bind(book.assets, zip))
-  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)))
+  tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render(book)))
   if options?.obfuscateFonts or book.obfuscateFonts
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId))
   async.series(tasks, callback)
@@ -178,4 +190,6 @@ module.exports = {
     extendAssets Assets
   extendBook: extendBook
   extendAssets: extendAssets
+  addTemplatePath: addTemplatePath
+  getTemplateEnvironment: getTemplateEnvironment
 }

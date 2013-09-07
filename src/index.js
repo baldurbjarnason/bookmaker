@@ -1,4 +1,4 @@
-var Assets, Book, Chapter, logger;
+var Assets, Book, Chapter, epub, logger;
 
 Book = require('./book').Book;
 
@@ -8,7 +8,9 @@ Chapter = require('./chapter');
 
 logger = require('./logger');
 
-require('./epub').extend(Book, Assets);
+epub = require('./epub');
+
+epub.extend(Book, Assets);
 
 require('./exporters').extend(Chapter, Book, Assets);
 
@@ -24,5 +26,7 @@ module.exports = {
   Book: Book,
   Assets: Assets,
   Chapter: Chapter,
-  logger: logger
+  logger: logger,
+  addTemplatePath: epub.addTemplatePath,
+  getTemplateEnvironment: epub.getTemplateEnvironment
 };

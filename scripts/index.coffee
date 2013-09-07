@@ -4,7 +4,8 @@ Chapter = require './chapter'
 logger = require './logger'
 
 
-require('./epub').extend(Book, Assets)
+epub = require('./epub')
+epub.extend(Book, Assets)
 require('./exporters').extend(Chapter, Book, Assets)
 require('./loaders').extend(Book)
 require('./epubloader').extend(Book)
@@ -17,4 +18,6 @@ module.exports = {
   Assets: Assets
   Chapter: Chapter
   logger: logger
+  addTemplatePath: epub.addTemplatePath
+  getTemplateEnvironment: epub.getTemplateEnvironment
 }
