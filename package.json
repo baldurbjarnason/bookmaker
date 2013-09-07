@@ -40,7 +40,6 @@
   "dependencies": {
     "js-yaml": "~2.0.3",
     "handlebars": "~1.0.10",
-    "robotskirt": "~2.7.1",
     "zipstream-contentment": "~0.2.1",
     "glob": "~3.2.1",
     "jquery": "~1.8.3",
