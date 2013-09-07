@@ -43,7 +43,7 @@ class Book
     return chapter
   addChapter: (chapter, options, callback) ->
     @chapterPrepare chapter
-    if !callback and typeof options is 'function'
+    if typeof options is 'function'
       callback = options
     if options?.ignoreLandmarks
       landmarkHrefs = for type in options.ignoreLandmarks
@@ -53,21 +53,17 @@ class Book
         if landmarkHrefs.indexOf chap.filename is -1
           @chapters.splice(index + 1, 0, chapter)
           @appendOutline chap.filename, chapter
-          if callback and typeof callback is 'function'
-            callback null, this
-          else
-            return this
     else
       @chapters.push(chapter)
       if options?.modifyOutline
         @appendOutline @chapters[@chapters.length-1].filename, chapter
-      if callback and typeof callback is 'function'
-        callback null, this
-      else
-        return this
+    if callback and typeof callback is 'function'
+      callback null, this
+    else
+      return this
   prependChapter: (chapter, options, callback) ->
     @chapterPrepare chapter
-    if !callback and typeof options is 'function'
+    if typeof options is 'function'
       callback = options
     if options?.ignoreLandmarks
       landmarkHrefs = for type in options.ignoreLandmarks
@@ -77,18 +73,14 @@ class Book
         if landmarkHrefs.indexOf chap.filename is -1
           @chapters.splice(index, 0, chapter)
           @prependOutline chap.filename, chapter
-          if callback and typeof callback is 'function'
-            callback null, this
-          else
-            return this
     else
       @chapters.unshift(chapter)
       if options?.modifyOutline
         @prependOutline @chapters[0].filename, chapter
-      if callback and typeof callback is 'function'
-        callback null, this
-      else
-        return this
+    if callback and typeof callback is 'function'
+      callback null, this
+    else
+      return this
   insertBeforeHref: (href, newChapter) ->
     for chapter in @chapters
       if chapter.filename is href

@@ -59,7 +59,7 @@ Book = (function() {
     var chap, index, landmarkHrefs, type, _i, _len, _ref;
 
     this.chapterPrepare(chapter);
-    if (!callback && typeof options === 'function') {
+    if (typeof options === 'function') {
       callback = options;
     }
     if (options != null ? options.ignoreLandmarks : void 0) {
@@ -81,11 +81,6 @@ Book = (function() {
         if (landmarkHrefs.indexOf(chap.filename === -1)) {
           this.chapters.splice(index + 1, 0, chapter);
           this.appendOutline(chap.filename, chapter);
-          if (callback && typeof callback === 'function') {
-            callback(null, this);
-          } else {
-            return this;
-          }
         }
       }
     } else {
@@ -93,11 +88,11 @@ Book = (function() {
       if (options != null ? options.modifyOutline : void 0) {
         this.appendOutline(this.chapters[this.chapters.length - 1].filename, chapter);
       }
-      if (callback && typeof callback === 'function') {
-        return callback(null, this);
-      } else {
-        return this;
-      }
+    }
+    if (callback && typeof callback === 'function') {
+      return callback(null, this);
+    } else {
+      return this;
     }
   };
 
@@ -105,7 +100,7 @@ Book = (function() {
     var chap, index, landmarkHrefs, type, _i, _ref;
 
     this.chapterPrepare(chapter);
-    if (!callback && typeof options === 'function') {
+    if (typeof options === 'function') {
       callback = options;
     }
     if (options != null ? options.ignoreLandmarks : void 0) {
@@ -125,11 +120,6 @@ Book = (function() {
         if (landmarkHrefs.indexOf(chap.filename === -1)) {
           this.chapters.splice(index, 0, chapter);
           this.prependOutline(chap.filename, chapter);
-          if (callback && typeof callback === 'function') {
-            callback(null, this);
-          } else {
-            return this;
-          }
         }
       }
     } else {
@@ -137,11 +127,11 @@ Book = (function() {
       if (options != null ? options.modifyOutline : void 0) {
         this.prependOutline(this.chapters[0].filename, chapter);
       }
-      if (callback && typeof callback === 'function') {
-        return callback(null, this);
-      } else {
-        return this;
-      }
+    }
+    if (callback && typeof callback === 'function') {
+      return callback(null, this);
+    } else {
+      return this;
     }
   };
 
