@@ -28,7 +28,7 @@
 </head>
 <body {% block attributes %}class="chapterBody {{ id }} epub" id="{{ id }}"{% endblock %}>
 	{% block content %}
-		<div class="bm-chapter">{{ html }}</div>
+		<div class="bm-chapter">{{ html | safe }}</div>
 	{% endblock %}
 </body>
 </html>

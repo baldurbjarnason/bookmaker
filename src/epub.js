@@ -30,7 +30,7 @@ nunjucks = require('nunjucks');
 loader = new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/'));
 
 env = new nunjucks.Environment(loader, {
-  autoescape: false,
+  autoescape: true,
   dev: true
 });
 

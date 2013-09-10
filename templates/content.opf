@@ -56,16 +56,16 @@
     <item id="{{ idGen(item) }}" href="{{ item }}" media-type="text/css"/>
     {% endfor %}
     {% for item in assets.jpg %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.png %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/png" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/png" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.gif %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.svg %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.ttf %}
     <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/x-font-ttf"/>
@@ -89,11 +89,11 @@
     <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="video/mp4"/>
     {% endfor %}
     {% for chapter in chapters %}
-        {% if chapter.filename %}<item id="{{ chapter.id }}" href="{{ chapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(chapter) }}/>{% endif %}
+        {% if chapter.filename %}<item id="{{ chapter.id }}" href="{{ chapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(chapter) | safe }}/>{% endif %}
         {% if chapter.subChapters %}
             {% for subChapter in chapter.subChapters.chapters %}
             {% if subChapter.filename %}
-                <item id="{{ subChapter.id }}" href="{{ subChapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(subChapter) }}/>
+                <item id="{{ subChapter.id }}" href="{{ subChapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(subChapter) | safe }}/>
             {% endif %}
             {% endfor %}
         {% endif %}
