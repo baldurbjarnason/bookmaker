@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
 {% endblock %}
 <head>
-<title>{% block title %}{{ title }} – {{ meta.title }}{% endblock %}</title>
+<title>{% block title %}{{ title }}{% endblock %}</title>
 {% block metadata %}
 <meta charset='utf-8'/> 
 {% if meta.fxl and width and height %}
@@ -26,9 +26,9 @@
 <link href="{{ x.href }}" type="{{ x.type }}" rel="{{ x.rel }}"{% if x.hreflang %} hreflang="{{ x.hreflang }}"{% endif %}{% if this.title %} title="{{ x.title }}"{% endif %} />
 {%- endfor %}{% endblock %}
 </head>
-<body {% block attributes %}class="chapterBody {{ id }} epub" id="{{ id }}"{% endblock %}>
+<body {% block attributes %}class="chapterBody {{ id }} epub bm-chapter" id="{{ id }}"{% endblock %}>
 	{% block content %}
-		<div class="bm-chapter">{{ html | safe }}</div>
+		{{ html | safe }}
 	{% endblock %}
 </body>
 </html>

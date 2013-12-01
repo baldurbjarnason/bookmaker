@@ -1,0 +1,6 @@
+{% macro metaArray(meta, element='text') %}
+<dc:{{ element }} id="{{ meta.id }}">{{ meta.name }}</dc:{{ element }}>
+{‰ for refines in meta.properties ‰}
+<meta refines="#{{ meta.id }}"{% if refines.property %} property="{{ refines.property }}"{% endif %}{% if refines.scheme %} scheme="{{ refines.scheme }}"{% endif %}{% if refines.id %}  id="{{ refines.id }}"{% endif %} >{{ refines.value }}</meta>
+{%- endfor -%}
+{% endmacro %}
