@@ -44,6 +44,8 @@ The `obfuscateFonts: true` option is the only config option that toEpub currentl
 
 There are other methods and functions but a lot of those will be rewritten or removed soon and so shouldn't be used.
 
+The jsdom integration currently only exists in a separate module which I plan on integrating soon.
+
 ## Development
 
 Tests use [mocha](https://npmjs.org/package/mocha). The project is written in coffeescript but I am open to rewriting it in plain javascript once I'm happy with the basic feature set. Grunt is used to drive the coffeescript->js conversion and lint the files in the process. Templates are written in [nunjucks](https://npmjs.org/package/nunjucks). The loggers use [winston](https://npmjs.org/package/winston) but replacing those should be simple for those who need something different.
