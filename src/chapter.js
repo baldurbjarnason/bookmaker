@@ -107,7 +107,7 @@ toHtml = Chapter.prototype.toHtml = function() {
       return this.processHTML(this.body);
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return this.processHTML(typogr.typogrify(bodytemplate(this.context())));
+      return this.processHTML(bodytemplate(this.context()));
     case 'xhtml':
       return this.body;
   }

@@ -56,7 +56,7 @@ toHtml = Chapter.prototype.toHtml = ->
       @processHTML @body
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      @processHTML typogr.typogrify bodytemplate(@context())
+      @processHTML bodytemplate(@context())
     when 'xhtml'
       @body
 
