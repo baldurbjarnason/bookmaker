@@ -53,7 +53,7 @@ toHtml = Chapter.prototype.toHtml = ->
     when 'md'
       @processHTML typogr.typogrify marked @body
     when 'html'
-      @processHTML typogr.typogrify @body
+      @processHTML @body
     when 'hbs'
       bodytemplate = handlebars.compile @body
       @processHTML typogr.typogrify bodytemplate(@context())

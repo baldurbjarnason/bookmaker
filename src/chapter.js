@@ -104,7 +104,7 @@ toHtml = Chapter.prototype.toHtml = function() {
     case 'md':
       return this.processHTML(typogr.typogrify(marked(this.body)));
     case 'html':
-      return this.processHTML(typogr.typogrify(this.body));
+      return this.processHTML(this.body);
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
       return this.processHTML(typogr.typogrify(bodytemplate(this.context())));
