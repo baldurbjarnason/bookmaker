@@ -16,6 +16,8 @@
 {%- for x in assets.css -%}
 <link href="{{ relative(filename, x) }}" type="text/css" rel="stylesheet" />
 {%- endfor -%}{% endif %}
+{% if styleBlock %}<style type="text/css">{{ styleBlock }}</style>
+{% endif %}
 {%- endblock -%}
 {% block js %}{% if meta.specifiedJs -%}{% for x in js -%}
 <script src="{{ relative(filename, x) }}" type="application/javascript"></script>
