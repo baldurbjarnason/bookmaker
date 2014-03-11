@@ -43,7 +43,6 @@ filter = function(key, value) {
 
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;
-
   absolutecurrent = path.dirname(path.resolve("/", current));
   absolutetarget = path.resolve("/", target);
   relativetarget = path.relative(absolutecurrent, absolutetarget);
@@ -53,7 +52,6 @@ relative = function(current, target) {
 extendChapter = function(Chapter) {
   Chapter.prototype.toHal = function() {
     var banned, hal, href, htmlpath, key, selfindex, selfpath, tocpath, urlgen, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
-
     banned = ['links', 'book', 'meta', 'filename', 'assets', 'chapters', 'html', 'context', 'epubManifest', 'epubSpine', 'navList', 'epubNCX'];
     hal = {};
     _ref = Object.keys(this);
@@ -90,7 +88,6 @@ extendChapter = function(Chapter) {
     if (((_ref4 = this.book.assets) != null ? _ref4.css : void 0) && !this.book.meta.specifiedCss) {
       hal._links.stylesheets = (function() {
         var _j, _len1, _ref5, _results;
-
         _ref5 = this.book.assets.css;
         _results = [];
         for (_j = 0, _len1 = _ref5.length; _j < _len1; _j++) {
@@ -105,7 +102,6 @@ extendChapter = function(Chapter) {
     } else if (this.css) {
       hal._links.stylesheets = (function() {
         var _j, _len1, _ref5, _results;
-
         _ref5 = this.css;
         _results = [];
         for (_j = 0, _len1 = _ref5.length; _j < _len1; _j++) {
@@ -121,7 +117,6 @@ extendChapter = function(Chapter) {
     if (((_ref5 = this.book.assets) != null ? _ref5.js : void 0) && !this.book.meta.specifiedJs) {
       hal._links.javascript = (function() {
         var _j, _len1, _ref6, _results;
-
         _ref6 = this.book.assets.js;
         _results = [];
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
@@ -136,7 +131,6 @@ extendChapter = function(Chapter) {
     } else if (this.js) {
       hal._links.javascript = (function() {
         var _j, _len1, _ref6, _results;
-
         _ref6 = this.js;
         _results = [];
         for (_j = 0, _len1 = _ref6.length; _j < _len1; _j++) {
@@ -168,7 +162,6 @@ extendChapter = function(Chapter) {
   };
   Chapter.prototype.toJSON = function() {
     var hal;
-
     hal = this.toHal();
     return JSON.stringify(hal, filter, 2);
   };
@@ -182,7 +175,6 @@ extendAssets = function(Assets) {
 extendBook = function(Book) {
   Book.prototype.uri = function(current, target) {
     var _ref;
-
     if ((_ref = this._state) != null ? _ref.baseurl : void 0) {
       return url.resolve(this._state.baseurl, target);
     } else {
@@ -191,7 +183,6 @@ extendBook = function(Book) {
   };
   Book.prototype.toHal = function(options) {
     var chapter, covertype, hal, href, image, selfpath, stylesheet, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2, _ref3, _ref4;
-
     hal = utilities.jsonClone(this.meta);
     if (!this._state) {
       this._state = {};
@@ -246,7 +237,6 @@ extendBook = function(Book) {
     if (!(options != null ? options.embedChapters : void 0)) {
       hal._links.chapters = (function() {
         var _i, _len, _ref1, _results;
-
         _ref1 = this.chapters;
         _results = [];
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
@@ -298,7 +288,6 @@ extendBook = function(Book) {
     }
     hal._links.stylesheets = (function() {
       var _len4, _m, _ref5, _results;
-
       _ref5 = this.assets.css;
       _results = [];
       for (_m = 0, _len4 = _ref5.length; _m < _len4; _m++) {
@@ -312,7 +301,6 @@ extendBook = function(Book) {
     }).call(this);
     hal._links.javascript = (function() {
       var _len4, _m, _ref5, _results;
-
       _ref5 = this.assets.js;
       _results = [];
       for (_m = 0, _len4 = _ref5.length; _m < _len4; _m++) {
@@ -332,13 +320,11 @@ extendBook = function(Book) {
   };
   Book.prototype.toJSON = function(options) {
     var hal;
-
     hal = this.toHal(options);
     return JSON.stringify(hal, filter, 2);
   };
   Book.prototype.toJsonFiles = function(directory, options, callback) {
     var chapter, context, hal, json, selfindex, tasks, _i, _len, _ref;
-
     hal = this.toHal(options);
     hal.assetsPath = this.assets.assetsPath;
     json = JSON.stringify(hal, filter, 2);
@@ -384,7 +370,6 @@ extendBook = function(Book) {
   };
   Book.prototype.toHtmlFiles = function(directory, options, callback) {
     var book, chapter, context, jsonpath, selfindex, selfpath, tasks, _i, _len, _ref, _ref1, _ref2, _ref3;
-
     logger.log.info("Writing HTML files");
     book = Object.create(this);
     if (!book._state) {
@@ -460,7 +445,6 @@ extendBook = function(Book) {
   };
   Book.prototype.toHtmlAndJsonFiles = function(directory, options, callback) {
     var book;
-
     book = Object.create(this);
     book._state = {};
     book._state.htmlAndJson = true;

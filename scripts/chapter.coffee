@@ -77,6 +77,8 @@ Chapter.prototype.processHTML = (html) ->
   addId = (el, elem) ->
     unless el.id
       el.id = elem + '-' + counter(elem)
+    else
+      el.id = 'id' + el.id if el.id.match(/\d+/)
   elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code']
   for elem in elements
     $(elem).each((index) -> addId(this, elem))

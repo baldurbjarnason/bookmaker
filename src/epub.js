@@ -1,7 +1,7 @@
 'use strict';
 var Chapter, addStoredToZip, addTemplatePath, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, getTemplateEnvironment, glob, isCover, loader, logger, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, templateLoaders, templatePaths, templates, temppath, toEpub, utilities, zipStream, _i, _len;
 
-zipStream = require('zipstream-contentment');
+zipStream = require('../zipstream-contentment');
 
 async = require('async');
 
@@ -71,7 +71,6 @@ isCover = function(path) {
 
 chapterProperties = function(chapter) {
   var prop, properties;
-
   properties = [];
   chapter.svg = chapter.svg || [];
   chapter.js = chapter.js || [];
@@ -91,13 +90,11 @@ chapterProperties = function(chapter) {
 
 processLandmarks = function(landmarks) {
   var landmark;
-
   if (!landmarks) {
     return;
   }
   landmarks = (function() {
     var _j, _len1, _results;
-
     _results = [];
     for (_j = 0, _len1 = landmarks.length; _j < _len1; _j++) {
       landmark = landmarks[_j];
@@ -118,7 +115,6 @@ processLandmarks = function(landmarks) {
 
 generateChapters = function(book) {
   var copyright, titlepage, toc;
-
   if (book.generate.htmlToc) {
     toc = {
       title: 'Table of Contents',
@@ -170,7 +166,6 @@ generateChapters = function(book) {
 
 toEpub = function(out, options, callback) {
   var book, final, zip;
-
   logger.log.info('Rendering EPUB');
   book = Object.create(this);
   zip = zipStream.createZip({
@@ -191,7 +186,6 @@ toEpub = function(out, options, callback) {
 
 renderEpub = function(book, out, options, zip, callback) {
   var tasks;
-
   book._state = {};
   book._state.htmltype = "application/xhtml+xml";
   book.counter = utilities.countergen();
@@ -224,11 +218,9 @@ renderEpub = function(book, out, options, zip, callback) {
 
 extendAssets = function(Assets) {
   var mangleTask;
-
   mangleTask = function(item, assets, zip, id, callback) {
     return assets.get(item, function(err, data) {
       var file;
-
       file = mangler.mangle(data, id);
       return zip.addFile(file, {
         name: item
@@ -237,7 +229,6 @@ extendAssets = function(Assets) {
   };
   Assets.prototype.addMangledFontsToZip = function(zip, id, callback) {
     var item, tasks, _j, _k, _l, _len1, _len2, _len3, _ref, _ref1, _ref2;
-
     tasks = [];
     _ref = this['otf'];
     for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
@@ -258,7 +249,6 @@ extendAssets = function(Assets) {
   };
   Assets.prototype.mangleFonts = function(zip, id, callback) {
     var fonts;
-
     fonts = this.ttf.concat(this.otf, this.woff);
     return this.addMangledFontsToZip(zip, id, function() {
       return zip.addFile(env.getTemplate('encryption.xml').render({

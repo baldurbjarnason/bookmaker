@@ -6,7 +6,7 @@ index = require '../src/index'
 Chapter = index.Chapter
 Book = index.Book
 Assets = index.Assets
-zipStream = require('zipstream-contentment')
+zipStream = require('../zipstream-contentment')
 fs = require 'fs'
 glob = require 'glob'
 

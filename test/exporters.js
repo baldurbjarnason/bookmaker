@@ -13,7 +13,7 @@ Book = index.Book;
 
 Assets = index.Assets;
 
-zipStream = require('zipstream-contentment');
+zipStream = require('../zipstream-contentment');
 
 fs = require('fs');
 

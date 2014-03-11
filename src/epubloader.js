@@ -35,7 +35,6 @@ EpubLoaderMixin = (function() {
 
   EpubLoaderMixin.fromEpub = function(epubpath, assetsroot, callback) {
     var Assets, Book, Chapter, buildMetaArrays, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, handleRefines, parseChapter, preBook, processNav, tasks, unMangle;
-
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
     Book = this;
@@ -44,12 +43,10 @@ EpubLoaderMixin = (function() {
     logger.log.info("Extraction starting");
     findOpf = function(callback) {
       var xml;
-
       xml = epub.readAsText('META-INF/container.xml');
       logger.log.info("EPUB – Finding opf file");
       return parseString(xml, function(err, result) {
         var rootfile;
-
         if (err) {
           logger.log.error(err);
           callback(err);
@@ -72,7 +69,6 @@ EpubLoaderMixin = (function() {
     };
     handleRefines = function(elem) {
       var newProp, refinedId;
-
       if (elem.$['refines'][0] !== '#') {
 
       } else {
@@ -99,7 +95,6 @@ EpubLoaderMixin = (function() {
     };
     buildMetaArrays = function(metaArray, metadataType) {
       var arr, elem, metaObj, _i, _len, _ref, _ref1, _ref2, _ref3;
-
       arr = [];
       for (_i = 0, _len = metaArray.length; _i < _len; _i++) {
         elem = metaArray[_i];
@@ -124,7 +119,6 @@ EpubLoaderMixin = (function() {
     };
     createMetaAndSpine = function(xml, callback) {
       var elem, item, landmarks, manifest, meta, metadata, props, reference, references, type, uid, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
-
       metadata = xml["package"].metadata[0];
       uid = xml["package"].$['unique-identifier'];
       preBook.meta = meta = {};
@@ -234,7 +228,6 @@ EpubLoaderMixin = (function() {
       logger.log.info('EPUB – Extracting metadata');
       preBook.spine = (function() {
         var _k, _len2, _ref2, _results;
-
         _ref2 = xml["package"].spine[0].itemref;
         _results = [];
         for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
@@ -299,7 +292,6 @@ EpubLoaderMixin = (function() {
     };
     extractLandmarks = function(index, element) {
       var href, title, type;
-
       type = $(this).attr('epub:type');
       title = $(this).text();
       href = $(this).attr('href');
@@ -315,7 +307,6 @@ EpubLoaderMixin = (function() {
     };
     processNav = function(callback) {
       var body, xml;
-
       xml = epub.readAsText(path.join(preBook.basedir, preBook.navPath));
       body = xml.split(bodyre)[2];
       $('body').html(body);
@@ -331,10 +322,8 @@ EpubLoaderMixin = (function() {
     };
     extractAssetsAndCreateBook = function(callback) {
       var assets, assetslist, entry, _i, _len;
-
       assetslist = epub.getEntries().filter(function(entry) {
         var ext;
-
         ext = path.extname(entry.entryName);
         if (entry.entryName === 'mimetype') {
           return false;
@@ -372,7 +361,6 @@ EpubLoaderMixin = (function() {
       chapterpath = unescape(chapterpath);
       return parseString(xml, function(err, result) {
         var chapter, heightRE, link, links, metatag, metatags, script, scripts, svgEmbedRE, svgLinkRE, widthRE, _i, _j, _k, _len, _len1, _len2, _links;
-
         logger.log.info("EPUB – Parsing " + chapterpath);
         if (err) {
           logger.log.error(err);
@@ -433,7 +421,6 @@ EpubLoaderMixin = (function() {
     };
     extractChapters = function(callback) {
       var chapter, chapterpath, chapters, xml, _i, _len, _ref;
-
       chapters = [];
       _ref = preBook.spine;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -448,11 +435,9 @@ EpubLoaderMixin = (function() {
     };
     unMangle = function(callback) {
       var xml;
-
       xml = epub.readAsText('META-INF/encryption.xml');
       return parseString(xml, function(err, result) {
         var eData, font, fontpath, fontpaths, _i, _j, _len, _len1, _ref;
-
         if (err) {
           logger.log.error(err);
           callback(err);

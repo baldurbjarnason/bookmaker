@@ -22,6 +22,7 @@ class Assets
       callback()
     zip.addFile(@getStream(item), { name: item }, resolver)
   addTypeToZip: (type, zip, callback) ->
+    console.log "adding #{type} to zip"
     tasks = []
     for item in this[type]
       tasks.push(@addItemToZip.bind(this, item, zip))

@@ -16,13 +16,11 @@ LoaderMixin = (function() {
 
   LoaderMixin.loadBookDir = function(directory) {
     var Assets, Book, Chapter, NewBook, assets, book, booktxt, chapter, loadFile, loadTxt, mdchaptergen, meta, stripre, titlecounter, titlere, _i, _len, _ref;
-
     titlecounter = 0;
     titlere = new RegExp('^# (.+)', 'm');
     stripre = new RegExp('\\W', 'g');
     mdchaptergen = function(chapter) {
       var title, _ref;
-
       title = (_ref = titlere.exec(chapter)) != null ? _ref[1] : void 0;
       if (title) {
         return {
@@ -43,7 +41,6 @@ LoaderMixin = (function() {
     Assets = this.Assets;
     loadFile = function(filename, book) {
       var basepath, doc, docs, file, type;
-
       if (fs.existsSync(path.resolve(directory, 'chapters', filename))) {
         file = fs.readFileSync(path.resolve(directory, 'chapters', filename), 'utf8');
       }
@@ -64,7 +61,6 @@ LoaderMixin = (function() {
     };
     loadTxt = function(booktxt, book) {
       var emptyline, filename, list, _i, _len;
-
       list = booktxt.trim().split(/\n/);
       emptyline = /^\s$/;
       for (_i = 0, _len = list.length; _i < _len; _i++) {

@@ -31,7 +31,7 @@ describe 'EpubLoader',
             book.meta.subject1.should.equal("Foobar")
             book.meta.cover.should.equal("assets/cover.jpg")
             book.chapters[0].title.should.equal('Markdown')
-            book.chapters[0].body.should.equal('\n\t\n\t\t<h1 id="h1-1">header</h1>\n<p class="noindent" id="p-1">Test</p>\n\n\t\n')
+            book.chapters[0].body.should.equal('\n\t\n\t\t<h1 id="header">header</h1>\n<p class="noindent" id="p-1">Test</p>\n\n\t\n')
             book.chapters[1].title.should.equal('HTML')
             book.chapters[1].body.should.equal('\n\t\n\t\t<h1 id="h1-1">header</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p>\n\t\n')
             book.chapters[2].title.should.equal('XHTML')

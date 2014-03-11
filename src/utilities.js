@@ -12,7 +12,9 @@ logger = require('./logger');
 
 relative = function(current, target) {
   var absolutecurrent, absolutetarget, relativetarget;
-
+  if (!current) {
+    current = "/";
+  }
   absolutecurrent = path.dirname(path.resolve("/", current));
   absolutetarget = path.resolve("/", target);
   relativetarget = path.relative(absolutecurrent, absolutetarget);
@@ -21,10 +23,8 @@ relative = function(current, target) {
 
 pageLinks = function(page, book) {
   var key, link, links, type, value, _ref, _ref1;
-
   links = (function() {
     var _ref, _results;
-
     _ref = page._links;
     _results = [];
     for (key in _ref) {
@@ -87,7 +87,6 @@ ensuredir = function(directory, callback) {
 
 write = function(filename, data, callback) {
   var container;
-
   container = path.dirname(filename);
   mkdirp.sync(container);
   return fs.writeFile(filename, data, function(err) {
@@ -103,11 +102,9 @@ write = function(filename, data, callback) {
 
 mixin = function() {
   var DonatingClasses, ReceivingClass, donate, donator, _i, _len;
-
   ReceivingClass = arguments[0], DonatingClasses = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
   donate = function(DonatingClass) {
     var key, value, _ref, _results;
-
     _ref = DonatingClass.prototype;
     for (key in _ref) {
       value = _ref[key];
@@ -135,7 +132,6 @@ mixin = function() {
 
 addToZip = function(zip, fn, file, callback, store) {
   var options, resolver;
-
   options = {
     name: fn
   };
@@ -155,7 +151,6 @@ addToZip = function(zip, fn, file, callback, store) {
 
 addStoredToZip = function(zip, fn, file, callback) {
   var options, resolver;
-
   options = {
     name: fn
   };
@@ -173,7 +168,6 @@ addStoredToZip = function(zip, fn, file, callback) {
 
 countergen = function() {
   var _counter;
-
   _counter = {};
   return function(namespace) {
     if (!_counter[namespace]) {
@@ -188,7 +182,6 @@ idre = new RegExp("[^A-Za-z0-9_\\.\\-\\:]", "g");
 
 idGen = function(fn) {
   var safe;
-
   safe = fn.replace(idre, "");
   return "id" + safe;
 };

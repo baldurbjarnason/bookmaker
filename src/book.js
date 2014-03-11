@@ -16,7 +16,6 @@ $ = require('jquery');
 Book = (function() {
   function Book(meta, assets) {
     var fn, _i, _len, _ref;
-
     this.assets = assets;
     this.chapters = [];
     this.meta = meta;
@@ -57,7 +56,6 @@ Book = (function() {
 
   Book.prototype.addChapter = function(chapter, options, callback) {
     var chap, index, landmarkHrefs, type, _i, _len, _ref;
-
     this.chapterPrepare(chapter);
     if (typeof options === 'function') {
       callback = options;
@@ -65,7 +63,6 @@ Book = (function() {
     if (options != null ? options.ignoreLandmarks : void 0) {
       landmarkHrefs = (function() {
         var _i, _len, _ref, _results;
-
         _ref = options.ignoreLandmarks;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -98,7 +95,6 @@ Book = (function() {
 
   Book.prototype.prependChapter = function(chapter, options, callback) {
     var chap, index, landmarkHrefs, type, _i, _ref;
-
     this.chapterPrepare(chapter);
     if (typeof options === 'function') {
       callback = options;
@@ -106,7 +102,6 @@ Book = (function() {
     if (options != null ? options.ignoreLandmarks : void 0) {
       landmarkHrefs = (function() {
         var _i, _len, _ref, _results;
-
         _ref = options.ignoreLandmarks;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -137,7 +132,6 @@ Book = (function() {
 
   Book.prototype.insertBeforeHref = function(href, newChapter) {
     var chapter, index, _i, _len, _ref;
-
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       chapter = _ref[_i];
@@ -152,7 +146,6 @@ Book = (function() {
 
   Book.prototype.insertAfterHref = function(href, newChapter) {
     var chapter, index, _i, _len, _ref;
-
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       chapter = _ref[_i];
@@ -167,7 +160,6 @@ Book = (function() {
 
   Book.prototype.findLandmarkHref = function(landmark) {
     var landmarkHref, _i, _len, _ref;
-
     _ref = this.meta.landmarks;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       landmark = _ref[_i];
@@ -180,7 +172,6 @@ Book = (function() {
 
   Book.prototype.updateLandmark = function(landmarkType, newLandmark, newTitle) {
     var landmark, _i, _len, _ref, _results;
-
     _ref = this.meta.landmarks;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -201,7 +192,6 @@ Book = (function() {
 
   Book.prototype.prependOutline = function(href, chapter) {
     var html;
-
     if (this.outline) {
       $('body').html(this.outline);
       html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
@@ -212,7 +202,6 @@ Book = (function() {
 
   Book.prototype.appendOutline = function(href, chapter) {
     var html;
-
     if (this.outline) {
       $('body').html(this.outline);
       html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
@@ -225,7 +214,6 @@ Book = (function() {
 
   Book.prototype.addChaptersToZip = function(zip, template, callback) {
     var chapter, context, tasks, _i, _len, _ref;
-
     tasks = [];
     _ref = this.chapters;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -242,10 +230,8 @@ Book = (function() {
 
 dateProcess = function(date) {
   var pad, _date, _meta;
-
   pad = function(n) {
     var padded;
-
     if (n < 10) {
       padded = '0' + n;
     } else {

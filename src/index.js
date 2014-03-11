@@ -30,7 +30,6 @@ Book.Chapter = Chapter;
 
 fromEpub = function(epubPath, callback) {
   var tempdir, temppath;
-
   temppath = path.resolve(os.tmpDir(), 'bm' + crypto.randomBytes(4).toString('hex'));
   tempdir = fs.mkdirSync(temppath);
   return Book.fromEpub(epubPath, temppath, function(err, book) {

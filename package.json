@@ -40,19 +40,19 @@
   "dependencies": {
     "js-yaml": "~2.0.3",
     "handlebars": "~1.0.10",
-    "zipstream-contentment": "~0.2.1",
     "glob": "~3.2.1",
     "jquery": "~1.8.3",
     "ncp": "~0.4.2",
     "mkdirp": "~0.3.5",
-    "nunjucks": "~0.1.10",
-    "adm-zip": "~0.4.3",
+    "adm-zip": "~0.4.4",
     "xml2js": "~0.2.8",
     "winston": "~0.7.2",
     "rimraf": "~2.2.0",
-    "async": "~0.2.9",
     "typogr": "~0.6.1",
     "marked": "~0.2.9",
-    "highlight.js": "~7.3.0"
+    "highlight.js": "~7.3.0",
+    "when": "~2.8.0",
+    "async": "~0.2.10",
+    "nunjucks": "~1.0.1"
   }
 }

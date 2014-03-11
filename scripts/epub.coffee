@@ -1,6 +1,6 @@
 'use strict'
 
-zipStream = require('zipstream-contentment')
+zipStream = require('../zipstream-contentment')
 async = require 'async'
 path = require('path')
 glob = require 'glob'
