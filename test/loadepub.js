@@ -14,7 +14,6 @@ testbook = {};
 describe('EpubLoader', function() {
   beforeEach(function(done) {
     var book, load;
-
     load = function(err, book) {
       testbook = book;
       return done();
@@ -24,7 +23,6 @@ describe('EpubLoader', function() {
   return describe('#loadEpub', function() {
     return it('Loads the book from an epub', function() {
       var book;
-
       book = testbook;
       book.meta.title.should.equal('The Wonderful Wizard of Oz');
       book.meta.author.should.equal('L. Frank Baum');

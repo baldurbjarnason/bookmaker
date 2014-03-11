@@ -75,7 +75,7 @@ describe 'Chapter',
             testchapter = new Chapter(testchapters.md)
             testchapter.title.should.equal('Markdown')
             testchapter.should.be.instanceOf(Chapter)
-            testchapter.html.should.equal('<h1 id="h1-1">header</h1>\n<p class="noindent" id="p-1">Test</p>\n')
+            testchapter.html.should.equal('<h1 id="header">header</h1>\n<p class="noindent" id="p-1">Test</p>\n')
     describe '#html (hbs)',
       () ->
         it 'should correctly render xhtml body content',

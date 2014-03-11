@@ -43,7 +43,6 @@ describe('Chapter', function() {
   describe('#constructor', function() {
     return it('should contain all of the properties of the passed object', function() {
       var testchapter;
-
       testchapter = new Chapter(testchapters.html);
       testchapter.title.should.equal('HTML');
       return testchapter.arbitraryMeta.should.equal('is arbitrary');
@@ -52,7 +51,6 @@ describe('Chapter', function() {
   describe('#context', function() {
     return it('should contain all of the context needed for templates', function() {
       var context;
-
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum'
@@ -73,7 +71,6 @@ describe('Chapter', function() {
   describe('#html (html)', function() {
     return it('should correctly render xhtml body content', function() {
       var testchapter;
-
       testchapter = new Chapter(testchapters.html);
       testchapter.title.should.equal('HTML');
       testchapter.arbitraryMeta.should.equal('is arbitrary');
@@ -84,11 +81,10 @@ describe('Chapter', function() {
   describe('#html (md)', function() {
     return it('should correctly render xhtml body content', function() {
       var testchapter;
-
       testchapter = new Chapter(testchapters.md);
       testchapter.title.should.equal('Markdown');
       testchapter.should.be.instanceOf(Chapter);
-      return testchapter.html.should.equal('<h1 id="h1-1">header</h1>\n<p class="noindent" id="p-1">Test</p>\n');
+      return testchapter.html.should.equal('<h1 id="header">header</h1>\n<p class="noindent" id="p-1">Test</p>\n');
     });
   });
   describe('#html (hbs)', function() {
@@ -107,7 +103,6 @@ describe('Chapter', function() {
   describe('#html (xhtml)', function() {
     return it('should correctly render xhtml body content', function() {
       var testchapter;
-
       testchapter = new Chapter(testchapters.xhtml);
       testchapter.title.should.equal('XHTML');
       testchapter.should.be.instanceOf(Chapter);
@@ -117,7 +112,6 @@ describe('Chapter', function() {
   return describe('#toJSON', function() {
     return it('should correctly give you a safe json file', function() {
       var jsontest;
-
       testbook = new Book({
         title: 'The Wonderful Wizard of Oz',
         author: 'L. Frank Baum'
