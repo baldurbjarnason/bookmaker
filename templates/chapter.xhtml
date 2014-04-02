@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
 {% endblock %}
 <head>
-<title>{% block title %}{{ title }}{% endblock %}</title>
+<title>{% block title %}{{ title | escape }}{% endblock %}</title>
 {% block metadata %}
 <meta charset='utf-8'/> 
 {% if meta.fxl and width and height %}

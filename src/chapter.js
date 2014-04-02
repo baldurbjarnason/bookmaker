@@ -130,7 +130,7 @@ Chapter.prototype.processHTML = function(html) {
     if (!el.id) {
       return el.id = elem + '-' + counter(elem);
     } else {
-      if (el.id.match(/\d+/)) {
+      if (el.id.match(/^\d+/)) {
         return el.id = 'id' + el.id;
       }
     }
