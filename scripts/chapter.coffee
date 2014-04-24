@@ -68,6 +68,13 @@ Chapter.prototype.processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   $('img').addClass('bookmaker-respect')
+  if @meta.kindle
+    $('a[data-kindle-href]').each () ->
+      $(this).attr('href', $(this).attr('data-kindle-href'))
+  if @meta.ibooks
+    $('a[data-kindle-href]').each () ->
+      $(this).attr('href', $(this).attr('data-kindle-href'))
+      return
   _counter = {}
   counter = (elem) ->
     unless _counter[elem]

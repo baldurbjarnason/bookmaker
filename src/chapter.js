@@ -118,6 +118,16 @@ Chapter.prototype.processHTML = function(html) {
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   $('img').addClass('bookmaker-respect');
+  if (this.meta.kindle) {
+    $('a[data-kindle-href]').each(function() {
+      return $(this).attr('href', $(this).attr('data-kindle-href'));
+    });
+  }
+  if (this.meta.ibooks) {
+    $('a[data-kindle-href]').each(function() {
+      $(this).attr('href', $(this).attr('data-kindle-href'));
+    });
+  }
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {
