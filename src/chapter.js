@@ -124,8 +124,8 @@ Chapter.prototype.processHTML = function(html) {
     });
   }
   if (this.meta.ibooks) {
-    $('a[data-kindle-href]').each(function() {
-      $(this).attr('href', $(this).attr('data-kindle-href'));
+    $('a[data-ibooks-href]').each(function() {
+      $(this).attr('href', $(this).attr('data-ibooks-href'));
     });
   }
   _counter = {};
