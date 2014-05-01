@@ -1,8 +1,8 @@
 {
   "name": "bookmaker",
   "description": "A module for ebook creation",
-  "version": "0.1.0",
-  "homepage": "https://github.com/baldurbjarnason/bookmaker",
+  "version": "0.2.0",
+  "homepage": "https://github.com/unbounders/bookmaker",
   "author": {
     "name": "Baldur Bjarnason",
     "email": "bb@baldurbjarnason.com",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/baldurbjarnason/bookmaker.git"
+    "url": "git://github.com/unbounders/bookmaker.git"
   },
   "bugs": {
-    "url": "https://github.com/baldurbjarnason/bookmaker/issues"
+    "url": "https://github.com/unbounders/bookmaker/issues"
   },
   "licenses": [
     {
       "type": "BSD",
-      "url": "https://github.com/baldurbjarnason/bookmaker/blob/master/LICENSE"
+      "url": "https://github.com/unbounders/bookmaker/blob/master/LICENSE"
     }
   ],
   "main": "src/index.js",
