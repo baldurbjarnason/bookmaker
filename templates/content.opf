@@ -28,6 +28,27 @@
     <meta property="ibooks:specified-fonts">true</meta>
     <meta property="ibooks:respect-image-size-class">bookmaker-respect</meta>
     <meta property="ibooks:version">{{ meta.version }}</meta>
+    {% if meta.fxl %}
+    <meta property="rendition:layout">pre-paginated</meta>
+    <meta name="original-resolution" content="{{ chapters[0].width }}x{{ chapters[0].height }}"/>
+    {% if meta.fxlSpread %}
+    <meta property="rendition:spread">{{ meta.fxlSpread }}</meta>
+    {% endif %}
+    {% if meta.fxlOrientation %}
+    <meta property="rendition:orientation">{{ meta.fxlOrientation }}</meta>
+    {% endif %}
+    {% if meta.fxlBinding %}
+    <meta property="ibooks:binding">{{ meta.fxlBinding }}</meta>
+    {% endif %}
+    {% if meta.fxliPadOrientationLock %}
+    <meta property="ibooks:ipad-orientation-lock">{{ meta.fxliPadOrientationLock }}</meta>
+    {% endif %}
+    {% if meta.fxliPhoneOrientationLock %}
+    <meta property="ibooks:iphone-orientation-lock">{{ meta.fxliPadOrientationLock }}</meta>
+    {% endif %}
+    
+
+    {% endif %}
 </metadata>
   <manifest>
     <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml" />
@@ -35,16 +56,16 @@
     <item id="{{ idGen(item) }}" href="{{ item }}" media-type="text/css"/>
     {% endfor %}
     {% for item in assets.jpg %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/jpeg" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.png %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/png" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/png" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.gif %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/gif" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.svg %}
-    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) }}/>
+    <item id="{{ idGen(item) }}" href="{{ item }}" media-type="image/svg+xml" {{ isCover(item) | safe }}/>
     {% endfor %}
     {% for item in assets.ttf %}
     <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="application/x-font-ttf"/>
@@ -68,11 +89,11 @@
     <item id="assets{{ counter('assets') }}" href="{{ item }}" media-type="video/mp4"/>
     {% endfor %}
     {% for chapter in chapters %}
-        {% if chapter.filename %}<item id="{{ chapter.id }}" href="{{ chapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(chapter) }}/>{% endif %}
+        {% if chapter.filename %}<item id="{{ chapter.id }}" href="{{ chapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(chapter) | safe }}/>{% endif %}
         {% if chapter.subChapters %}
             {% for subChapter in chapter.subChapters.chapters %}
             {% if subChapter.filename %}
-                <item id="{{ subChapter.id }}" href="{{ subChapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(subChapter) }}/>
+                <item id="{{ subChapter.id }}" href="{{ subChapter.filename }}" media-type="application/xhtml+xml" {{ chapterProperties(subChapter) | safe }}/>
             {% endif %}
             {% endfor %}
         {% endif %}

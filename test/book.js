@@ -107,7 +107,6 @@ describe('Book', function() {
   return describe('#addChapter', function() {
     return it('should generate the appropriate properties but no more', function() {
       var testchapter;
-
       testchapter = new Chapter(testchapters.chapter1);
       testbook.addChapter(testchapter);
       testbook.chapters[0].should.have.property('body', '# This is Markdown!');

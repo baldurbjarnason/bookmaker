@@ -2,9 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="{{ meta.lang }}">
 {% endblock %}
 <head>
-<title>{% block title %}{{ title }} – {{ meta.title }}{% endblock %}</title>
+<title>{% block title %}{{ title | escape }}{% endblock %}</title>
 {% block metadata %}
 <meta charset='utf-8'/> 
+{% if meta.fxl and width and height %}
+<meta name="viewport" content="width={{ width }}, height={{ height }}"/>
+{% endif %}
 {% endblock%}
 {%- block css -%}
 {%- if meta.specifiedCss -%}{%- for x in css -%}
@@ -13,6 +16,8 @@
 {%- for x in assets.css -%}
 <link href="{{ relative(filename, x) }}" type="text/css" rel="stylesheet" />
 {%- endfor -%}{% endif %}
+{% if styleBlock %}<style type="text/css">{{ styleBlock }}</style>
+{% endif %}
 {%- endblock -%}
 {% block js %}{% if meta.specifiedJs -%}{% for x in js -%}
 <script src="{{ relative(filename, x) }}" type="application/javascript"></script>
@@ -23,9 +28,9 @@
 <link href="{{ x.href }}" type="{{ x.type }}" rel="{{ x.rel }}"{% if x.hreflang %} hreflang="{{ x.hreflang }}"{% endif %}{% if this.title %} title="{{ x.title }}"{% endif %} />
 {%- endfor %}{% endblock %}
 </head>
-<body {% block attributes %}class="chapterBody {{ id }} epub" id="{{ id }}"{% endblock %}>
+<body {% block attributes %}class="chapterBody {{ id }} epub bm-chapter" id="{{ id }}"{% endblock %}>
 	{% block content %}
-		<div class="chapter" id="bm-chapter">{{ html }}</div>
+		{{ html | safe }}
 	{% endblock %}
 </body>
 </html>

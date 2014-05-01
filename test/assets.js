@@ -55,7 +55,6 @@ describe('Assets', function() {
   return describe('#copy', function() {
     return it('should copy the assets folder to a new location', function(done) {
       var assets1, assets2;
-
       return testassets.copy('test/files/assets2/', function() {}, assets1 = glob.sync('assets/*', {
         cwd: 'test/files/assets/'
       }).join(), assets2 = glob.sync('assets2/*', {

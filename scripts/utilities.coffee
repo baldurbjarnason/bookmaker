@@ -7,6 +7,7 @@ logger = require('./logger')
 
 
 relative = (current, target) ->
+  current = "/" unless current
   absolutecurrent = path.dirname path.resolve("/", current)
   absolutetarget = path.resolve("/", target)
   relativetarget = path.relative(absolutecurrent, absolutetarget)

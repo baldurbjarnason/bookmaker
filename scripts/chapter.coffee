@@ -1,8 +1,5 @@
 'use strict'
 
-rs = require('robotskirt')
-renderer = new rs.HtmlRenderer([rs.HTML_USE_XHTML])
-mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES])
 $ = require 'jquery'
 Assets = require './assets'
 handlebars = require('handlebars')
@@ -12,7 +9,13 @@ addToZip = utilities.addToZip
 typogr = require 'typogr'
 nunjucks = require 'nunjucks'
 env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
-
+marked = require 'marked'
+hljs = require 'highlight.js'
+marked.setOptions {
+  highlight: (code, lang) ->
+    return hljs.highlight(lang, code).value
+  langPrefix: 'language-'
+}
 
 class Chapter
   constructor: (doc) ->
@@ -48,12 +51,12 @@ class Chapter
 toHtml = Chapter.prototype.toHtml = ->
   switch @type
     when 'md'
-      @processHTML typogr.typogrify mdparser.render @body
+      @processHTML typogr.typogrify marked @body
     when 'html'
-      @processHTML typogr.typogrify @body
+      @processHTML @body
     when 'hbs'
       bodytemplate = handlebars.compile @body
-      @processHTML typogr.typogrify bodytemplate(@context())
+      @processHTML bodytemplate(@context())
     when 'xhtml'
       @body
 
@@ -65,6 +68,13 @@ Chapter.prototype.processHTML = (html) ->
   $('body').html(html)
   $('p').not('p+p').addClass('noindent')
   $('img').addClass('bookmaker-respect')
+  if @meta.kindle
+    $('a[data-kindle-href]').each () ->
+      $(this).attr('href', $(this).attr('data-kindle-href'))
+  if @meta.ibooks
+    $('a[data-ibooks-href]').each () ->
+      $(this).attr('href', $(this).attr('data-ibooks-href'))
+      return
   _counter = {}
   counter = (elem) ->
     unless _counter[elem]
@@ -74,7 +84,9 @@ Chapter.prototype.processHTML = (html) ->
   addId = (el, elem) ->
     unless el.id
       el.id = elem + '-' + counter(elem)
-  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption']
+    else
+      el.id = 'id' + el.id if el.id.match(/^\d+/)
+  elements = ['p','img','h1','h2','h3','h4','div','blockquote','ul','ol','nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code']
   for elem in elements
     $(elem).each((index) -> addId(this, elem))
   # Need to properly filter entities here. Or at least look further into the issue.

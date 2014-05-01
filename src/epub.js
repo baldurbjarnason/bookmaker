@@ -1,7 +1,7 @@
 'use strict';
-var Chapter, addStoredToZip, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, glob, isCover, logger, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, toEpub, utilities, zipStream;
+var Chapter, addStoredToZip, addTemplatePath, addToZip, async, chapterProperties, env, extendAssets, extendBook, fs, generateChapters, getTemplateEnvironment, glob, isCover, loader, logger, mangler, nunjucks, pageLinks, path, processLandmarks, relative, renderEpub, templateLoaders, templatePaths, templates, temppath, toEpub, utilities, zipStream, _i, _len;
 
-zipStream = require('zipstream-contentment');
+zipStream = require('../zipstream-contentment');
 
 async = require('async');
 
@@ -27,13 +27,34 @@ logger = require('./logger');
 
 nunjucks = require('nunjucks');
 
-env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), {
-  autoescape: false
+loader = new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/'));
+
+env = new nunjucks.Environment(loader, {
+  autoescape: true,
+  dev: true
 });
 
-env.getTemplate('cover.xhtml').render();
-
 Chapter = require('./chapter');
+
+templatePaths = ['cover.xhtml', 'toc.ncx', 'index.xhtml', 'index.xhtml', 'content.opf'];
+
+templates = {};
+
+for (_i = 0, _len = templatePaths.length; _i < _len; _i++) {
+  temppath = templatePaths[_i];
+  templates[temppath] = env.getTemplate(temppath);
+}
+
+templateLoaders = [loader];
+
+addTemplatePath = function(newtemplates) {
+  templateLoaders.unshift(new nunjucks.FileSystemLoader(newtemplates));
+  return env.init(templateLoaders);
+};
+
+getTemplateEnvironment = function() {
+  return env;
+};
 
 extendBook = function(Book) {
   Book.prototype.toEpub = toEpub;
@@ -50,12 +71,13 @@ isCover = function(path) {
 
 chapterProperties = function(chapter) {
   var prop, properties;
-
   properties = [];
-  if (chapter.svg) {
+  chapter.svg = chapter.svg || [];
+  chapter.js = chapter.js || [];
+  if (chapter.svg.length !== 0) {
     properties.push('svg');
   }
-  if (chapter.js || (this.assets.js.toString() !== "" && !this.specifiedJs)) {
+  if ((chapter.js.length !== 0) || (this.assets.js.toString() !== "" && !this.meta.specifiedJs)) {
     properties.push('scripted');
   }
   prop = properties.join(' ');
@@ -68,16 +90,14 @@ chapterProperties = function(chapter) {
 
 processLandmarks = function(landmarks) {
   var landmark;
-
   if (!landmarks) {
     return;
   }
   landmarks = (function() {
-    var _i, _len, _results;
-
+    var _j, _len1, _results;
     _results = [];
-    for (_i = 0, _len = landmarks.length; _i < _len; _i++) {
-      landmark = landmarks[_i];
+    for (_j = 0, _len1 = landmarks.length; _j < _len1; _j++) {
+      landmark = landmarks[_j];
       _results.push((function(landmark) {
         if (landmark.type === 'bodymatter') {
           landmark.opftype = "text";
@@ -95,7 +115,6 @@ processLandmarks = function(landmarks) {
 
 generateChapters = function(book) {
   var copyright, titlepage, toc;
-
   if (book.generate.htmlToc) {
     toc = {
       title: 'Table of Contents',
@@ -147,7 +166,6 @@ generateChapters = function(book) {
 
 toEpub = function(out, options, callback) {
   var book, final, zip;
-
   logger.log.info('Rendering EPUB');
   book = Object.create(this);
   zip = zipStream.createZip({
@@ -168,7 +186,6 @@ toEpub = function(out, options, callback) {
 
 renderEpub = function(book, out, options, zip, callback) {
   var tasks;
-
   book._state = {};
   book._state.htmltype = "application/xhtml+xml";
   book.counter = utilities.countergen();
@@ -177,8 +194,8 @@ renderEpub = function(book, out, options, zip, callback) {
   book.links = pageLinks(book, book);
   book.chapterProperties = chapterProperties.bind(book);
   book.idGen = utilities.idGen;
-  if (options && options.exclude) {
-    book.exclude = options.exclude;
+  if (book.meta.outline) {
+    book.outline = book.meta.outline;
   }
   generateChapters(book);
   tasks = [];
@@ -186,17 +203,13 @@ renderEpub = function(book, out, options, zip, callback) {
   tasks.push(addToZip.bind(null, zip, 'META-INF/com.apple.ibooks.display-options.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<display_options>\n  <platform name="*">\n    <option name="specified-fonts">true</option>\n  </platform>\n</display_options>'));
   tasks.push(addToZip.bind(null, zip, 'META-INF/container.xml', '<?xml version="1.0" encoding="UTF-8"?>\n  <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n    <rootfiles>\n      <rootfile full-path="content.opf" media-type="application/oebps-package+xml" />\n    </rootfiles>\n  </container>'));
   if (book.meta.cover) {
-    tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)));
+    tasks.push(addToZip.bind(null, zip, 'cover.html', templates['cover.xhtml'].render(book)));
   }
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)));
-  tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)));
-  tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')));
-  if (options != null ? options.exclude : void 0) {
-    tasks.push(book.assets.addToZip.bind(book.assets, zip, options));
-  } else {
-    tasks.push(book.assets.addToZip.bind(book.assets, zip));
-  }
-  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)));
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render(book)));
+  tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render(book)));
+  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']));
+  tasks.push(book.assets.addToZip.bind(book.assets, zip));
+  tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render(book)));
   if ((options != null ? options.obfuscateFonts : void 0) || book.obfuscateFonts) {
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId));
   }
@@ -205,11 +218,9 @@ renderEpub = function(book, out, options, zip, callback) {
 
 extendAssets = function(Assets) {
   var mangleTask;
-
   mangleTask = function(item, assets, zip, id, callback) {
     return assets.get(item, function(err, data) {
       var file;
-
       file = mangler.mangle(data, id);
       return zip.addFile(file, {
         name: item
@@ -217,29 +228,27 @@ extendAssets = function(Assets) {
     });
   };
   Assets.prototype.addMangledFontsToZip = function(zip, id, callback) {
-    var item, tasks, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2;
-
+    var item, tasks, _j, _k, _l, _len1, _len2, _len3, _ref, _ref1, _ref2;
     tasks = [];
     _ref = this['otf'];
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      item = _ref[_i];
+    for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+      item = _ref[_j];
       tasks.push(mangleTask.bind(null, item, this, zip, id));
     }
     _ref1 = this['ttf'];
-    for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-      item = _ref1[_j];
+    for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+      item = _ref1[_k];
       tasks.push(mangleTask.bind(null, item, this, zip, id));
     }
     _ref2 = this['woff'];
-    for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-      item = _ref2[_k];
+    for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
+      item = _ref2[_l];
       tasks.push(mangleTask.bind(null, item, this, zip, id));
     }
     return async.series(tasks, callback);
   };
   Assets.prototype.mangleFonts = function(zip, id, callback) {
     var fonts;
-
     fonts = this.ttf.concat(this.otf, this.woff);
     return this.addMangledFontsToZip(zip, id, function() {
       return zip.addFile(env.getTemplate('encryption.xml').render({
@@ -258,5 +267,7 @@ module.exports = {
     return extendAssets(Assets);
   },
   extendBook: extendBook,
-  extendAssets: extendAssets
+  extendAssets: extendAssets,
+  addTemplatePath: addTemplatePath,
+  getTemplateEnvironment: getTemplateEnvironment
 };

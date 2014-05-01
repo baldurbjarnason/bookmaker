@@ -40,7 +40,7 @@
 <h1>{{ meta.title }} – Table of Contents</h1>
 <nav id="toc" class="toc h-toc" epub:type="toc">
 	{% if outline %}
-	{{ outline }}
+	{{ outline | safe }}
 	{% else %}
 <ol>
 	{% for item in chapters %}

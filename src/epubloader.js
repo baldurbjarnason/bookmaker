@@ -34,8 +34,7 @@ EpubLoaderMixin = (function() {
   function EpubLoaderMixin() {}
 
   EpubLoaderMixin.fromEpub = function(epubpath, assetsroot, callback) {
-    var Assets, Book, Chapter, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, parseChapter, preBook, processNav, tasks, unMangle;
-
+    var Assets, Book, Chapter, buildMetaArrays, createMetaAndSpine, done, epub, extractAssetsAndCreateBook, extractChapters, extractLandmarks, extractOpf, findOpf, handleRefines, parseChapter, preBook, processNav, tasks, unMangle;
     epub = new Zip(epubpath);
     Chapter = this.Chapter;
     Book = this;
@@ -44,12 +43,10 @@ EpubLoaderMixin = (function() {
     logger.log.info("Extraction starting");
     findOpf = function(callback) {
       var xml;
-
       xml = epub.readAsText('META-INF/container.xml');
       logger.log.info("EPUB – Finding opf file");
       return parseString(xml, function(err, result) {
         var rootfile;
-
         if (err) {
           logger.log.error(err);
           callback(err);
@@ -70,33 +67,126 @@ EpubLoaderMixin = (function() {
         return createMetaAndSpine(result, callback);
       });
     };
+    handleRefines = function(elem) {
+      var newProp, refinedId;
+      if (elem.$['refines'][0] !== '#') {
+
+      } else {
+        refinedId = elem.$['refines'].slice(1);
+        preBook.refines[refinedId] = preBook.refines[refinedId] || [];
+        newProp = {
+          property: elem.$['property'],
+          value: elem._
+        };
+        if (elem.$['xml:lang']) {
+          newProp.lang = elem.$['xml:lang'];
+        }
+        if (elem.$['scheme']) {
+          newProp.scheme = elem.$['scheme'];
+        }
+        if (elem.$['id']) {
+          newProp.id = elem.$['id'];
+        }
+        if (elem.$['role']) {
+          newProp.role = elem.$['role'];
+        }
+        return preBook.refines[refinedId].push(newProp);
+      }
+    };
+    buildMetaArrays = function(metaArray, metadataType) {
+      var arr, elem, metaObj, _i, _len, _ref, _ref1, _ref2, _ref3;
+      arr = [];
+      for (_i = 0, _len = metaArray.length; _i < _len; _i++) {
+        elem = metaArray[_i];
+        metaObj = {};
+        if ((_ref = elem.$) != null ? _ref['id'] : void 0) {
+          metaObj.id = elem.$['id'];
+        }
+        metaObj.type = metadataType;
+        metaObj.value = elem._;
+        if ((_ref1 = elem.$) != null ? _ref1['dir'] : void 0) {
+          metaObj.dir = elem.$['dir'];
+        }
+        if ((_ref2 = elem.$) != null ? _ref2['xml:lang'] : void 0) {
+          metaObj.lang = elem.$['xml:lang'];
+        }
+        if ((_ref3 = preBook.refines) != null ? _ref3[metaObj.id] : void 0) {
+          metaObj.properties = preBook.refines[metaObj.id];
+        }
+        arr.push(metaObj);
+      }
+      return arr;
+    };
     createMetaAndSpine = function(xml, callback) {
       var elem, item, landmarks, manifest, meta, metadata, props, reference, references, type, uid, _i, _j, _k, _l, _len, _len1, _len2, _len3, _ref, _ref1, _ref2;
-
       metadata = xml["package"].metadata[0];
-      preBook.meta = meta = {};
       uid = xml["package"].$['unique-identifier'];
-      _ref = metadata['dc:identifier'];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        elem = _ref[_i];
+      preBook.meta = meta = {};
+      if (metadata.meta) {
+        _ref = metadata.meta;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          elem = _ref[_i];
+          if (elem.$['refines']) {
+            handleRefines(elem);
+          }
+          if (elem.$['property'] === "dcterms:modified") {
+            if (!elem.$['refines']) {
+              meta.modified = elem._;
+            }
+          }
+          if (elem.$['name'] === 'cover') {
+            preBook.coverId = elem.$['content'];
+          }
+          if (elem.$['property'] === 'ibooks:version') {
+            meta.version = elem._;
+          }
+          if ((elem.$['property'] === 'rendition:layout') && (elem._ === 'pre-paginated')) {
+            meta.fxl = true;
+          }
+          if (elem.$['property'] === 'rendition:spread') {
+            meta.fxlSpread = elem._;
+          }
+          if (elem.$['property'] === 'rendition:orientation') {
+            meta.fxlOrientation = elem._;
+          }
+          if (elem.$['property'] === 'ibooks:binding') {
+            meta.fxlBinding = elem._;
+          }
+          if (elem.$['property'] === 'ibooks:ipad-orientation-lock') {
+            meta.fxliPadOrientationLock = elem._;
+          }
+          if (elem.$['property'] === 'ibooks:iphone-orientation-lock') {
+            meta.fxliPhoneOrientationLock = elem._;
+          }
+        }
+      }
+      _ref1 = metadata['dc:identifier'];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        elem = _ref1[_j];
         if (elem.$['id'] === uid) {
           meta.bookId = elem._;
         }
       }
+      meta.identifiers = buildMetaArrays(metadata['dc:identifier'], 'identifier');
       meta.specifiedCss = true;
       meta.specifiedJs = true;
       if (metadata['dc:creator']) {
         meta.author = metadata['dc:creator'][0]._;
+        meta.creators = buildMetaArrays(metadata['dc:creator'], 'creator');
       } else {
         logger.log.warn('Author metadata not set (dc:creator)');
       }
       if (metadata['dc:title']) {
         meta.title = metadata['dc:title'][0]._;
+        meta.titles = buildMetaArrays(metadata['dc:title'], 'title');
       } else {
         logger.log.warn('Title not set (dc:title)');
       }
       if (metadata['dc:creator'][1]) {
         meta.author2 = metadata['dc:creator'][1]._;
+      }
+      if (metadata['dc:contributors']) {
+        meta.contributors = buildMetaArrays(metadata['dc:contributors'], 'contributors');
       }
       if (meta.lang = metadata['dc:language']) {
         meta.lang = metadata['dc:language'][0]._;
@@ -134,24 +224,10 @@ EpubLoaderMixin = (function() {
       if (metadata['dc:subject'] && metadata['dc:subject'][2]) {
         meta.subject3 = metadata['dc:subject'][2]._;
       }
-      _ref1 = metadata.meta;
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        elem = _ref1[_j];
-        if (elem.$['property'] === "dcterms:modified") {
-          meta.modified = elem._;
-        }
-        if (elem.$['name'] === 'cover') {
-          preBook.coverId = elem.$['content'];
-        }
-        if (elem.$['property'] === 'ibooks:version') {
-          meta.version = elem._;
-        }
-      }
       manifest = xml["package"].manifest[0];
       logger.log.info('EPUB – Extracting metadata');
       preBook.spine = (function() {
         var _k, _len2, _ref2, _results;
-
         _ref2 = xml["package"].spine[0].itemref;
         _results = [];
         for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
@@ -216,7 +292,6 @@ EpubLoaderMixin = (function() {
     };
     extractLandmarks = function(index, element) {
       var href, title, type;
-
       type = $(this).attr('epub:type');
       title = $(this).text();
       href = $(this).attr('href');
@@ -232,7 +307,6 @@ EpubLoaderMixin = (function() {
     };
     processNav = function(callback) {
       var body, xml;
-
       xml = epub.readAsText(path.join(preBook.basedir, preBook.navPath));
       body = xml.split(bodyre)[2];
       $('body').html(body);
@@ -248,10 +322,8 @@ EpubLoaderMixin = (function() {
     };
     extractAssetsAndCreateBook = function(callback) {
       var assets, assetslist, entry, _i, _len;
-
       assetslist = epub.getEntries().filter(function(entry) {
         var ext;
-
         ext = path.extname(entry.entryName);
         if (entry.entryName === 'mimetype') {
           return false;
@@ -288,8 +360,7 @@ EpubLoaderMixin = (function() {
     parseChapter = function(xml, chapterpath, callback) {
       chapterpath = unescape(chapterpath);
       return parseString(xml, function(err, result) {
-        var chapter, link, links, script, scripts, svgEmbedRE, svgLinkRE, _i, _j, _len, _len1, _links;
-
+        var chapter, heightRE, link, links, metatag, metatags, script, scripts, svgEmbedRE, svgLinkRE, widthRE, _i, _j, _k, _len, _len1, _len2, _links;
         logger.log.info("EPUB – Parsing " + chapterpath);
         if (err) {
           logger.log.error(err);
@@ -300,7 +371,9 @@ EpubLoaderMixin = (function() {
         chapter.type = 'xhtml';
         svgLinkRE = new RegExp('src="[^"]*\\.svg"');
         svgEmbedRE = new RegExp('<svg [^>]*>');
-        if (svgLinkRE.test(xml) || svgEmbedRE) {
+        widthRE = new RegExp('width=([^,]*)');
+        heightRE = new RegExp('height=([^,]*)');
+        if (svgLinkRE.test(xml) || svgEmbedRE.test(xml)) {
           chapter.svg = true;
         }
         chapter.body = xml.split(bodyre)[2];
@@ -324,11 +397,21 @@ EpubLoaderMixin = (function() {
             }
           }
         }
+        metatags = result.html.head[0].meta;
+        if (metatags) {
+          for (_j = 0, _len1 = metatags.length; _j < _len1; _j++) {
+            metatag = metatags[_j];
+            if (metatag.$.name === 'viewport') {
+              chapter.width = widthRE.exec(metatag.$.content)[1];
+              chapter.height = heightRE.exec(metatag.$.content)[1];
+            }
+          }
+        }
         scripts = result.html.head[0].scripts;
         chapter.js = [];
         if (scripts) {
-          for (_j = 0, _len1 = scripts.length; _j < _len1; _j++) {
-            script = scripts[_j];
+          for (_k = 0, _len2 = scripts.length; _k < _len2; _k++) {
+            script = scripts[_k];
             js.push(script.$.src);
           }
         }
@@ -338,7 +421,6 @@ EpubLoaderMixin = (function() {
     };
     extractChapters = function(callback) {
       var chapter, chapterpath, chapters, xml, _i, _len, _ref;
-
       chapters = [];
       _ref = preBook.spine;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -353,11 +435,9 @@ EpubLoaderMixin = (function() {
     };
     unMangle = function(callback) {
       var xml;
-
       xml = epub.readAsText('META-INF/encryption.xml');
       return parseString(xml, function(err, result) {
         var eData, font, fontpath, fontpaths, _i, _j, _len, _len1, _ref;
-
         if (err) {
           logger.log.error(err);
           callback(err);
@@ -368,6 +448,7 @@ EpubLoaderMixin = (function() {
           for (_i = 0, _len = _ref.length; _i < _len; _i++) {
             eData = _ref[_i];
             if (eData['enc:EncryptionMethod'][0].$['Algorithm'] === 'http://www.idpf.org/2008/embedding') {
+              preBook.book.obfuscateFonts = true;
               fontpaths.push(eData['enc:CipherData'][0]['enc:CipherReference'][0].$['URI']);
             }
           }

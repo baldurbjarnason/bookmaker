@@ -1,8 +1,8 @@
 {
   "name": "bookmaker",
   "description": "A module for ebook creation",
-  "version": "0.1.0",
-  "homepage": "https://github.com/baldurbjarnason/bookmaker",
+  "version": "0.2.0",
+  "homepage": "https://github.com/unbounders/bookmaker",
   "author": {
     "name": "Baldur Bjarnason",
     "email": "bb@baldurbjarnason.com",
@@ -10,23 +10,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/baldurbjarnason/bookmaker.git"
+    "url": "git://github.com/unbounders/bookmaker.git"
   },
   "bugs": {
-    "url": "https://github.com/baldurbjarnason/bookmaker/issues"
+    "url": "https://github.com/unbounders/bookmaker/issues"
   },
   "licenses": [
     {
       "type": "BSD",
-      "url": "https://github.com/baldurbjarnason/bookmaker/blob/master/LICENSE"
+      "url": "https://github.com/unbounders/bookmaker/blob/master/LICENSE"
     }
   ],
   "main": "src/index.js",
   "engines": {
     "node": ">= 0.8.0"
-  },
-  "scripts": {
-    "test": "grunt test"
   },
   "devDependencies": {
     "grunt-contrib-jshint": "~0.1.1",
@@ -43,18 +40,19 @@
   "dependencies": {
     "js-yaml": "~2.0.3",
     "handlebars": "~1.0.10",
-    "robotskirt": "~2.7.1",
-    "zipstream-contentment": "~0.2.1",
     "glob": "~3.2.1",
     "jquery": "~1.8.3",
     "ncp": "~0.4.2",
     "mkdirp": "~0.3.5",
-    "nunjucks": "~0.1.9",
-    "adm-zip": "~0.4.3",
+    "adm-zip": "~0.4.4",
     "xml2js": "~0.2.8",
     "winston": "~0.7.2",
     "rimraf": "~2.2.0",
-    "async": "~0.2.9",
-    "typogr": "~0.6.1"
+    "typogr": "~0.6.1",
+    "marked": "~0.2.9",
+    "highlight.js": "~7.3.0",
+    "when": "~2.8.0",
+    "async": "~0.2.10",
+    "nunjucks": "~1.0.1"
   }
 }

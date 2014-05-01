@@ -9,7 +9,6 @@ crypto = require('crypto');
 
 mangler = function(fontpath, id) {
   var blob, font, font2, fontsum, fontsum2, i, key, prefix, shasum, _fn, _i, _len;
-
   font = fs.readFileSync(fontpath);
   shasum = crypto.createHash('sha1');
   fontsum = crypto.createHash('sha1').update(font).digest('hex');
@@ -33,7 +32,6 @@ mangler = function(fontpath, id) {
 
 mangle = function(font, id, encoding) {
   var blob, font2, fontsum, fontsum2, i, key, prefix, shasum, _fn, _i, _len;
-
   shasum = crypto.createHash('sha1');
   fontsum = crypto.createHash('sha1').update(font).digest('hex');
   shasum.update(id.trim(), 'utf8');

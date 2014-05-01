@@ -22,6 +22,7 @@ class Assets
       callback()
     zip.addFile(@getStream(item), { name: item }, resolver)
   addTypeToZip: (type, zip, callback) ->
+    console.log "adding #{type} to zip"
     tasks = []
     for item in this[type]
       tasks.push(@addItemToZip.bind(this, item, zip))
@@ -29,12 +30,6 @@ class Assets
   addToZip: (zip, options, callback) ->
     if typeof options is 'function'
       callback = options
-    if options.exclude
-      types = types.filter (value) ->
-        if options.exclude.indexOf value isnt -1
-          return false
-        else
-          return true
     tasks = []
     for type in types
       tasks.push(@addTypeToZip.bind(this, type, zip))

@@ -85,7 +85,6 @@ testchapters = [
 describe('EpubChapter', function() {
   beforeEach(function(done) {
     var assets;
-
     assets = new Assets("test/files/", "assets/");
     testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
@@ -96,7 +95,6 @@ describe('EpubChapter', function() {
   return describe('#addToZip', function() {
     return it('Returns a promise to add the chapter to zip (test.zip)', function(done) {
       var out, zip;
-
       zip = zipStream.createZip({
         level: 1
       });
@@ -105,7 +103,7 @@ describe('EpubChapter', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
       return testbook.chapters[0].addToZip(zip, null, function() {
         return zip.finalize(function(written) {
-          written.should.equal(576);
+          written.should.equal(540);
           return done();
         });
       });
@@ -123,7 +121,6 @@ describe('EpubAssets', function() {
   describe('#addTypeToZip', function() {
     return it('Adds all assets of a type to zip', function(done) {
       var out, zip;
-
       zip = zipStream.createZip({
         level: 1
       });
@@ -140,7 +137,6 @@ describe('EpubAssets', function() {
   describe('#addToZip', function() {
     return it('Adds all assets to zip', function(done) {
       var out, zip;
-
       zip = zipStream.createZip({
         level: 1
       });
@@ -157,7 +153,6 @@ describe('EpubAssets', function() {
   return describe('#mangleFonts', function() {
     return it('Adds all mangled fonts to zip', function(done) {
       var out, zip;
-
       zip = zipStream.createZip({
         level: 1
       });
@@ -176,7 +171,6 @@ describe('EpubAssets', function() {
 describe('EpubBook', function() {
   beforeEach(function(done) {
     var assets, chap, _i, _len;
-
     assets = new Assets("test/files/", "assets/");
     testbook = new Book({
       title: 'The Wonderful Wizard of Oz',
@@ -201,7 +195,6 @@ describe('EpubBook', function() {
   describe('#addChaptersToZip', function() {
     return it('Adds all chapters to zip (chapters.zip)', function(done) {
       var out, zip;
-
       zip = zipStream.createZip({
         level: 1
       });
@@ -209,7 +202,7 @@ describe('EpubBook', function() {
       zip.pipe(out);
       return testbook.addChaptersToZip(zip, null, function() {
         return zip.finalize(function(written) {
-          written.should.equal(2289);
+          written.should.equal(2130);
           return done();
         });
       });
@@ -218,13 +211,11 @@ describe('EpubBook', function() {
   return describe('#toEpub', function() {
     return it('Renders the book to epub', function(done) {
       var out;
-
       this.timeout(10000);
       out = fs.createWriteStream('test/files/test.epub');
       return testbook.toEpub(out, null, function(err, thing) {
         var checkReport,
           _this = this;
-
         if (err) {
           done(err);
         }

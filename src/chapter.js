@@ -1,12 +1,6 @@
 'use strict';
-var $, Assets, Chapter, addToZip, env, handlebars, mdparser, nunjucks, path, renderer, rs, toHtml, typogr, utilities,
+var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, nunjucks, path, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-
-rs = require('robotskirt');
-
-renderer = new rs.HtmlRenderer([rs.HTML_USE_XHTML]);
-
-mdparser = new rs.Markdown(renderer, [rs.EXT_TABLES]);
 
 $ = require('jquery');
 
@@ -28,11 +22,21 @@ env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__file
   autoescape: false
 });
 
+marked = require('marked');
+
+hljs = require('highlight.js');
+
+marked.setOptions({
+  highlight: function(code, lang) {
+    return hljs.highlight(lang, code).value;
+  },
+  langPrefix: 'language-'
+});
+
 Chapter = (function() {
   function Chapter(doc) {
     this.context = __bind(this.context, this);
     var key, _i, _len, _ref;
-
     _ref = Object.keys(doc);
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       key = _ref[_i];
@@ -42,7 +46,6 @@ Chapter = (function() {
 
   Chapter.prototype.context = function(book, options) {
     var chapter, _ref;
-
     book = book || this.book;
     chapter = Object.create(this);
     chapter.book = book;
@@ -69,14 +72,12 @@ Chapter = (function() {
 
   Chapter.prototype.formatPath = function(type) {
     var newpath;
-
     newpath = path.dirname(this.filename) + "/" + path.basename(this.filename, path.extname(this.filename)) + '.' + type;
     return newpath;
   };
 
   Chapter.prototype.addToZip = function(zip, template, callback) {
     var context;
-
     if (!template) {
       template = env.getTemplate('chapter.xhtml');
     }
@@ -94,15 +95,14 @@ Chapter = (function() {
 
 toHtml = Chapter.prototype.toHtml = function() {
   var bodytemplate;
-
   switch (this.type) {
     case 'md':
-      return this.processHTML(typogr.typogrify(mdparser.render(this.body)));
+      return this.processHTML(typogr.typogrify(marked(this.body)));
     case 'html':
-      return this.processHTML(typogr.typogrify(this.body));
+      return this.processHTML(this.body);
     case 'hbs':
       bodytemplate = handlebars.compile(this.body);
-      return this.processHTML(typogr.typogrify(bodytemplate(this.context())));
+      return this.processHTML(bodytemplate(this.context()));
     case 'xhtml':
       return this.body;
   }
@@ -115,10 +115,19 @@ Object.defineProperty(Chapter.prototype, 'html', {
 
 Chapter.prototype.processHTML = function(html) {
   var addId, counter, elem, elements, nbsp, _counter, _i, _len;
-
   $('body').html(html);
   $('p').not('p+p').addClass('noindent');
   $('img').addClass('bookmaker-respect');
+  if (this.meta.kindle) {
+    $('a[data-kindle-href]').each(function() {
+      return $(this).attr('href', $(this).attr('data-kindle-href'));
+    });
+  }
+  if (this.meta.ibooks) {
+    $('a[data-ibooks-href]').each(function() {
+      $(this).attr('href', $(this).attr('data-ibooks-href'));
+    });
+  }
   _counter = {};
   counter = function(elem) {
     if (!_counter[elem]) {
@@ -130,9 +139,13 @@ Chapter.prototype.processHTML = function(html) {
   addId = function(el, elem) {
     if (!el.id) {
       return el.id = elem + '-' + counter(elem);
+    } else {
+      if (el.id.match(/^\d+/)) {
+        return el.id = 'id' + el.id;
+      }
     }
   };
-  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption'];
+  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code'];
   for (_i = 0, _len = elements.length; _i < _len; _i++) {
     elem = elements[_i];
     $(elem).each(function(index) {

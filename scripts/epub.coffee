@@ -1,6 +1,6 @@
 'use strict'
 
-zipStream = require('zipstream-contentment')
+zipStream = require('../zipstream-contentment')
 async = require 'async'
 path = require('path')
 glob = require 'glob'
@@ -13,9 +13,21 @@ addToZip = utilities.addToZip
 addStoredToZip = utilities.addStoredToZip
 logger = require('./logger')
 nunjucks = require 'nunjucks'
-env = new nunjucks.Environment(new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/')), { autoescape: false })
-env.getTemplate('cover.xhtml').render()
+loader = new nunjucks.FileSystemLoader(path.resolve(__filename, '../../', 'templates/'))
+env = new nunjucks.Environment(loader, { autoescape: true, dev: true })
 Chapter = require './chapter'
+templatePaths = ['cover.xhtml', 'toc.ncx', 'index.xhtml', 'index.xhtml', 'content.opf']
+templates = {}
+for temppath in templatePaths
+  templates[temppath] = env.getTemplate(temppath)
+
+templateLoaders = [loader]
+addTemplatePath = (newtemplates) ->
+  templateLoaders.unshift new nunjucks.FileSystemLoader(newtemplates)
+  env.init templateLoaders
+
+getTemplateEnvironment = () ->
+  return env
 
 extendBook = (Book) ->
   Book.prototype.toEpub = toEpub
@@ -29,9 +41,11 @@ isCover = (path) ->
 
 chapterProperties = (chapter) ->
   properties = []
-  if chapter.svg
+  chapter.svg = chapter.svg || []
+  chapter.js = chapter.js || []
+  if chapter.svg.length isnt 0
     properties.push('svg')
-  if chapter.js or (@assets.js.toString() isnt "" and !@specifiedJs)
+  if (chapter.js.length isnt 0) or (@assets.js.toString() isnt "" and !@meta.specifiedJs)
     properties.push('scripted')
   prop = properties.join(' ')
   if properties.toString() isnt ""
@@ -119,7 +133,7 @@ renderEpub = (book, out, options, zip, callback) ->
   book.links = pageLinks(book, book)
   book.chapterProperties = chapterProperties.bind(book)
   book.idGen = utilities.idGen
-  book.exclude = options.exclude if options and options.exclude
+  book.outline = book.meta.outline if book.meta.outline
   generateChapters book
   tasks = []
   tasks.push(addStoredToZip.bind(null, zip, 'mimetype', "application/epub+zip"))
@@ -140,15 +154,12 @@ renderEpub = (book, out, options, zip, callback) ->
       </container>
       '''))
   if book.meta.cover
-    tasks.push(addToZip.bind(null, zip, 'cover.html', env.getTemplate('cover.xhtml').render.bind(env.getTemplate('cover.xhtml'), book)))
-  tasks.push(addToZip.bind(null, zip, 'toc.ncx', env.getTemplate('toc.ncx').render.bind(env.getTemplate('toc.ncx'), book)))
-  tasks.push(addToZip.bind(null, zip, 'index.html', env.getTemplate('index.xhtml').render.bind(env.getTemplate('index.xhtml'), book)))
-  tasks.push(book.addChaptersToZip.bind(book, zip, env.getTemplate('chapter.xhtml')))
-  if options?.exclude
-    tasks.push(book.assets.addToZip.bind(book.assets, zip, options))
-  else
-    tasks.push(book.assets.addToZip.bind(book.assets, zip))
-  tasks.push(addToZip.bind(null, zip, 'content.opf', env.getTemplate('content.opf').render.bind(env.getTemplate('content.opf'), book)))
+    tasks.push(addToZip.bind(null, zip, 'cover.html', templates['cover.xhtml'].render(book)))
+  tasks.push(addToZip.bind(null, zip, 'toc.ncx', templates['toc.ncx'].render(book)))
+  tasks.push(addToZip.bind(null, zip, 'index.html', templates['index.xhtml'].render(book)))
+  tasks.push(book.addChaptersToZip.bind(book, zip, templates['chapter.xhtml']))
+  tasks.push(book.assets.addToZip.bind(book.assets, zip))
+  tasks.push(addToZip.bind(null, zip, 'content.opf', templates['content.opf'].render(book)))
   if options?.obfuscateFonts or book.obfuscateFonts
     tasks.push(book.assets.mangleFonts.bind(book.assets, zip, book.meta.bookId))
   async.series(tasks, callback)
@@ -180,4 +191,6 @@ module.exports = {
     extendAssets Assets
   extendBook: extendBook
   extendAssets: extendAssets
+  addTemplatePath: addTemplatePath
+  getTemplateEnvironment: getTemplateEnvironment
 }
