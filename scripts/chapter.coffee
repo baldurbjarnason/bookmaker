@@ -70,10 +70,12 @@ Chapter.prototype.processHTML = (html) ->
   $('img').addClass('bookmaker-respect')
   if @meta.kindle
     $('a[data-kindle-href]').each () ->
-      $(this).attr('href', $(this).attr('data-kindle-href'))
+      if $(this).attr('data-kindle-href') isnt ""
+        $(this).attr('href', $(this).attr('data-kindle-href'))
   if @meta.ibooks
     $('a[data-ibooks-href]').each () ->
-      $(this).attr('href', $(this).attr('data-ibooks-href'))
+      if $(this).attr('data-ibooks-href') isnt ""
+        $(this).attr('href', $(this).attr('data-ibooks-href'))
       return
   _counter = {}
   counter = (elem) ->

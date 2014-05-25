@@ -120,12 +120,16 @@ Chapter.prototype.processHTML = function(html) {
   $('img').addClass('bookmaker-respect');
   if (this.meta.kindle) {
     $('a[data-kindle-href]').each(function() {
-      return $(this).attr('href', $(this).attr('data-kindle-href'));
+      if ($(this).attr('data-kindle-href') !== "") {
+        return $(this).attr('href', $(this).attr('data-kindle-href'));
+      }
     });
   }
   if (this.meta.ibooks) {
     $('a[data-ibooks-href]').each(function() {
-      $(this).attr('href', $(this).attr('data-ibooks-href'));
+      if ($(this).attr('data-ibooks-href') !== "") {
+        $(this).attr('href', $(this).attr('data-ibooks-href'));
+      }
     });
   }
   _counter = {};
