@@ -23,7 +23,7 @@ Book = (function() {
     this.meta.date = meta.date ? dateProcess(meta.date) : dateProcess();
     this.meta.modified = meta.modified ? dateProcess(meta.modified) : dateProcess();
     this.meta.copyrightYear = meta.copyrightYear || meta.date.dateYear;
-    this.meta.version = meta.version || "0.1";
+    this.meta.version = meta.version || "1.0";
     this.meta.lang = meta.lang || 'en';
     if (!meta.bookId) {
       this.meta.bookId = 'id' + require('crypto').randomBytes(16).toString('hex');

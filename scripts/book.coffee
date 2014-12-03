@@ -23,7 +23,7 @@ class Book
       else
         dateProcess()
     @meta.copyrightYear = meta.copyrightYear || meta.date.dateYear
-    @meta.version = meta.version || "0.1"
+    @meta.version = meta.version || "1.0"
     @meta.lang = meta.lang || 'en'
     unless meta.bookId
       @meta.bookId = 'id' + require('crypto').randomBytes(16).toString('hex')
