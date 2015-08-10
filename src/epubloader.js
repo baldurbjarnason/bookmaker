@@ -18,7 +18,7 @@ parser = new xml2js.Parser({
 
 parseString = parser.parseString;
 
-$ = require('jquery');
+var cheerio = require('cheerio');
 
 async = require('async');
 
@@ -290,26 +290,25 @@ EpubLoaderMixin = (function() {
       logger.log.info('EPUB – OPF parsed and worked');
       return callback(null, xml);
     };
-    extractLandmarks = function(index, element) {
-      var href, title, type;
-      type = $(this).attr('epub:type');
-      title = $(this).text();
-      href = $(this).attr('href');
-      if (preBook.spine.indexOf(href) !== -1) {
-        return preBook.landmarks.push({
-          type: type,
-          title: title,
-          href: href
-        });
-      } else {
-        return logger.log.warn("Landmark " + type + " isn't in the spine");
-      }
-    };
     processNav = function(callback) {
       var body, xml;
       xml = epub.readAsText(path.join(preBook.basedir, preBook.navPath));
-      body = xml.split(bodyre)[2];
-      $('body').html(body);
+      var $ = cheerio.load(xml);
+      extractLandmarks = function(index, element) {
+        var href, title, type;
+        type = $(this).attr('epub:type');
+        title = $(this).text();
+        href = $(this).attr('href');
+        if (preBook.spine.indexOf(href) !== -1) {
+          return preBook.landmarks.push({
+            type: type,
+            title: title,
+            href: href
+          });
+        } else {
+          return logger.log.warn("Landmark " + type + " isn't in the spine");
+        }
+      };
       preBook.landmarks = [];
       $('nav[epub\\:type=landmarks] a[epub\\:type]').each(extractLandmarks);
       if (preBook.landmarks.length !== 0) {

@@ -2,7 +2,7 @@
 var $, Assets, Chapter, addToZip, env, handlebars, hljs, marked, nunjucks, path, toHtml, typogr, utilities,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-$ = require('jquery');
+var cheerio = require('cheerio');
 
 Assets = require('./assets');
 
@@ -115,45 +115,19 @@ Object.defineProperty(Chapter.prototype, 'html', {
 
 Chapter.prototype.processHTML = function(html) {
   var addId, counter, elem, elements, nbsp, _counter, _i, _len;
-  $('body').html(html);
-  $('p').not('p+p').addClass('noindent');
+  var $ = cheerio.load(html);
   $('img').addClass('bookmaker-respect');
-  if (this.meta.kindle) {
+  if (this.meta && this.meta.kindle) {
     $('a[data-kindle-href]').each(function() {
       return $(this).attr('href', $(this).attr('data-kindle-href'));
     });
   }
-  if (this.meta.ibooks) {
+  if (this.meta && this.meta.ibooks) {
     $('a[data-ibooks-href]').each(function() {
       $(this).attr('href', $(this).attr('data-ibooks-href'));
     });
   }
-  _counter = {};
-  counter = function(elem) {
-    if (!_counter[elem]) {
-      _counter[elem] = 0;
-    }
-    _counter[elem] += 1;
-    return _counter[elem];
-  };
-  addId = function(el, elem) {
-    if (!el.id) {
-      return el.id = elem + '-' + counter(elem);
-    } else {
-      if (el.id.match(/^\d+/)) {
-        return el.id = 'id' + el.id;
-      }
-    }
-  };
-  elements = ['p', 'img', 'h1', 'h2', 'h3', 'h4', 'div', 'blockquote', 'ul', 'ol', 'nav', 'li', 'a', 'figure', 'figcaption', 'pre', 'code'];
-  for (_i = 0, _len = elements.length; _i < _len; _i++) {
-    elem = elements[_i];
-    $(elem).each(function(index) {
-      return addId(this, elem);
-    });
-  }
-  nbsp = new RegExp('&nbsp;', 'g');
-  return $('body').html().replace(nbsp, '&#160;');
+  return $.xml();
 };
 
 Chapter.prototype.renderHtml = function(resolver) {

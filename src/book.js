@@ -11,7 +11,7 @@ utilities = require('./utilities');
 
 async = require('async');
 
-$ = require('jquery');
+var cheerio = require('cheerio');
 
 Book = (function() {
   function Book(meta, assets) {
@@ -193,7 +193,7 @@ Book = (function() {
   Book.prototype.prependOutline = function(href, chapter) {
     var html;
     if (this.outline) {
-      $('body').html(this.outline);
+      var $ = cheerio.load(this.outline);
       html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
       $("a[href='" + href + "']").parent().before(html);
       return this.outline = $('body').html();
@@ -203,7 +203,7 @@ Book = (function() {
   Book.prototype.appendOutline = function(href, chapter) {
     var html;
     if (this.outline) {
-      $('body').html(this.outline);
+      var $ = cheerio.load(this.outline);
       html = "<li id='toc-" + chapter.id + "'><a href='" + chapter.filename + "' rel='chapter'>" + chapter.title + "</a></li>";
       $("a[href='" + href + "']").parent().after(html);
       return this.outline = $('body').html();

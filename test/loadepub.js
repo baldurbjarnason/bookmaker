@@ -34,13 +34,13 @@ describe('EpubLoader', function() {
       book.meta.subject1.should.equal("Foobar");
       book.meta.cover.should.equal("assets/cover.jpg");
       book.chapters[0].title.should.equal('Markdown');
-      book.chapters[0].body.should.equal('\n\t\n\t\t<h1 id="header">header</h1>\n<p class="noindent" id="p-1">Test</p>\n\n\t\n');
+      book.chapters[0].body.should.equal('\n\t\n\t\t<h1 id="header">header</h1>\n<p>Test</p>\n\n\t\n');
       book.chapters[1].title.should.equal('HTML');
-      book.chapters[1].body.should.equal('\n\t\n\t\t<h1 id="h1-1">header</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p>\n\t\n');
+      book.chapters[1].body.should.equal('\n\t\n\t\t<h1>header</h1><p>Test<br/>&#x2018;&#x2014;&#x2019;&#x201C;&#x2013;&#x201D;&#xA0;</p>\n\t\n');
       book.chapters[2].title.should.equal('XHTML');
       book.chapters[2].body.should.equal('\n\t\n\t\t<h1>header</h1><p>Test<br/></p>\n\t\n');
       book.chapters[3].title.should.equal('Template');
-      book.chapters[3].body.should.equal('\n\t\n\t\t<h1 id="h1-1">Template</h1><p class="noindent" id="p-1">Test<br />‘—’“–”&#160;</p>\n\t\n');
+      book.chapters[3].body.should.equal('\n\t\n\t\t<h1>Template</h1><p>Test<br/>&#x2018;&#x2014;&#x2019;&#x201C;&#x2013;&#x201D;&#xA0;</p>\n\t\n');
       return book.assets.root.should.equal('test/files/epubloader');
     });
   });

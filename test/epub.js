@@ -13,7 +13,7 @@ Book = index.Book;
 
 Assets = index.Assets;
 
-zipStream = require('zipstream-contentment');
+zipStream = require('../zipstream-contentment');
 
 fs = require('fs');
 
@@ -103,7 +103,7 @@ describe('EpubChapter', function() {
       testbook.addChapter(new Chapter(testchapters[1]));
       return testbook.chapters[0].addToZip(zip, null, function() {
         return zip.finalize(function(written) {
-          written.should.equal(540);
+          written.should.equal(517);
           return done();
         });
       });
@@ -202,7 +202,7 @@ describe('EpubBook', function() {
       zip.pipe(out);
       return testbook.addChaptersToZip(zip, null, function() {
         return zip.finalize(function(written) {
-          written.should.equal(2130);
+          written.should.equal(2068);
           return done();
         });
       });
