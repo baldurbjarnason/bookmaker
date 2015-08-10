@@ -1,7 +1,7 @@
 {
   "name": "bookmaker",
   "description": "A module for ebook creation",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://github.com/unbounders/bookmaker",
   "author": {
     "name": "Baldur Bjarnason",
