@@ -15,6 +15,7 @@
   "bugs": {
     "url": "https://github.com/unbounders/bookmaker/issues"
   },
+  "license": "BSD-3-Clause",
   "licenses": [
     {
       "type": "BSD",
