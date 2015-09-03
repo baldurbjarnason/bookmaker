@@ -9,7 +9,7 @@ rimraf = require('rimraf');
 
 fs = require('fs');
 
-bookmaker = require('..(/src/index)');
+bookmaker = require('../src/index');
 
 winston = require('winston');
 
